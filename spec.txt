@@ -1,0 +1,93 @@
+restrictions :
+key size = 32
+value size = 32
+
+Commands :
+
+	put <key> <value>
+	get <key>
+	rmv <key>
+
+	TODO:
+		incr (optionnaly add a number to increment by)
+		decr (optionnaly add a number to increment by)
+		replace or set
+		list -> use filtering (list for primary base, and hashmap entries)
+		sort (for lists)
+		expire
+		
+		quit
+		status   --->> return server status
+
+Data types:
+	
+	strings (size 32)
+	
+	TODO :
+		numbers (int, float, ...)
+		hashmap
+		btree
+		list
+
+TODO : Special syntax (start line with %)
+
+	to use with commands
+
+	$(entry_name)    ---->> get the values whose key is stored in entry_name (can use *******...)
+	$($(entry_ptr))
+	$(key.hash_key)
+	$($(key_ptr).$(hash_key_ptr))
+
+	key.hash_key	------>> get a value from key in a hash map entry, position in a list or weight in a btree	
+	key.hash_key.sub_hash_key
+	$(key_ptr).hash key
+	key.$(hash_key_ptr)
+	$(key_ptr).(hash_key_ptr) 
+
+Protocol :
+	string : (currently commands are sync)
+		request:
+			<command>[\r]\n
+		reply:
+			OK\r\n | NOK\r\n
+			<value>\r\n (only for "get" replies) OR error message
+		
+		TODO :
+			multiple attributes request and replies
+			async protocol
+			return code
+		
+	TODO:
+		Binary protocol
+		
+Other TODOs :
+
+	IMPORTANT !!!!! --->> Spaces in values
+
+	Make command case unsensitive
+	Add console color capability in utils.h  ---->> http://en.wikipedia.org/wiki/ANSI_escape_code
+	Configure name of database file
+	Client API
+	
+Ideas for future :
+
+	Direct acces by hash code
+	Transaction client side
+	Transaction 
+	Defense
+	Clustering / Distribution
+	Replication
+	Resize index table and data table
+	Datamodel restriction + design file
+	Events
+	Use poll or epoll  with socket
+	Use worker threads
+	
+	
+Architecture:
+
+	Threads:
+		1 Thread for main thread
+		1 Thread for accepting connections
+		1 Thread for each client connection
+		
