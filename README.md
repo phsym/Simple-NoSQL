@@ -9,7 +9,7 @@ A simplistic NoSQL database
 > See the license section for more information. <br>
 
 ## Progress :
-	Little by little, I'm improving it. I'm doing this just for myself, but feel free to contribute, clone and use it.
+Little by little, I'm improving it. I'm doing this just for myself, but feel free to contribute, clone and use it.
 
 ## License :
 This program is free software; you can redistribute it and/or modify
