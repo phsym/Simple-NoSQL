@@ -1,4 +1,5 @@
-# MKDEP=gcc -MM -o .depend *.c
+#MKDEP=gcc -MM -o .depend *.c
+#MKDEP=gcc -MM *.c > .depend
 SRC=$(wildcard ./*.c)
 HDR=$(wildcard *.h)
 OBJ=$(SRC:.c=.o)
