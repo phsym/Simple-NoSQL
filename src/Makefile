@@ -1,44 +1,9 @@
 # MKDEP=gcc -MM -o .depend *.c
-CC=gcc
-CFLAGS=-W -Wall
-LDFLAGS=-lws2_32
-EXEC=NoSQLDB
-# SRC=$(wildcard ./*.c)
-# HDR=$(wildcard *.h)
-# OBJ=$(SRC:.c=.o)
-
-SRC=concurrency.c \
-config.c \
-datastorage.c \
-fifo.c \
-indextable.c \
-linked_list.c \
-main.c \
-network.c \
-protocol.c \
-table.c \
-utils.c \
-worker.c
-
-OBJ=concurrency.o \
-config.o \
-datastorage.o \
-fifo.o \
-indextable.o \
-linked_list.o \
-main.o \
-network.o \
-protocol.o \
-table.o \
-utils.o \
-worker.o
-
+SRC=$(wildcard ./*.c)
+HDR=$(wildcard *.h)
+OBJ=$(SRC:.c=.o)
 
 all: $(EXEC)
-
-.SUFFIXES: .o .c
-.c.o:
-	$(CC) -o $@ -c $< $(CFLAGS)
 
 # depend: .depend
 
@@ -47,11 +12,11 @@ all: $(EXEC)
 	
 # -include .depend
 	
-NoSQLDB: $(OBJ)
-	$(CC) -o $@ $(OBJ) $(LDFLAGS)
+$(EXEC): $(OBJ)
+	$(CC) -o $@ $^ $(LDFLAGS)
 
-# %.o: %.c %.h
-	# $(CC) -o $@ -c $< $(CFLAGS)
+%.o: %.c %.h
+	$(CC) -o $@ -c $< $(CFLAGS)
 
 clean:
 	rm -rf *.o
