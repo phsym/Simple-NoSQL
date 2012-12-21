@@ -1,6 +1,6 @@
 #MKDEP=gcc -MM -o .depend *.c
 #MKDEP=gcc -MM *.c > .depend
-SRC=$(wildcard ./*.c)
+SRC=$(wildcard *.c)
 HDR=$(wildcard *.h)
 OBJ=$(SRC:.c=.o)
 
@@ -18,10 +18,11 @@ $(EXEC): $(OBJ)
 
 %.o: %.c %.h
 	$(CC) -o $@ -c $< $(CFLAGS)
+	
+.PHONY: clean mrproper
 
 clean:
 	rm -rf *.o
 	
 mrproper: clean
 	rm -rf $(EXEC)
-	rm -rf $(EXEC).exe
