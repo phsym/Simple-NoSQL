@@ -4,6 +4,8 @@ SRC=$(wildcard *.c)
 HDR=$(wildcard *.h)
 OBJ=$(SRC:.c=.o)
 
+.PHONY: clean mrproper
+
 all: $(EXEC)
 
 # depend: .depend
@@ -19,7 +21,6 @@ $(EXEC): $(OBJ)
 %.o: %.c %.h
 	$(CC) -o $@ -c $< $(CFLAGS)
 	
-.PHONY: clean mrproper
 
 clean:
 	rm -rf *.o
