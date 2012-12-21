@@ -33,7 +33,7 @@
 
 datastore_t* datastore_create(int storage_size, int index_length)
 {
-	char* storagefile = "./tmp/datastorage.dat";
+	char* storagefile = "./datastorage.dat";
 	datastore_t* store = malloc(sizeof(datastore_t));
 	store->index_table = index_table_create(index_length);
 	store->data_table = table_map_load(storagefile);

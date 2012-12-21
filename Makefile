@@ -3,6 +3,7 @@ export CFLAGS=-W -Wall
 export LDFLAGS=-lws2_32
 export UNAME=$(shell uname)
 
+# Detect OS type
 ifeq (Linux,$(UNAME))
 export EXEC=NoSQLDB
 else ifeq (CYGWIN_NT-5.1,$(UNAME))
