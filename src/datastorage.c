@@ -65,7 +65,7 @@ datastore_t* datastore_create(int storage_size, int index_length)
 		p = (100 * i)/store->data_table->capacity;
 		_log(LVL_INFO, "Rebuilding index table : %d%%\r\n", p);
 	}
-	semaphore_init(&store->semaphore, 1, 10);
+	semaphore_init(&store->semaphore, 1, 1);
 	return store;
 }
 

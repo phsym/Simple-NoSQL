@@ -164,7 +164,7 @@ void index_table_list_keys(index_table_t* table, char** keys, int len)
 
 unsigned int hash(char* str, int str_len) {
 	unsigned int h = 0;
-	unsigned int i;
+	int i;
 	for (i = 0; i < str_len; i++) {
 		h = 31 * h + str[i];
 	}
