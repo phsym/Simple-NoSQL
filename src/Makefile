@@ -1,16 +1,19 @@
 #MKDEP=gcc -MM -o .depend *.c
-#MKDEP=gcc -MM *.c > .depend
+# MKDEP=gcc -MM *.c > .depend
 SRC=$(wildcard *.c)
 HDR=$(wildcard *.h)
 OBJ=$(SRC:.c=.o)
 
-OUT_DIR=./bin/
+OUT_DIR=bin/
 
 OBJS=$(addprefix $(OUT_DIR), $(OBJ))
+EXECS=$(addprefix $(OUT_DIR), $(EXEC))
 
 .PHONY: clean mrproper
 
 all: $(EXEC)
+
+$(EXEC): $(EXECS)
 
 # depend: .depend
 
@@ -19,17 +22,16 @@ all: $(EXEC)
 	
 # -include .depend
 	
-$(EXEC): $(OBJS)
-	$(CC) -o $@ $^ $(LDFLAGS)
+$(EXECS): $(OUT_DIR) $(OBJS)
+	$(CC) -o $@ $(OBJS) $(LDFLAGS)
 
-$(OUT_DIR)%.o: %.c $(OUT_DIR)
+$(OUT_DIR)%.o: %.c
 	$(CC) -o $@ -c $< $(CFLAGS)
 	
 $(OUT_DIR):
-	mkdir $(OUT_DIR)
-
+	mkdir -p $(OUT_DIR)
+	
 clean:
 	rm -rf bin
 	
 mrproper: clean
-	rm -rf $(EXEC)
