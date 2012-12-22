@@ -8,6 +8,14 @@ A simplistic NoSQL database
 > THIS PROGRAM IS DISTRIBUTED WITHOUT ANY WARRANTY <br>
 > See the license section for more information. <br>
 
+## Build :
+Simply run
+> make
+###Supported systems : 
+	MinGW32<br>
+	Cygwin<br>
+	Linux 32 and 64 bits
+
 ## Progress :
 Little by little, I'm improving it. I'm doing this just for myself, but feel free to contribute, clone and use it.
 
