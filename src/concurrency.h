@@ -40,12 +40,14 @@
 
 	typedef uintptr_t thread_t;
 	typedef HANDLE semaphore_t;
+	typedef HANDLE mutex_t;
 	typedef void TH_HDL;
 #else
 	#define TH_RETURN return NULL
 
 	typedef pthread_t thread_t;
 	typedef sem_t semaphore_t;
+	typedef pthread_mutex_t mutex_t;
 	typedef void* TH_HDL;
 #endif
 
@@ -61,5 +63,14 @@ void semaphore_destroy(semaphore_t* sem);
 void semaphore_wait(semaphore_t* sem);
 
 void semaphore_post(semaphore_t* sem);
+
+
+void mutex_init(mutex_t* mut);
+
+void mutex_destroy(mutex_t* mut);
+
+void mutex_lock(mutex_t* mut);
+
+void mutex_unlock(mutex_t* mut);
 
 #endif /* THREAD_H_ */

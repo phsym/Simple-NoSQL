@@ -92,3 +92,40 @@ void semaphore_post(semaphore_t* sem)
 	sem_post(sem);
 #endif
 }
+
+
+void mutex_init(mutex_t* mut)
+{
+#ifdef __MINGW32__
+	*mut = CreateMutexA(NULL, false, NULL);
+#else
+	pthread_mutex_init(mut, NULL);
+#endif
+}
+
+void mutex_destroy(mutex_t* mut)
+{
+#ifdef __MINGW32__
+	CloseHandle(*mut);
+#else
+	pthread_mutex_destroy(mut);
+#endif
+}
+
+void mutex_lock(mutex_t* mut)
+{
+#ifdef __MINGW32__
+	WaitForSingleObject(*mut, INFINITE);
+#else
+	pthread_mutex_lock(mut);
+#endif
+}
+
+void mutex_unlock(mutex_t* mut)
+{
+#ifdef __MINGW32__
+	ReleaseMutex(*mut);
+#else
+	pthread_mutex_unlock(mut);
+#endif
+}
