@@ -130,6 +130,11 @@ void mutex_unlock(mutex_t* mut)
 #endif
 }
 
+/*
+ * Read-Write lock implementations for win32 API comes from Jordan Zimmerman
+ * on http://groups.google.com/group/comp.programming.threads/msg/b831174c04245657?hl=en
+ */
+
 void rw_lock_init(rw_lock_t* lock)
 {
 #ifdef __MINGW32__
@@ -154,7 +159,7 @@ void rw_lock_destroy(rw_lock_t* lock)
 #endif
 }
 
-void read_lock(rw_lock_t* lock)
+void rw_lock_read_lock(rw_lock_t* lock)
 {
 #ifdef __MINGW32__
 	EnterCriticalSection(&lock->readlock);
@@ -170,7 +175,7 @@ void read_lock(rw_lock_t* lock)
 #endif
 }
 
-void read_unlock(rw_lock_t* lock)
+void rw_lock_read_unlock(rw_lock_t* lock)
 {
 #ifdef __MINGW32__
 	EnterCriticalSection(&lock->lock);
@@ -182,7 +187,7 @@ void read_unlock(rw_lock_t* lock)
 #endif
 }
 
-void write_lock(rw_lock_t* lock)
+void rw_lock_write_lock(rw_lock_t* lock)
 {
 #ifdef __MINGW32__
 	EnterCriticalSection(&lock->readlock);
@@ -200,7 +205,7 @@ void write_lock(rw_lock_t* lock)
 #endif
 }
 
-void write_unlock(rw_lock_t* lock)
+void rw_lock_write_unlock(rw_lock_t* lock)
 {
 #ifdef __MINGW32__
 	LeaveCriticalSection(&lock->lock);
