@@ -61,10 +61,12 @@
 	typedef pthread_rwlock_t rw_lock_t;
 #endif
 
+// Thread
 void thread_create(thread_t* thread, TH_HDL (*handler)(void *), void* args, int detach);
 
 void thread_join(thread_t* thread);
 
+// Semaphore
 /* max_value is for windows only*/
 void semaphore_init(semaphore_t* sem, int value, int max_value);
 
@@ -74,7 +76,7 @@ void semaphore_wait(semaphore_t* sem);
 
 void semaphore_post(semaphore_t* sem);
 
-
+// Mutex
 void mutex_init(mutex_t* mut);
 
 void mutex_destroy(mutex_t* mut);
@@ -83,17 +85,17 @@ void mutex_lock(mutex_t* mut);
 
 void mutex_unlock(mutex_t* mut);
 
-
+// Read-Write Lock
 void rw_lock_init(rw_lock_t* lock);
 
 void rw_lock_destroy(rw_lock_t* lock);
 
-void read_lock(rw_lock_t* lock);
+void rw_lock_read_lock(rw_lock_t* lock);
 
-void read_unlock(rw_lock_t* lock);
+void rw_lock_read_unlock(rw_lock_t* lock);
 
-void write_lock(rw_lock_t* lock);
+void rw_lock_write_lock(rw_lock_t* lock);
 
-void write_unlock(rw_lock_t* lock);
+void rw_lock_write_unlock(rw_lock_t* lock);
 
 #endif /* THREAD_H_ */
