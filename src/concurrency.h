@@ -42,6 +42,15 @@
 	typedef HANDLE semaphore_t;
 	typedef HANDLE mutex_t;
 	typedef void TH_HDL;
+
+	typedef struct rw_lock {
+		CRITICAL_SECTION lock;
+		CRITICAL_SECTION readlock;
+
+		HANDLE writelock;  /* Manual-reset event */
+		int readers;
+	} rw_lock_t;
+
 #else
 	#define TH_RETURN return NULL
 
@@ -49,6 +58,7 @@
 	typedef sem_t semaphore_t;
 	typedef pthread_mutex_t mutex_t;
 	typedef void* TH_HDL;
+	typedef pthread_rwlock_t rw_lock_t;
 #endif
 
 void thread_create(thread_t* thread, TH_HDL (*handler)(void *), void* args, int detach);
@@ -72,5 +82,18 @@ void mutex_destroy(mutex_t* mut);
 void mutex_lock(mutex_t* mut);
 
 void mutex_unlock(mutex_t* mut);
+
+
+void rw_lock_init(rw_lock_t* lock);
+
+void rw_lock_destroy(rw_lock_t* lock);
+
+void read_lock(rw_lock_t* lock);
+
+void read_unlock(rw_lock_t* lock);
+
+void write_lock(rw_lock_t* lock);
+
+void write_unlock(rw_lock_t* lock);
 
 #endif /* THREAD_H_ */

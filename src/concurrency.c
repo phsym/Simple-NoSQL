@@ -129,3 +129,82 @@ void mutex_unlock(mutex_t* mut)
 	pthread_mutex_unlock(mut);
 #endif
 }
+
+void rw_lock_init(rw_lock_t* lock)
+{
+#ifdef __MINGW32__
+	InitializeCriticalSection(&lock->lock);
+	InitializeCriticalSection(&lock->readlock);
+
+	lock->readers = 0;
+	lock->writelock = CreateEvent(NULL, TRUE, FALSE, NULL);
+#else
+	pthread_rwlock_init(lock, NULL);
+#endif
+}
+
+void rw_lock_destroy(rw_lock_t* lock)
+{
+#ifdef __MINGW32__
+	CloseHandle(lock->writelock);
+	DeleteCriticalSection(&lock->lock);
+	DeleteCriticalSection(&lock->readlock);
+#else
+	pthread_rwlock_destroy(lock);
+#endif
+}
+
+void read_lock(rw_lock_t* lock)
+{
+#ifdef __MINGW32__
+	EnterCriticalSection(&lock->readlock);
+
+	EnterCriticalSection(&lock->lock);
+	lock->readers++;
+	ResetEvent(lock->writelock);
+	LeaveCriticalSection(&lock->lock);
+
+	LeaveCriticalSection(&lock->readlock);
+#else
+	pthread_rwlock_rdlock(lock);
+#endif
+}
+
+void read_unlock(rw_lock_t* lock)
+{
+#ifdef __MINGW32__
+	EnterCriticalSection(&lock->lock);
+	if (--lock->readers == 0)
+		SetEvent(lock->writelock);
+	LeaveCriticalSection(&lock->lock);
+#else
+	pthread_rwlock_unlock(lock);
+#endif
+}
+
+void write_lock(rw_lock_t* lock)
+{
+#ifdef __MINGW32__
+	EnterCriticalSection(&lock->readlock);
+
+	top: EnterCriticalSection(&lock->lock);
+	if (lock->readers) {
+		LeaveCriticalSection(&lock->lock);
+		WaitForSingleObject(lock->writelock, INFINITE);
+		goto top;
+	}
+
+	LeaveCriticalSection(&lock->readlock);
+#else
+	pthread_rwlock_wrlock(lock);
+#endif
+}
+
+void write_unlock(rw_lock_t* lock)
+{
+#ifdef __MINGW32__
+	LeaveCriticalSection(&lock->lock);
+#else
+	pthread_rwlock_unlock(lock);
+#endif
+}

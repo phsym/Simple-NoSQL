@@ -39,7 +39,7 @@ typedef struct {
 typedef struct {
 	index_table_t *index_table;
 	table_t *data_table;
-	mutex_t mutex;
+	rw_lock_t mutex;
 }datastore_t;
 
 datastore_t* datastore_create(int storage_size, int index_length);
