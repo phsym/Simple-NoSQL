@@ -154,7 +154,7 @@ void rw_lock_destroy(rw_lock_t* lock)
 #endif
 }
 
-void read_lock(rw_lock_t* lock)
+void rw_lock_read_lock(rw_lock_t* lock)
 {
 #ifdef __MINGW32__
 	EnterCriticalSection(&lock->readlock);
@@ -170,7 +170,7 @@ void read_lock(rw_lock_t* lock)
 #endif
 }
 
-void read_unlock(rw_lock_t* lock)
+void rw_lock_read_unlock(rw_lock_t* lock)
 {
 #ifdef __MINGW32__
 	EnterCriticalSection(&lock->lock);
@@ -182,7 +182,7 @@ void read_unlock(rw_lock_t* lock)
 #endif
 }
 
-void write_lock(rw_lock_t* lock)
+void rw_lock_write_lock(rw_lock_t* lock)
 {
 #ifdef __MINGW32__
 	EnterCriticalSection(&lock->readlock);
@@ -200,7 +200,7 @@ void write_lock(rw_lock_t* lock)
 #endif
 }
 
-void write_unlock(rw_lock_t* lock)
+void rw_lock_write_unlock(rw_lock_t* lock)
 {
 #ifdef __MINGW32__
 	LeaveCriticalSection(&lock->lock);

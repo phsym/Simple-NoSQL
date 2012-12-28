@@ -65,13 +65,13 @@ datastore_t* datastore_create(int storage_size, int index_length)
 		p = (100 * i)/store->data_table->capacity;
 		_log(LVL_INFO, "Rebuilding index table : %d%%\r\n", p);
 	}
-	rw_lock_init(&store->mutex);
+	rw_lock_init(&store->lock);
 	return store;
 }
 
 char* datastore_lookup(datastore_t* datastore, char* key)
 {
-	read_lock(&datastore->mutex);
+	rw_lock_read_lock(&datastore->lock);
 	char* value = NULL;
 	int index = index_table_get(datastore->index_table, key);
 	if(index >= 0)
@@ -82,13 +82,13 @@ char* datastore_lookup(datastore_t* datastore, char* key)
 			value = data->value;
 		}
 	}
-	read_unlock(&datastore->mutex);
+	rw_lock_read_unlock(&datastore->lock);
 	return value;
 }
 
 int datastore_put(datastore_t* datastore, char* key, char* value)
 {
-	write_lock(&datastore->mutex);
+	rw_lock_write_lock(&datastore->lock);
 	int index = index_table_get(datastore->index_table, key);
 	if(index < 0)
 	{
@@ -97,48 +97,48 @@ int datastore_put(datastore_t* datastore, char* key, char* value)
 		strncpy(data.value, value, 32);
 		index = table_put(datastore->data_table, &data);
 		index_table_put(datastore->index_table, key, index);
-		write_unlock(&datastore->mutex);
+		rw_lock_write_unlock(&datastore->lock);
 		return 0;
 	}
-	write_unlock(&datastore->mutex);
+	rw_lock_write_unlock(&datastore->lock);
 	return -1;
 }
 
 int datastore_remove(datastore_t* datastore, char* key)
 {
-	write_lock(&datastore->mutex);
+	rw_lock_write_lock(&datastore->lock);
 	int index = index_table_get(datastore->index_table, key);
 	if(index >= 0)
 	{
 		table_remove(datastore->data_table, index);
 		index_table_remove(datastore->index_table, key);
-		write_unlock(&datastore->mutex);
+		rw_lock_write_unlock(&datastore->lock);
 		return 0;
 	}
-	write_unlock(&datastore->mutex);
+	rw_lock_write_unlock(&datastore->lock);
 	return -1;
 }
 
 int datastore_count_keys(datastore_t* datastore)
 {
-	read_lock(&datastore->mutex);
+	rw_lock_read_lock(&datastore->lock);
 	int i = index_table_count_keys(datastore->index_table);
-	read_unlock(&datastore->mutex);
+	rw_lock_read_unlock(&datastore->lock);
 	return i;
 }
 
 void datastore_list_keys(datastore_t* datastore, char **keys, int len)
 {
-	read_lock(&datastore->mutex);
+	rw_lock_read_lock(&datastore->lock);
 	index_table_list_keys(datastore->index_table, keys, len);
-	read_unlock(&datastore->mutex);
+	rw_lock_read_unlock(&datastore->lock);
 }
 
 void datastore_destroy(datastore_t* datastore)
 {
-	write_lock(&datastore->mutex);
+	rw_lock_write_lock(&datastore->lock);
 	index_table_destroy(datastore->index_table);
 	destroy_map_table(datastore->data_table);
-	rw_lock_destroy(&datastore->mutex);
+	rw_lock_destroy(&datastore->lock);
 	free(datastore);
 }
