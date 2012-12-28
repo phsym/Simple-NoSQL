@@ -58,8 +58,8 @@ void index_table_put(index_table_t* table, char* key, int ptr)
 		ind = linked_list_iterate(NULL, &iterator);
 	}
 
-	ind = malloc(sizeof(index_t));
-	ind->key = key;
+	ind = malloc(sizeof(index_t)+strlen(key)+1);
+	strcpy(ind->key, key);
 	ind->ptr = ptr;
 	linked_list_append(list, ind);
 }
