@@ -31,6 +31,7 @@
 #include <stdio.h>
 #include "utils.h"
 
+
 datastore_t* datastore_create(int storage_size, int index_length)
 {
 	char* storagefile = "./datastorage.dat";
