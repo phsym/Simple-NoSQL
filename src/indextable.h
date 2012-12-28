@@ -35,8 +35,8 @@ typedef struct {
 }index_table_t;
 
 typedef struct {
-	char *key;
 	int ptr;
+	char key[];
 }index_t;
 
 index_table_t* index_table_create(int capacity);
