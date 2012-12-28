@@ -105,7 +105,7 @@ void encode_reply(request_t* req, char* buff, int buff_len)
 	}
 	else
 	{
-		strcat(buff, "NOK\r\n");
+		strcat(buff, "KO\r\n");
 		strcat(buff,  req->reply.message);
 		strcat(buff, "\r\n");
 	}
