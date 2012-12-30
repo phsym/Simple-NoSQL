@@ -4,14 +4,19 @@ value size = 32
 
 Commands :
 
+	Commands are not case sensitive
+
 	put <key> <value>
 	get <key>
+	set <key>
+	list
 	rmv <key>
 
 	TODO:
 		incr (optionnaly add a number to increment by)
 		decr (optionnaly add a number to increment by)
 		list -> use filtering (list for primary base, and hashmap entries)
+		count (with filtering)
 		sort (for lists)
 		expire
 		
@@ -21,6 +26,9 @@ Commands :
 Data types:
 	
 	strings (size 32)
+	define keys and value size in config file
+	in table : 	A used element should point to the next used element. Then use this when rebuilding
+				index tables. This will avoid browsing the all table and unused elements.
 	
 	TODO :
 		numbers (int, float, ...)
