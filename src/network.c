@@ -225,13 +225,12 @@ void process_request(datastore_t* datastore, request_t* req)
 				int n = datastore_count_keys(datastore);
 				char* keys[n];
 				datastore_list_keys(datastore, keys, n);
-				char* m = malloc(n*(32+1)*sizeof(char));
-				req->reply.message = m;
+				req->reply.message = malloc(n*(32+1)*sizeof(char));
 				int i;
 				for(i = 0; i < n; i++)
 				{
-					strncat(m, keys[i], 32);
-					strcat(m, "\r\n");
+					strncat(req->reply.message, keys[i], 32);
+					strcat(req->reply.message, "\r\n");
 				}
 				req->reply.rc = 0;
 			}
