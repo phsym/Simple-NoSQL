@@ -27,6 +27,7 @@
 
 #include <stdlib.h>
 #include <string.h>
+#include <ctype.h>
 
 #include "protocol.h"
 #include "utils.h"
@@ -51,7 +52,15 @@ int decode_request(request_t* request, char* req, int len)
 	char* op = strtok_r(req, " ", str);
 	if(op == NULL)
 		return -1;
-	else if(strcmp(op, "put") == 0)
+
+	//Convert command to lowercase
+	int i = 0;
+	while(op[i] != '\0')
+	{
+		op[i] = tolower(op[i]);
+		i++;
+	}
+	if(strcmp(op, "put") == 0)
 	{
 		request->op = OP_PUT;
 		request->name = strtok_r(NULL, " ", str);
