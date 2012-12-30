@@ -223,17 +223,21 @@ void process_request(datastore_t* datastore, request_t* req)
 		case OP_LIST:
 			{
 				int n = datastore_keys_number(datastore);
-				char* keys[n];
-				//TODO : filtering
-				datastore_list_keys(datastore, keys, n);
-				int size = n*(32+1)*sizeof(char);
-				req->reply.message = malloc(size);
-				memset(req->reply.message, '\0', size);
-				int i;
-				for(i = 0; i < n; i++)
+				if(n > 0)
 				{
-					strncat(req->reply.message, keys[i], 32);
-					strcat(req->reply.message, "\r\n");
+					char* keys[n];
+					//TODO : filtering
+					datastore_list_keys(datastore, keys, n);
+					size_t size = n*(32+1)*sizeof(char);
+					req->reply.message = malloc(size);
+					memset(req->reply.message, '\0', size);
+					int i;
+					printf("n = %d\n", n);
+					for(i = 0; i < n; i++)
+					{
+						strncat(req->reply.message, keys[i], 32);
+						strcat(req->reply.message, "\r\n");
+					}
 				}
 				req->reply.rc = 0;
 			}
