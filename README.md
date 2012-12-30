@@ -12,10 +12,11 @@ A simplistic NoSQL database
 Simply run
 
 	make
-####Supported systems : 
+####Supported platforms : 
+#####Windows
 MinGW32<br>
 Cygwin<br>
-Linux (32 & 64 bits)
+#####Linux (32 & 64 bits)
 
 ## Progress :
 Little by little, I'm improving it. I'm doing this just for myself, but feel free to contribute, clone and use it.
