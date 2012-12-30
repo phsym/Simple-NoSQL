@@ -31,6 +31,7 @@
 
 typedef struct {
 	int capacity;
+	int keys_num;
 	linked_list_t* lists;
 }index_table_t;
 
@@ -50,6 +51,8 @@ void index_table_remove(index_table_t* table, char* key);
 void index_table_clean(index_table_t* table);
 
 void index_table_destroy(index_table_t* table);
+
+int index_table_keys_number(index_table_t* table);
 
 int index_table_count_keys(index_table_t* table);
 

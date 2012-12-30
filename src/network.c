@@ -222,8 +222,9 @@ void process_request(datastore_t* datastore, request_t* req)
 			break;
 		case OP_LIST:
 			{
-				int n = datastore_count_keys(datastore);
+				int n = datastore_keys_number(datastore);
 				char* keys[n];
+				//TODO : filtering
 				datastore_list_keys(datastore, keys, n);
 				int size = n*(32+1)*sizeof(char);
 				req->reply.message = malloc(size);

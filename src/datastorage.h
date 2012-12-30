@@ -52,6 +52,8 @@ int datastore_set(datastore_t* datastore, char* key, char* value);
 
 int datastore_remove(datastore_t* datastore, char* key);
 
+int datastore_keys_number(datastore_t* datastore);
+
 int datastore_count_keys(datastore_t* datastore);
 
 void datastore_list_keys(datastore_t* datastore, char **keys, int len);

@@ -140,6 +140,11 @@ int datastore_remove(datastore_t* datastore, char* key)
 	return -1;
 }
 
+int datastore_keys_number(datastore_t* datastore)
+{
+	return index_table_keys_number(datastore->index_table);
+}
+
 int datastore_count_keys(datastore_t* datastore)
 {
 	rw_lock_read_lock(&datastore->lock);

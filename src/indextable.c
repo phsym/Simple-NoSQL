@@ -33,6 +33,7 @@ index_table_t* index_table_create(int capacity)
 {
 	index_table_t* table = malloc(sizeof(index_table_t));
 	table->capacity = capacity;
+	table->keys_num = 0;
 	table->lists = malloc(sizeof(linked_list_t)*capacity);
 
 	int i;
@@ -62,6 +63,7 @@ void index_table_put(index_table_t* table, char* key, int ptr)
 	strcpy(ind->key, key);
 	ind->ptr = ptr;
 	linked_list_append(list, ind);
+	table->keys_num ++;
 }
 
 int index_table_get(index_table_t* table, char* key)
@@ -91,6 +93,7 @@ void index_table_remove(index_table_t* table, char* key)
 		if(strcmp(ind->key, key) == 0)
 		{
 			linked_list_remove(list, i, 1);
+			table->keys_num --;
 			return;
 		}
 		ind = linked_list_iterate(NULL, &iterator);
@@ -103,15 +106,19 @@ void index_table_clean(index_table_t* table)
 	int i;
 	for(i = 0; i < table->capacity; i++)
 		linked_list_clean(table->lists + i, 1);
+	table->keys_num = 0;
 }
 
 void index_table_destroy(index_table_t* table)
 {
-	int i;
-	for(i = 0; i < table->capacity; i++)
-		linked_list_clean(table->lists + i, 1);
+	index_table_clean(table);
 	free(table->lists);
 	free(table);
+}
+
+int index_table_keys_number(index_table_t* table)
+{
+	return table->keys_num;
 }
 
 int index_table_count_keys(index_table_t* table)
