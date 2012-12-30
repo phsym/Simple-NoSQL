@@ -31,6 +31,7 @@
 #define OP_PUT 0x01
 #define OP_RMV 0x02
 #define OP_LIST 0x03
+#define OP_SET 0x04
 
 //TODO : Binary protocol
 

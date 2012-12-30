@@ -48,6 +48,8 @@ char* datastore_lookup(datastore_t* datastore, char* key);
 
 int datastore_put(datastore_t* datastore, char* key, char* value);
 
+int datastore_set(datastore_t* datastore, char* key, char* value);
+
 int datastore_remove(datastore_t* datastore, char* key);
 
 int datastore_count_keys(datastore_t* datastore);

@@ -217,6 +217,9 @@ void process_request(datastore_t* datastore, request_t* req)
 		case OP_PUT:
 			req->reply.rc = datastore_put(datastore, req->name, req->value);
 			break;
+		case OP_SET:
+			req->reply.rc = datastore_set(datastore, req->name, req->value);
+			break;
 		case OP_LIST:
 			{
 //				int n = datastore_count_keys(datastore);

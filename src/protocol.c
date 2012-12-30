@@ -54,19 +54,25 @@ int decode_request(request_t* request, char* req, int len)
 	else if(strcmp(op, "put") == 0)
 	{
 		request->op = OP_PUT;
-		char* name = strtok_r(NULL, " ", str);
-		request->name = name;
-		char* val = strtok_r(NULL, " ", str);
-		request->value = val;
-		if(name == NULL || val == NULL)
+		request->name = strtok_r(NULL, " ", str);
+		request->value = strtok_r(NULL, " ", str);
+		if(request->name == NULL || request->value == NULL)
 			return -1;
+	}
+	else if(strcmp(op, "set") == 0)
+	{
+		request->op = OP_SET;
+		request->name = strtok_r(NULL, " ", str);
+		request->value = strtok_r(NULL, " ", str);
+		if(request->name == NULL || request->value == NULL)
+			return -1;
+
 	}
 	else if(strcmp(op, "get") == 0)
 	{
 		request->op = OP_GET;
-		char* name = strtok_r(NULL, " ", str);
-		request->name = name;
-		if(name == NULL)
+		request->name = strtok_r(NULL, " ", str);
+		if(request->name == NULL)
 			return -1;
 	}
 	else if(strcmp(op, "list") == 0)
@@ -76,9 +82,8 @@ int decode_request(request_t* request, char* req, int len)
 	else if(strcmp(op, "rmv") == 0)
 	{
 		request->op = OP_RMV;
-		char* name = strtok_r(NULL, " ", str);
-		request->name = name;
-		if(name == NULL)
+		request->name = strtok_r(NULL, " ", str);
+		if(request->name == NULL)
 			return -1;
 	}
 	else
