@@ -104,6 +104,9 @@ void encode_reply(request_t* req, char* buff, int buff_len)
 				strcat(buff, req->reply.value);
 				strcat(buff, "\r\n");
 				break;
+			case OP_LIST:
+				strcat(buff, req->reply.message);
+				break;
 			default:
 				break;
 		}
