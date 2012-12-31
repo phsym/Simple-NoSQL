@@ -97,7 +97,7 @@ void semaphore_post(semaphore_t* sem)
 void mutex_init(mutex_t* mut)
 {
 #ifdef __MINGW32__
-	*mut = CreateMutexA(NULL, false, NULL);
+	*mut = CreateMutex(NULL, false, NULL);
 #else
 	pthread_mutex_init(mut, NULL);
 #endif
