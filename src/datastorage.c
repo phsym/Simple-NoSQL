@@ -94,8 +94,8 @@ int datastore_put(datastore_t* datastore, char* key, char* value)
 	if(index < 0)
 	{
 		data_t data;
-		strncpy(data.name, key, MAX_KEY_SIZE);
-		strncpy(data.value, value, MAX_VALUE_SIZE);
+		strncpy(data.name, key, MAX_KEY_SIZE+1);
+		strncpy(data.value, value, MAX_VALUE_SIZE+1);
 		index = table_put(datastore->data_table, &data);
 		index_table_put(datastore->index_table, key, index);
 		rw_lock_write_unlock(&datastore->lock);
@@ -111,15 +111,15 @@ int datastore_set(datastore_t* datastore, char* key, char* value)
 	int index = index_table_get(datastore->index_table, key);
 	if (index < 0) {
 		data_t data;
-		strncpy(data.name, key, MAX_KEY_SIZE);
-		strncpy(data.value, value, MAX_VALUE_SIZE);
+		strncpy(data.name, key, MAX_KEY_SIZE+1);
+		strncpy(data.value, value, MAX_VALUE_SIZE+1);
 		index = table_put(datastore->data_table, &data);
 		index_table_put(datastore->index_table, key, index);
 	}
 	else
 	{
 		data_t *data = table_get_ref(datastore->data_table, index);
-		strncpy(data->value, value, MAX_VALUE_SIZE);
+		strncpy(data->value, value, MAX_VALUE_SIZE+1);
 	}
 	rw_lock_write_unlock(&datastore->lock);
 	return 0;

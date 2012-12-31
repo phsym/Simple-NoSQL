@@ -201,6 +201,11 @@ void process_request(datastore_t* datastore, request_t* req)
 {
 	req->reply.message = "";
 
+	if(strlen(req->name) > MAX_KEY_SIZE)
+		req->name[MAX_KEY_SIZE] = '\0';
+	if(strlen(req->value) > MAX_VALUE_SIZE)
+			req->value[MAX_VALUE_SIZE] = '\0';
+
 	switch(req->op)
 	{
 		case OP_GET:

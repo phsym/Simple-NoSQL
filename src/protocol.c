@@ -40,6 +40,8 @@ int decode_request(request_t* request, char* req, int len)
 
 	request->reply.replied = 0;
 	request->id = last_id ++;
+	request->name = "";
+	request->value = "";
 
 	char* c = strchr(req, '\n');
 	if(c != NULL)

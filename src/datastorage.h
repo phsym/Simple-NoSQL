@@ -36,7 +36,7 @@
 
 typedef struct {
 	char name[MAX_KEY_SIZE+1];
-	char value[MAX_VALUE_SIZE];
+	char value[MAX_VALUE_SIZE+1];
 }data_t;
 
 typedef struct {
