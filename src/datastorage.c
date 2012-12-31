@@ -41,7 +41,7 @@ datastore_t* datastore_create(int storage_size, int index_length)
 	if(store->data_table == NULL)
 	{
 		_log(LVL_INFO, "Creating new data table ...\n");
-		store->data_table = table_map_create(storagefile, sizeof(data_t), storage_size);
+		store->data_table = table_map_create(storagefile, sizeof(data_t), (storage_size - sizeof(table_t))/(sizeof(data_t)+sizeof(table_elem_t)));
 	}
 	else
 	{
