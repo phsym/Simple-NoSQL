@@ -33,6 +33,8 @@
 #include "utils.h"
 #include "config.h"
 
+#include "md5.h"
+
 typedef struct {
 	volatile bool running;
 	server_t* server;
@@ -63,6 +65,15 @@ int main(int argc, char* argv[])
 //	for (r = 0; r <= 107; r++)
 //		printf ("%d : \033[%d;01mBonjour\033[00m\n", r, r);
 //	exit(0);
+
+//	const char *msg = "toto";
+//	unsigned *d = md5(msg, strlen(msg));
+//
+//	char str[MD5_DIGEST_LENGTH];
+//	md5_to_str(d, str);
+//	printf("%s\n", str);
+//	exit(0);
+
 	_log(LVL_INFO, "Starting server ... \n");
 
 	_log(LVL_INFO, "Loading settings ... \n");
