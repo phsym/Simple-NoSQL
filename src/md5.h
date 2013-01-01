@@ -19,6 +19,7 @@
 
 /*
  * md5.h
+ *  Implementation of the MD5 algorithm described in RFC1321
  *
  *  Created on: 1 janv. 2013
  *      Author: Pierre-Henri Symoneaux
@@ -27,11 +28,50 @@
 #ifndef MD5_H_
 #define MD5_H_
 
-#define MD5_DIGEST_LENGTH 32
+#include <assert.h>
+#include <stdlib.h>
 
+/* WARNING :
+ * This implementation is using 32 bits long values for sizes
+ */
 
-unsigned *md5(const char *msg, int mlen);
+#define MD5_DIGEST_STR_LENGTH 32
+#define MD5_DIGEST_LENTH 16
 
-void md5_to_str(unsigned *d, char* str);
+typedef unsigned int md5_size;
+
+/* MD5 context */
+struct md5_ctx {
+        struct {
+                unsigned int A, B, C, D; /* registers */
+        } regs;
+        unsigned char *buf;
+        md5_size size;
+        md5_size bits;
+};
+
+/* Size of the MD5 buffer */
+#define MD5_BUFFER 1024
+
+/* Basic md5 functions */
+#define F(x,y,z) ((x & y) | (~x & z))
+#define G(x,y,z) ((x & z) | (~z & y))
+#define H(x,y,z) (x ^ y ^ z)
+#define I(x,y,z) (y ^ (x | ~z))
+
+/* Rotate left 32 bits values (words) */
+#define ROTATE_LEFT(w,s) ((w << s) | ((w & 0xFFFFFFFF) >> (32 - s)))
+
+#define FF(a,b,c,d,x,s,t) (a = b + ROTATE_LEFT((a + F(b,c,d) + x + t), s))
+#define GG(a,b,c,d,x,s,t) (a = b + ROTATE_LEFT((a + G(b,c,d) + x + t), s))
+#define HH(a,b,c,d,x,s,t) (a = b + ROTATE_LEFT((a + H(b,c,d) + x + t), s))
+#define II(a,b,c,d,x,s,t) (a = b + ROTATE_LEFT((a + I(b,c,d) + x + t), s))
+
+unsigned char *md5 (unsigned char *, md5_size, unsigned char *);
+void md5_init (struct md5_ctx *);
+void md5_update (struct md5_ctx *context);
+void md5_final (unsigned char *digest, struct md5_ctx *context);
+
+void md5_to_str(unsigned char *d, char* str);
 
 #endif /* MD5_H_ */
