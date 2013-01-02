@@ -1,6 +1,8 @@
 /*
-* Simple-NoSQL
-* Copyright (C) 2012 Pierre-Henri Symoneaux
+* md5.c
+* Implementation of the md5 algorithm described in RFC1321
+* Copyright (C) 2005 Quentin Carbonneaux <crazyjoke@free.fr>
+* Modified by Pierre-Henri Symoneaux
 *
 * This program is free software; you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -19,7 +21,6 @@
 
 /*
  * md5.c
- *  Implementation of the MD5 algorithm described in RFC1321
  *
  *  Created on: 1 janv. 2013
  *      Author: Pierre-Henri Symoneaux
