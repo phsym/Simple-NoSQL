@@ -293,6 +293,15 @@ void process_request(datastore_t* datastore, request_t* req)
 		case OP_SET:
 			req->reply.rc = datastore_set(datastore, req->name, req->value);
 			break;
+		case OP_MD5:
+			{
+				unsigned char digest[MD5_DIGEST_LENGTH];
+				md5(req->value, strlen(req->value), digest);
+				char str[MD5_DIGEST_STR_LENGTH];
+				md5_to_str(digest, str);
+				datastore_set(datastore, req->name, str);
+			}
+			break;
 		case OP_LIST:
 			{
 				int n = datastore_keys_number(datastore);

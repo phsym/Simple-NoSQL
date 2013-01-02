@@ -79,6 +79,14 @@ int decode_request(request_t* request, char* req, int len)
 			return -1;
 
 	}
+	else if(strcmp(op, "md5") == 0)
+	{
+		request->op = OP_MD5;
+		request->name = strtok_r(NULL, " ", str);
+		request->value = strtok_r(NULL, " ", str);
+		if(request->name == NULL || request->value == NULL)
+			return -1;
+	}
 	else if(strcmp(op, "get") == 0)
 	{
 		request->op = OP_GET;

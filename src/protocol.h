@@ -32,6 +32,7 @@
 #define OP_RMV 0x02
 #define OP_LIST 0x03
 #define OP_SET 0x04
+#define OP_MD5 0x05
 
 //TODO : Binary protocol
 
