@@ -90,14 +90,12 @@ bool authenticate_client(client_t* cli)
 		strcat(cat, ":");
 		strcat(cat, pass);
 		
-		unsigned char digest[MD5_DIGEST_LENGTH];
-		md5(cat, strlen(cat), digest);
-		char str[MD5_DIGEST_STR_LENGTH];
-		md5_to_str(digest, str);
+		char digest_str[MD5_DIGEST_STR_LENGTH];
+		md5_str(cat, strlen(cat), digest_str);
 		
-		_log(LVL_DEBUG, "Auth token : %s\n", str);
+		_log(LVL_DEBUG, "Auth token : %s\n", digest_str);
 		
-		if(!strcmp(str, auth_tok))
+		if(!strcmp(digest_str, auth_tok))
 		{
 			r = "Authentication success\r\n";
 			_log(LVL_DEBUG, r);
@@ -295,11 +293,9 @@ void process_request(datastore_t* datastore, request_t* req)
 			break;
 		case OP_MD5:
 			{
-				unsigned char digest[MD5_DIGEST_LENGTH];
-				md5(req->value, strlen(req->value), digest);
-				char str[MD5_DIGEST_STR_LENGTH];
-				md5_to_str(digest, str);
-				datastore_set(datastore, req->name, str);
+				char digest_str[MD5_DIGEST_STR_LENGTH];
+				md5_str(req->value, strlen(req->value), digest_str);
+				datastore_set(datastore, req->name, digest_str);
 			}
 			break;
 		case OP_LIST:

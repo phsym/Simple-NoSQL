@@ -320,3 +320,10 @@ void md5_to_str(unsigned char *d, char* str)
 		strcat(str, tmp);
 	}
 }
+
+void md5_str(unsigned char *M, md5_size len, char* digest_str)
+{
+	unsigned char digest[MD5_DIGEST_LENGTH];
+	md5(M, len, digest);
+	md5_to_str(digest, digest_str);
+}
