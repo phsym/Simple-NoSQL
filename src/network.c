@@ -60,61 +60,72 @@ server_t* server_create(unsigned int bind_addr, short port, bool auth, datastore
 	return server;
 }
 
+bool authenticate_client(client_t* cli)
+{
+	_log(LVL_DEBUG, "Asking authentication\n");
+	char* auth_tok = datastore_lookup(cli->server->datastore, "DB_ADM.USER.AUTH_HASH");
+	if(auth_tok == NULL)
+	{
+		_log(LVL_WARNING, "Authentication is activated, but no password has been set. Skipping authentication.\n");
+		return true;
+	}
+	else
+	{
+		_log(LVL_DEBUG, "Stored hash : %s\n", auth_tok);
+		char* r = "Authentication needed\r\n";
+		_log(LVL_DEBUG, "%s", r);
+		send(cli->sock, r, strlen(r), 0);
+		//Authenticate user
+		char username[32];
+		char pass[32];
+		char cat[128];
+		cat[0] = '\0';
+		
+		if(read_line(cli->sock, username, 32, false) <= 0)
+			return false;
+		if(read_line(cli->sock, pass, 32, false) <= 0)
+			return false;
+		
+		strcat(cat, username);
+		strcat(cat, ":");
+		strcat(cat, pass);
+		
+		unsigned char digest[MD5_DIGEST_LENGTH];
+		md5(cat, strlen(cat), digest);
+		char str[MD5_DIGEST_STR_LENGTH];
+		md5_to_str(digest, str);
+		
+		_log(LVL_DEBUG, "Auth token : %s\n", str);
+		
+		if(!strcmp(str, auth_tok))
+		{
+			r = "Authentication success\r\n";
+			_log(LVL_DEBUG, r);
+			send(cli->sock, r, strlen(r), 0);
+			return true;
+		}
+		else
+		{
+			r = "Authentication failed\r\n";
+			_log(LVL_ERROR, r);
+			send(cli->sock, r, strlen(r), 0);
+			return false;
+		}
+	}
+}
+
 TH_HDL client_handler(void* client)
 {
 	client_t* cli = (client_t*)client;
 
 	if(cli->server->auth)
 	{
-		_log(LVL_DEBUG, "Asking authentication\n");
-		char* auth_tok = datastore_lookup(cli->server->datastore, "DB_ADM.USER.AUTH_HASH");
-		if(auth_tok == NULL)
-			_log(LVL_WARNING, "Authentication is activated, but no password has been set. Skipping authentication.\n");
-		else
+		if(!authenticate_client(cli))
 		{
-			_log(LVL_DEBUG, "Stored hash : %s\n", auth_tok);
-			char* r = "Authentication needed\r\n";
-			_log(LVL_DEBUG, "%s", r);
-			send(cli->sock, r, strlen(r), 0);
-			//Authenticate user
-			char username[32];
-			char pass[1024];
-			char cat[2048];
-			cat[0] = '\0';
-			
-			if(read_line(cli->sock, username, 32, false) <= 0)
-				TH_RETURN;
-			if(read_line(cli->sock, pass, 1024, false) <= 0)
-				TH_RETURN;
-			
-			strcat(cat, username);
-			strcat(cat, ":");
-			strcat(cat, pass);
-			
-			unsigned char digest[MD5_DIGEST_LENGTH];
-			md5(cat, strlen(cat), digest);
-			char str[MD5_DIGEST_STR_LENGTH];
-			md5_to_str(digest, str);
-			
-			_log(LVL_DEBUG, "Auth token : %s\n", str);
-			
-			
-			if(!strcmp(str, auth_tok))
-			{
-				r = "Authentication success\r\n";
-				_log(LVL_DEBUG, r);
-				send(cli->sock, r, strlen(r), 0);
-			}
-			else
-			{
-				r = "Authentication failed\r\n";
-				_log(LVL_ERROR, r);
-				send(cli->sock, r, strlen(r), 0);
-				//TODO : Generalize client cleanup
-				close(cli->sock);
-				free(client);
-				TH_RETURN;
-			}
+			//TODO : Generalize client cleanup
+			close(cli->sock);
+			free(client);
+			TH_RETURN;
 		}
 	}
 	
