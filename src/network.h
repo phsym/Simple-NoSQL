@@ -42,6 +42,7 @@ typedef struct {
 	int socket;
 	short port;
 	unsigned int bind_addr;
+	bool auth;
 	datastore_t* datastore;
 }server_t;
 
@@ -51,7 +52,7 @@ typedef struct {
 	int sock;
 }client_t;
 
-server_t* server_create(unsigned int bind_addr, short port, datastore_t* datastore);
+server_t* server_create(unsigned int bind_addr, short port, bool auth, datastore_t* datastore);
 
 void server_stop(server_t* server);
 
@@ -67,6 +68,6 @@ void server_wait_end(server_t* server);
 
 void process_request(datastore_t* datastore, request_t* req);
 
-int read_line(int sock, char* out, int out_len);
+int read_line(int sock, char* out, int out_len, bool keep_lf);
 
 #endif /* NETWORK_H_ */

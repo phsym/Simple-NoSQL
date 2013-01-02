@@ -37,7 +37,7 @@
  */
 
 #define MD5_DIGEST_STR_LENGTH 32
-#define MD5_DIGEST_LENTH 16
+#define MD5_DIGEST_LENGTH 16
 
 typedef unsigned int md5_size;
 

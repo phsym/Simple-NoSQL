@@ -39,6 +39,7 @@ typedef struct{
 	int index_len;
 	short bind_port;
 	unsigned int bind_address;
+	bool auth;
 }config_t;
 
 void config_load(config_t* config, char* file);

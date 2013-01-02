@@ -41,13 +41,14 @@
 
 #include "network.h"
 #include "utils.h"
+#include "md5.h"
 
 #ifdef __MINGW32__
 	bool WSAinit = false; //Is Winsock Initialized
 #endif
 
 
-server_t* server_create(unsigned int bind_addr, short port, datastore_t* datastore)
+server_t* server_create(unsigned int bind_addr, short port, bool auth, datastore_t* datastore)
 {
 	server_t* server = malloc(sizeof(server_t));
 	server->running = 0;
@@ -55,6 +56,7 @@ server_t* server_create(unsigned int bind_addr, short port, datastore_t* datasto
 	server->port = port;
 	server->datastore = datastore;
 	server->bind_addr = bind_addr;
+	server->auth = auth;
 	return server;
 }
 
@@ -62,11 +64,66 @@ TH_HDL client_handler(void* client)
 {
 	client_t* cli = (client_t*)client;
 
+	if(cli->server->auth)
+	{
+		_log(LVL_DEBUG, "Asking authentication\n");
+		char* auth_tok = datastore_lookup(cli->server->datastore, "DB_ADM.USER.AUTH_HASH");
+		if(auth_tok == NULL)
+			_log(LVL_WARNING, "Authentication is activated, but no password has been set. Skipping authentication.\n");
+		else
+		{
+			_log(LVL_DEBUG, "Stored hash : %s\n", auth_tok);
+			char* r = "Authentication needed\r\n";
+			_log(LVL_DEBUG, "%s", r);
+			send(cli->sock, r, strlen(r), 0);
+			//Authenticate user
+			char username[32];
+			char pass[1024];
+			char cat[2048];
+			cat[0] = '\0';
+			
+			if(read_line(cli->sock, username, 32, false) <= 0)
+				TH_RETURN;
+			if(read_line(cli->sock, pass, 1024, false) <= 0)
+				TH_RETURN;
+			
+			strcat(cat, username);
+			strcat(cat, ":");
+			strcat(cat, pass);
+			
+			unsigned char digest[MD5_DIGEST_LENGTH];
+			md5(cat, strlen(cat), digest);
+			char str[MD5_DIGEST_STR_LENGTH];
+			md5_to_str(digest, str);
+			
+			_log(LVL_DEBUG, "Auth token : %s\n", str);
+			
+			
+			if(!strcmp(str, auth_tok))
+			{
+				r = "Authentication success\r\n";
+				_log(LVL_DEBUG, r);
+				send(cli->sock, r, strlen(r), 0);
+			}
+			else
+			{
+				r = "Authentication failed\r\n";
+				_log(LVL_ERROR, r);
+				send(cli->sock, r, strlen(r), 0);
+				//TODO : Generalize client cleanup
+				close(cli->sock);
+				free(client);
+				TH_RETURN;
+			}
+		}
+	}
+	
 	char buff[BUFF_SIZE];
+	
 	while(cli->server->running)
 	{
 		//readline
-		int r = read_line(cli->sock, buff, BUFF_SIZE);
+		int r = read_line(cli->sock, buff, BUFF_SIZE, true);
 		if(r <= 0)
 			break;
 		request_t req;
@@ -256,7 +313,7 @@ void process_request(datastore_t* datastore, request_t* req)
 	}
 }
 
-int read_line(int sock, char* out, int out_len)
+int read_line(int sock, char* out, int out_len, bool keep_lf)
 {
 	char buff[1];
 	memset(out, 0, out_len);
@@ -266,6 +323,8 @@ int read_line(int sock, char* out, int out_len)
 	do {
 		r = recv(sock, buff, 1, 0);
 		if(r <=0)
+			break;
+		if(!keep_lf && buff[0] == '\n')
 			break;
 		if(buff[0] != '\r')
 			out[i++] = buff[0];

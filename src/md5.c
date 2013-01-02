@@ -315,7 +315,7 @@ void md5_to_str(unsigned char *d, char* str)
 	int i;
 	char tmp[2];
 	str[0] = '\0';
-	for (i = 0; i < MD5_DIGEST_LENTH; i++) {
+	for (i = 0; i < MD5_DIGEST_LENGTH; i++) {
 		sprintf(tmp, "%02x", d[i]);
 		strcat(str, tmp);
 	}

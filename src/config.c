@@ -51,6 +51,7 @@ void config_load(config_t* config, char* file)
 	config->debug_lvl = DEBUG_LEVEL;
 	config->index_len = 1024*1024;
 	config->storage_size = 1024*1024;
+	config->auth = false;
 
 	FILE* fd = fopen(file, "r");
 	if(fd == NULL)
@@ -107,6 +108,9 @@ void config_load(config_t* config, char* file)
 			config->storage_size = atoi(value);
 		else if(!strcmp(param, "index_length"))
 			config->index_len = atoi(value);
+		else if(!strcmp(param, "auth"))
+			if(!strcmp(value, "yes"))
+				config->auth = true;
 		else
 			_log(LVL_WARNING, "Unknown config parameter : %s = %s\n", param, value);
 	}
