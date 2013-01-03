@@ -1,0 +1,17 @@
+bin/concurrency.o: concurrency.c concurrency.h utils.h
+bin/config.o: config.c config.h utils.h
+bin/datastorage.o: datastorage.c datastorage.h concurrency.h table.h \
+ indextable.h linked_list.h utils.h
+bin/fifo.o: fifo.c fifo.h
+bin/indextable.o: indextable.c indextable.h linked_list.h
+bin/linked_list.o: linked_list.c linked_list.h
+bin/main.o: main.c network.h concurrency.h protocol.h datastorage.h table.h \
+ indextable.h linked_list.h utils.h config.h
+bin/md5.o: md5.c md5.h
+bin/network.o: network.c network.h concurrency.h protocol.h datastorage.h \
+ table.h indextable.h linked_list.h utils.h md5.h
+bin/protocol.o: protocol.c protocol.h utils.h
+bin/table.o: table.c table.h utils.h
+bin/utils.o: utils.c utils.h
+bin/worker.o: worker.c worker.h concurrency.h protocol.h datastorage.h \
+ table.h indextable.h linked_list.h utils.h

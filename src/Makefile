@@ -1,5 +1,5 @@
 #MKDEP=gcc -MM -o .depend *.c
-# MKDEP=gcc -MM *.c > .depend
+MKDEP=gcc -MM *.c | sed -e "s/\(.*\.o\)/bin\/\1/" > Makefile.depend
 SRC=$(wildcard *.c)
 HDR=$(wildcard *.h)
 OBJ=$(SRC:.c=.o)
@@ -15,12 +15,13 @@ all: $(EXEC)
 
 $(EXEC): $(EXECS)
 
-# depend: .depend
+depend: Makefile.depend
 
-# .depend: $(SRC) $(HDR)
-	# $(MKDEP)
+Makefile.depend: $(SRC) $(HDR)
+	@echo "Rebuilding dependencies"
+	@$(MKDEP)
 	
-# -include .depend
+-include Makefile.depend
 	
 $(EXECS): $(OUT_DIR) $(OBJS)
 	$(CC) -o $@ $(OBJS) $(LDFLAGS)
