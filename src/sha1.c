@@ -1,6 +1,7 @@
 /*
 SHA-1 in C
 By Steve Reid <steve@edmweb.com>
+Modified by Pierre-Henri Symoneaux
 100% Public Domain
 
 Test Vectors (from FIPS PUB 180-1)
@@ -19,7 +20,6 @@ A million repetitions of "a"
 
 #include <stdio.h>
 #include <string.h>
-//#include <endian.h>
 
 #include "sha1.h"
 
@@ -192,27 +192,30 @@ unsigned char c;
     memset(&finalcount, '\0', sizeof(finalcount));
 }
 
-// #define BUFSIZE 4096
+unsigned char *SHA1 (unsigned char * message, uint32_t len, unsigned char * digest)
+{
+	SHA1_CTX ctx;
+	SHA1Init(&ctx);
+	SHA1Update(&ctx, message, len);
+	SHA1Final(digest, &ctx);
 
-// int
-// main(int argc, char **argv)
-// {
-    // SHA1_CTX ctx;
-    // unsigned char hash[20], buf[BUFSIZE];
-    // int i;
+	return digest;
+}
 
-    // for(i=0;i<BUFSIZE;i++)
-        // buf[i] = i;
+void SHA1_to_str(unsigned char *d, char* str)
+{
+	int i;
+	char tmp[2];
+	str[0] = '\0';
+	for (i = 0; i < SHA1_DIGEST_LENGTH; i++) {
+		sprintf(tmp, "%02x", d[i]);
+		strcat(str, tmp);
+	}
+}
 
-    // SHA1Init(&ctx);
-    // for(i=0;i<1000;i++)
-        // SHA1Update(&ctx, buf, BUFSIZE);
-    // SHA1Final(hash, &ctx);
-
-    // printf("SHA1=");
-    // for(i=0;i<20;i++)
-        // printf("%02x", hash[i]);
-    // printf("\n");
-    // return 0;
-// }
-
+void SHA1_str(unsigned char *M, uint32_t len, char* digest_str)
+{
+	unsigned char digest[SHA1_DIGEST_LENGTH];
+	SHA1(M, len, digest);
+	SHA1_to_str(digest, digest_str);
+}
