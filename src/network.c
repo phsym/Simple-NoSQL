@@ -42,6 +42,7 @@
 #include "network.h"
 #include "utils.h"
 #include "md5.h"
+#include "sha1.h"
 
 #ifdef __MINGW32__
 	bool WSAinit = false; //Is Winsock Initialized
@@ -295,7 +296,14 @@ void process_request(datastore_t* datastore, request_t* req)
 			{
 				char digest_str[MD5_DIGEST_STR_LENGTH];
 				md5_str(req->value, strlen(req->value), digest_str);
-				datastore_set(datastore, req->name, digest_str);
+				req->reply.rc = datastore_set(datastore, req->name, digest_str);
+			}
+			break;
+		case OP_SHA1:
+			{
+				char digest_str[SHA1_DIGEST_STR_LENGTH];
+				SHA1_str(req->value, strlen(req->value), digest_str);
+				req->reply.rc = datastore_set(datastore, req->name, digest_str);
 			}
 			break;
 		case OP_LIST:

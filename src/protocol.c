@@ -87,6 +87,14 @@ int decode_request(request_t* request, char* req, int len)
 		if(request->name == NULL || request->value == NULL)
 			return -1;
 	}
+	else if(strcmp(op, "sha1") == 0)
+	{
+		request->op = OP_SHA1;
+		request->name = strtok_r(NULL, " ", str);
+		request->value = strtok_r(NULL, " ", str);
+		if(request->name == NULL || request->value == NULL)
+			return -1;
+	}
 	else if(strcmp(op, "get") == 0)
 	{
 		request->op = OP_GET;

@@ -32,7 +32,7 @@
 #include "indextable.h"
 
 #define MAX_KEY_SIZE 32
-#define MAX_VALUE_SIZE 32
+#define MAX_VALUE_SIZE 40
 
 typedef struct {
 	char name[MAX_KEY_SIZE+1];

@@ -6,10 +6,10 @@ bin/fifo.o: fifo.c fifo.h
 bin/indextable.o: indextable.c indextable.h linked_list.h
 bin/linked_list.o: linked_list.c linked_list.h
 bin/main.o: main.c network.h concurrency.h protocol.h datastorage.h table.h \
- indextable.h linked_list.h utils.h config.h sha1.h
+ indextable.h linked_list.h utils.h config.h
 bin/md5.o: md5.c md5.h
 bin/network.o: network.c network.h concurrency.h protocol.h datastorage.h \
- table.h indextable.h linked_list.h utils.h md5.h
+ table.h indextable.h linked_list.h utils.h md5.h sha1.h
 bin/protocol.o: protocol.c protocol.h utils.h
 bin/sha1.o: sha1.c sha1.h
 bin/table.o: table.c table.h utils.h
