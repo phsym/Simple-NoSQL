@@ -19,13 +19,6 @@
 * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 US
 */
 
-/*
- * md5.h
- *
- *  Created on: 1 janv. 2013
- *      Author: Pierre-Henri Symoneaux
- */
-
 #ifndef MD5_H_
 #define MD5_H_
 
