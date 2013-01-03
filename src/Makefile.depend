@@ -11,6 +11,7 @@ bin/md5.o: md5.c md5.h
 bin/network.o: network.c network.h concurrency.h protocol.h datastorage.h \
  table.h indextable.h linked_list.h utils.h md5.h
 bin/protocol.o: protocol.c protocol.h utils.h
+bin/sha1.o: sha1.c sha1.h
 bin/table.o: table.c table.h utils.h
 bin/utils.o: utils.c utils.h
 bin/worker.o: worker.c worker.h concurrency.h protocol.h datastorage.h \
