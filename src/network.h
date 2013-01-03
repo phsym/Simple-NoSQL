@@ -58,7 +58,7 @@ void server_stop(server_t* server);
 
 void server_destroy(server_t* server);
 
-bool authenticate_client(client_t* cli);
+bool client_authenticate(client_t* cli);
 
 TH_HDL client_handler(void* client);
 

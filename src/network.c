@@ -61,7 +61,7 @@ server_t* server_create(unsigned int bind_addr, short port, bool auth, datastore
 	return server;
 }
 
-bool authenticate_client(client_t* cli)
+bool client_authenticate(client_t* cli)
 {
 	_log(LVL_DEBUG, "Asking authentication\n");
 	char* auth_tok = datastore_lookup(cli->server->datastore, "DB_ADM.USER.AUTH_HASH");
@@ -119,7 +119,7 @@ TH_HDL client_handler(void* client)
 
 	if(cli->server->auth)
 	{
-		if(!authenticate_client(cli))
+		if(!client_authenticate(cli))
 		{
 			//TODO : Generalize client cleanup
 			close(cli->sock);
