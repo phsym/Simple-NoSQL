@@ -32,6 +32,9 @@
 #include "protocol.h"
 #include "utils.h"
 
+#include "md5.h"
+#include "sha1.h"
+
 unsigned int last_id = 0;
 
 index_table_t *cmd_dict;
@@ -39,8 +42,13 @@ cmd_t *cmd_id[256];
 bool initi = false;
 
 cmd_t commands[] = {
-{"get", OP_GET, FLAG_READ, 1, "Get command", &do_get},
-// {"put", OP_PUT, FLAG_WRITE, 2, "Put command", NULL}
+	{"get", OP_GET, FLAG_READ, 1, "Get command", &do_get},
+	{"put", OP_PUT, FLAG_WRITE, 2, "Put command", &do_put},
+	{"set", OP_SET, FLAG_WRITE, 2, "Set command", &do_set},
+	{"list", OP_LIST, FLAG_READ, 0, "List command", &do_list},
+	{"rmv", OP_RMV, FLAG_WRITE, 1, "Rmv command", &do_rmv},
+	{"md5", OP_MD5, FLAG_WRITE, 2, "Md5 command", &do_md5},
+	{"sha1", OP_SHA1, FLAG_WRITE, 2, "Sha1 command", &do_sha1}
 };
 
 void init()
@@ -60,27 +68,13 @@ void init()
 
 void register_command(cmd_t *cmd)
 {
-	printf("Registering %s, %d\n", cmd->name, cmd->op);
+	_log(LVL_DEBUG, "Registering command %s\n", cmd->name);
 	index_table_put(cmd_dict, cmd->name, cmd);
 	cmd_id[cmd->op] = cmd;
 }
 
-void do_get(datastore_t* datastore, request_t* req)
-{
-	req->reply.value = datastore_lookup(datastore, req->name);
-	req->reply.name = req->name;
-	if(req->reply.value == NULL)
-	{
-		req->reply.rc = -1;
-		req->reply.message = "Entry not found";
-	}
-	else
-		req->reply.rc = 0;
-}
-
 void process_request(datastore_t* datastore, request_t* req)
 {
-	printf("process\n");
 	init();
 	req->reply.message = "";
 
@@ -89,9 +83,13 @@ void process_request(datastore_t* datastore, request_t* req)
 	if(strlen(req->value) > MAX_VALUE_SIZE)
 		req->value[MAX_VALUE_SIZE] = '\0';
 			
-	if(cmd_id[0] != NULL)
-		cmd_id[0]->process(datastore, req);
-	printf("done : %s\n", cmd_id[0]->name);
+	if(cmd_id[req->op] != NULL)
+		cmd_id[req->op]->process(datastore, req);
+	else
+	{
+		req->reply.message = "Unknown operation";
+		req->reply.rc = -1;
+	}
 }
 
 int decode_request(request_t* request, char* req, int len)
@@ -205,4 +203,67 @@ void encode_reply(request_t* req, char* buff, int buff_len)
 		strcat(buff,  req->reply.message);
 		strcat(buff, "\r\n");
 	}
+}
+
+void do_get(datastore_t* datastore, request_t* req)
+{
+	req->reply.value = datastore_lookup(datastore, req->name);
+	req->reply.name = req->name;
+	if(req->reply.value == NULL)
+	{
+		req->reply.rc = -1;
+		req->reply.message = "Entry not found";
+	}
+	else
+		req->reply.rc = 0;
+}
+
+void do_put(datastore_t* datastore, request_t* req)
+{
+	req->reply.rc = datastore_put(datastore, req->name, req->value);
+}
+
+void do_set(datastore_t* datastore, request_t* req)
+{
+	req->reply.rc = datastore_set(datastore, req->name, req->value);
+}
+
+void do_list(datastore_t* datastore, request_t* req)
+{
+	int n = datastore_keys_number(datastore);
+	if(n > 0)
+	{
+		char* keys[n];
+		// TODO : filtering
+		datastore_list_keys(datastore, keys, n);
+		size_t size = n*(MAX_KEY_SIZE+1)*sizeof(char);
+		req->reply.message = malloc(size);
+		memset(req->reply.message, '\0', size);
+		int i;
+		for(i = 0; i < n; i++)
+		{
+			strncat(req->reply.message, keys[i], MAX_KEY_SIZE);
+			strcat(req->reply.message, "\r\n");
+		}
+	}
+	req->reply.rc = 0;
+}
+
+void do_rmv(datastore_t* datastore, request_t* req)
+{
+	req->reply.rc = datastore_remove(datastore, req->name);
+}
+
+void do_md5(datastore_t* datastore, request_t* req)
+{
+	char digest_str[MD5_DIGEST_STR_LENGTH];
+	md5_str(req->value, strlen(req->value), digest_str);
+	req->reply.rc = datastore_set(datastore, req->name, digest_str);
+}
+
+void do_sha1(datastore_t* datastore, request_t* req)
+{
+	char digest_str[SHA1_DIGEST_STR_LENGTH];
+	SHA1_str(req->value, strlen(req->value), digest_str);
+	req->reply.rc = datastore_set(datastore, req->name, digest_str);
 }

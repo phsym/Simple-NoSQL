@@ -68,8 +68,6 @@ void server_start(server_t* server);
 
 void server_wait_end(server_t* server);
 
-// void process_request(datastore_t* datastore, request_t* req);
-
 int read_line(int sock, char* out, int out_len, bool keep_lf);
 
 #endif /* NETWORK_H_ */

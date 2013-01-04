@@ -77,12 +77,18 @@ extern cmd_t commands[];
 extern index_table_t *cmd_dict;
 extern cmd_t *cmd_id[256];
 
-void do_get(datastore_t* datastore, request_t* request);
-
 void process_request(datastore_t* datastore, request_t* req);
 
 int decode_request(request_t* request, char* req, int len);
 
 void encode_reply(request_t* req, char* buff, int buff_len);
+
+void do_get(datastore_t* datastore, request_t* request);
+void do_put(datastore_t* datastore, request_t* request);
+void do_set(datastore_t* datastore, request_t* request);
+void do_list(datastore_t* datastore, request_t* request);
+void do_rmv(datastore_t* datastore, request_t* request);
+void do_md5(datastore_t* datastore, request_t* request);
+void do_sha1(datastore_t* datastore, request_t* request);
 
 #endif /* PROTOCOL_H_ */
