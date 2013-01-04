@@ -94,6 +94,7 @@ void process_request(datastore_t* datastore, request_t* req)
 
 int decode_request(request_t* request, char* req, int len)
 {
+	init();
 	memset(request, 0, sizeof(request));
 
 	request->reply.replied = 0;
@@ -120,60 +121,30 @@ int decode_request(request_t* request, char* req, int len)
 		op[i] = tolower(op[i]);
 		i++;
 	}
-	if(strcmp(op, "put") == 0)
+	
+	int t = index_table_get(cmd_dict, op);
+	
+	if(t != -1) // TODO: Adapt indextable, -1 is not a good value for this case
 	{
-		request->op = OP_PUT;
-		request->name = strtok_r(NULL, " ", str);
-		request->value = strtok_r(NULL, " ", str);
-		if(request->name == NULL || request->value == NULL)
-			return -1;
-	}
-	else if(strcmp(op, "set") == 0)
-	{
-		request->op = OP_SET;
-		request->name = strtok_r(NULL, " ", str);
-		request->value = strtok_r(NULL, " ", str);
-		if(request->name == NULL || request->value == NULL)
-			return -1;
-
-	}
-	else if(strcmp(op, "md5") == 0)
-	{
-		request->op = OP_MD5;
-		request->name = strtok_r(NULL, " ", str);
-		request->value = strtok_r(NULL, " ", str);
-		if(request->name == NULL || request->value == NULL)
-			return -1;
-	}
-	else if(strcmp(op, "sha1") == 0)
-	{
-		request->op = OP_SHA1;
-		request->name = strtok_r(NULL, " ", str);
-		request->value = strtok_r(NULL, " ", str);
-		if(request->name == NULL || request->value == NULL)
-			return -1;
-	}
-	else if(strcmp(op, "get") == 0)
-	{
-		request->op = OP_GET;
-		request->name = strtok_r(NULL, " ", str);
-		if(request->name == NULL)
-			return -1;
-	}
-	else if(strcmp(op, "list") == 0)
-	{
-		request->op = OP_LIST;
-	}
-	else if(strcmp(op, "rmv") == 0)
-	{
-		request->op = OP_RMV;
-		request->name = strtok_r(NULL, " ", str);
-		if(request->name == NULL)
-			return -1;
+		cmd_t *cmd = t;
+		
+		request->op = cmd->op;
+		if(cmd->argc > 0)
+		{
+			request->name = strtok_r(NULL, " ", str);
+			if(request->name == NULL)
+				return -1;
+		}
+		if(cmd->argc > 1)
+		{
+			request->value = strtok_r(NULL, " ", str);
+			if(request->value == NULL)
+				return -1;
+		}
 	}
 	else
 		return -1;
-
+	
 	return 0;
 }
 

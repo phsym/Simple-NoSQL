@@ -68,12 +68,12 @@ typedef struct {
 	char* name;
 	unsigned char op;
 	char flag;
-	int arg_num;
+	int argc;
 	char* description;
 	void (*process)(datastore_t*, request_t*);
 } cmd_t;
 
-extern cmd_t commands[];
+// extern cmd_t commands[];
 extern index_table_t *cmd_dict;
 extern cmd_t *cmd_id[256];
 
