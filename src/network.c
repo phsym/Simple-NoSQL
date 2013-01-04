@@ -264,78 +264,78 @@ void server_destroy(server_t* server)
 	free(server);
 }
 
-void process_request(datastore_t* datastore, request_t* req)
-{
-	req->reply.message = "";
+// void process_request(datastore_t* datastore, request_t* req)
+// {
+	// req->reply.message = "";
 
-	if(strlen(req->name) > MAX_KEY_SIZE)
-		req->name[MAX_KEY_SIZE] = '\0';
-	if(strlen(req->value) > MAX_VALUE_SIZE)
-			req->value[MAX_VALUE_SIZE] = '\0';
+	// if(strlen(req->name) > MAX_KEY_SIZE)
+		// req->name[MAX_KEY_SIZE] = '\0';
+	// if(strlen(req->value) > MAX_VALUE_SIZE)
+			// req->value[MAX_VALUE_SIZE] = '\0';
 
-	switch(req->op)
-	{
-		case OP_GET:
-			req->reply.value = datastore_lookup(datastore, req->name);
-			req->reply.name = req->name;
-			if(req->reply.value == NULL)
-			{
-				req->reply.rc = -1;
-				req->reply.message = "Entry not found";
-			}
-			else
-				req->reply.rc = 0;
-			break;
-		case OP_PUT:
-			req->reply.rc = datastore_put(datastore, req->name, req->value);
-			break;
-		case OP_SET:
-			req->reply.rc = datastore_set(datastore, req->name, req->value);
-			break;
-		case OP_MD5:
-			{
-				char digest_str[MD5_DIGEST_STR_LENGTH];
-				md5_str(req->value, strlen(req->value), digest_str);
-				req->reply.rc = datastore_set(datastore, req->name, digest_str);
-			}
-			break;
-		case OP_SHA1:
-			{
-				char digest_str[SHA1_DIGEST_STR_LENGTH];
-				SHA1_str(req->value, strlen(req->value), digest_str);
-				req->reply.rc = datastore_set(datastore, req->name, digest_str);
-			}
-			break;
-		case OP_LIST:
-			{
-				int n = datastore_keys_number(datastore);
-				if(n > 0)
-				{
-					char* keys[n];
-					//TODO : filtering
-					datastore_list_keys(datastore, keys, n);
-					size_t size = n*(MAX_KEY_SIZE+1)*sizeof(char);
-					req->reply.message = malloc(size);
-					memset(req->reply.message, '\0', size);
-					int i;
-					for(i = 0; i < n; i++)
-					{
-						strncat(req->reply.message, keys[i], MAX_KEY_SIZE);
-						strcat(req->reply.message, "\r\n");
-					}
-				}
-				req->reply.rc = 0;
-			}
-			break;
-		case OP_RMV:
-			req->reply.rc = datastore_remove(datastore, req->name);
-			break;
-		default:
-			req->reply.message = "Unknown operation";
-			req->reply.rc = -1;
-			break;
-	}
-}
+	// switch(req->op)
+	// {
+		// case OP_GET:
+			// req->reply.value = datastore_lookup(datastore, req->name);
+			// req->reply.name = req->name;
+			// if(req->reply.value == NULL)
+			// {
+				// req->reply.rc = -1;
+				// req->reply.message = "Entry not found";
+			// }
+			// else
+				// req->reply.rc = 0;
+			// break;
+		// case OP_PUT:
+			// req->reply.rc = datastore_put(datastore, req->name, req->value);
+			// break;
+		// case OP_SET:
+			// req->reply.rc = datastore_set(datastore, req->name, req->value);
+			// break;
+		// case OP_MD5:
+			// {
+				// char digest_str[MD5_DIGEST_STR_LENGTH];
+				// md5_str(req->value, strlen(req->value), digest_str);
+				// req->reply.rc = datastore_set(datastore, req->name, digest_str);
+			// }
+			// break;
+		// case OP_SHA1:
+			// {
+				// char digest_str[SHA1_DIGEST_STR_LENGTH];
+				// SHA1_str(req->value, strlen(req->value), digest_str);
+				// req->reply.rc = datastore_set(datastore, req->name, digest_str);
+			// }
+			// break;
+		// case OP_LIST:
+			// {
+				// int n = datastore_keys_number(datastore);
+				// if(n > 0)
+				// {
+					// char* keys[n];
+					// TODO : filtering
+					// datastore_list_keys(datastore, keys, n);
+					// size_t size = n*(MAX_KEY_SIZE+1)*sizeof(char);
+					// req->reply.message = malloc(size);
+					// memset(req->reply.message, '\0', size);
+					// int i;
+					// for(i = 0; i < n; i++)
+					// {
+						// strncat(req->reply.message, keys[i], MAX_KEY_SIZE);
+						// strcat(req->reply.message, "\r\n");
+					// }
+				// }
+				// req->reply.rc = 0;
+			// }
+			// break;
+		// case OP_RMV:
+			// req->reply.rc = datastore_remove(datastore, req->name);
+			// break;
+		// default:
+			// req->reply.message = "Unknown operation";
+			// req->reply.rc = -1;
+			// break;
+	// }
+// }
 
 int read_line(int sock, char* out, int out_len, bool keep_lf)
 {

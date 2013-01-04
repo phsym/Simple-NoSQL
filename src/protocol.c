@@ -34,6 +34,66 @@
 
 unsigned int last_id = 0;
 
+index_table_t *cmd_dict;
+cmd_t *cmd_id[256];
+bool initi = false;
+
+cmd_t commands[] = {
+{"get", OP_GET, FLAG_READ, 1, "Get command", &do_get},
+// {"put", OP_PUT, FLAG_WRITE, 2, "Put command", NULL}
+};
+
+void init()
+{
+	if(!initi)
+	{
+		int num_cmd = sizeof(commands)/sizeof(cmd_t);
+		cmd_dict = index_table_create(256);
+		int i;
+		for(i = 0; i < 256; i++)
+			cmd_id[i] = NULL;
+		for(i = 0; i < num_cmd; i++)
+			register_command(commands+i);
+		initi = true;
+	}
+}
+
+void register_command(cmd_t *cmd)
+{
+	printf("Registering %s, %d\n", cmd->name, cmd->op);
+	index_table_put(cmd_dict, cmd->name, cmd);
+	cmd_id[cmd->op] = cmd;
+}
+
+void do_get(datastore_t* datastore, request_t* req)
+{
+	req->reply.value = datastore_lookup(datastore, req->name);
+	req->reply.name = req->name;
+	if(req->reply.value == NULL)
+	{
+		req->reply.rc = -1;
+		req->reply.message = "Entry not found";
+	}
+	else
+		req->reply.rc = 0;
+}
+
+void process_request(datastore_t* datastore, request_t* req)
+{
+	printf("process\n");
+	init();
+	req->reply.message = "";
+
+	if(strlen(req->name) > MAX_KEY_SIZE)
+		req->name[MAX_KEY_SIZE] = '\0';
+	if(strlen(req->value) > MAX_VALUE_SIZE)
+		req->value[MAX_VALUE_SIZE] = '\0';
+			
+	if(cmd_id[0] != NULL)
+		cmd_id[0]->process(datastore, req);
+	printf("done : %s\n", cmd_id[0]->name);
+}
+
 int decode_request(request_t* request, char* req, int len)
 {
 	memset(request, 0, sizeof(request));

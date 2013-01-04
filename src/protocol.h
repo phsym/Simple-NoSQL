@@ -27,6 +27,9 @@
 #ifndef PROTOCOL_H_
 #define PROTOCOL_H_
 
+#include "datastorage.h"
+#include "indextable.h"
+
 #define OP_GET 0x00
 #define OP_PUT 0x01
 #define OP_RMV 0x02
@@ -34,6 +37,10 @@
 #define OP_SET 0x04
 #define OP_MD5 0x05
 #define OP_SHA1 0x06
+
+#define FLAG_READ 0x01
+#define FLAG_WRITE 0x02
+#define FLAG_READ_WRITE (FLAG_READ|FLAG_WRITE)
 
 //TODO : Binary protocol
 
@@ -56,6 +63,23 @@ typedef struct request_t{
 	char* value;
 	reply_t reply;
 } request_t;
+
+typedef struct {
+	char* name;
+	unsigned char op;
+	char flag;
+	int arg_num;
+	char* description;
+	void (*process)(datastore_t*, request_t*);
+} cmd_t;
+
+extern cmd_t commands[];
+extern index_table_t *cmd_dict;
+extern cmd_t *cmd_id[256];
+
+void do_get(datastore_t* datastore, request_t* request);
+
+void process_request(datastore_t* datastore, request_t* req);
 
 int decode_request(request_t* request, char* req, int len);
 
