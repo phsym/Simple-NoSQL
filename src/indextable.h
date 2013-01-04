@@ -27,6 +27,7 @@
 #ifndef INDEXTABLE_H_
 #define INDEXTABLE_H_
 
+#include <stdint.h>
 #include "linked_list.h"
 
 typedef struct {
@@ -36,15 +37,15 @@ typedef struct {
 }index_table_t;
 
 typedef struct {
-	int ptr;
+	uintptr_t ptr;
 	char key[];
 }index_t;
 
 index_table_t* index_table_create(int capacity);
 
-void index_table_put(index_table_t* table, char* key, int ptr);
+void index_table_put(index_table_t* table, char* key, uintptr_t ptr);
 
-int index_table_get(index_table_t* table, char* key);
+uintptr_t index_table_get(index_table_t* table, char* key);
 
 void index_table_remove(index_table_t* table, char* key);
 

@@ -43,7 +43,7 @@ index_table_t* index_table_create(int capacity)
 	return table;
 }
 
-void index_table_put(index_table_t* table, char* key, int ptr)
+void index_table_put(index_table_t* table, char* key, uintptr_t ptr)
 {
 	int index = hash(key, strlen(key)) % table->capacity;
 	linked_list_t *list = (table->lists + index);
@@ -66,7 +66,7 @@ void index_table_put(index_table_t* table, char* key, int ptr)
 	table->keys_num ++;
 }
 
-int index_table_get(index_table_t* table, char* key)
+uintptr_t index_table_get(index_table_t* table, char* key)
 {
 	int index = hash(key, strlen(key)) % table->capacity;
 	linked_list_t *list = (table->lists + index);

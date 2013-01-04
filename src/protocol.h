@@ -73,7 +73,6 @@ typedef struct {
 	void (*process)(datastore_t*, request_t*);
 } cmd_t;
 
-// extern cmd_t commands[];
 extern index_table_t *cmd_dict;
 extern cmd_t *cmd_id[256];
 
