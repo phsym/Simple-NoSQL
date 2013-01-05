@@ -191,13 +191,13 @@ TH_HDL server_handler(void* serv)
 	if(bind(sock, (struct sockaddr*)&addr, sizeof(struct sockaddr_in)) != 0)
 	{
 		_perror("Error Bind");
-		exit(1);
+		TH_RETURN;
 	}
 
 	if(listen(sock, 1000) != 0)
 	{
 		_perror("Error listen");
-		exit(1);
+		TH_RETURN;
 	}
 
 	struct sockaddr_in addr_client;

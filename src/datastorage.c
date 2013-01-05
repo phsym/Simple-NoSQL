@@ -59,7 +59,7 @@ datastore_t* datastore_create(int storage_size, int index_length)
 			tmp = table_get_ref(store->data_table, i);
 			if(tmp != NULL)
 			{
-				_log(LVL_TRACE, "\nfound %s at index %d\n", tmp->name, i);
+				_log(LVL_TRACE, "found %s at index %d\n", tmp->name, i);
 				hashtable_put(store->index_table, tmp->name, i);
 			}
 		}
