@@ -39,7 +39,7 @@ unsigned int last_id = 0;
 
 index_table_t *cmd_dict;
 cmd_t *cmd_id[256];
-bool initi = false;
+bool init = false;
 
 cmd_t commands[] = {
 	{"get", OP_GET, FLAG_READ, 1, "Get command", &do_get},
@@ -51,9 +51,9 @@ cmd_t commands[] = {
 	{"sha1", OP_SHA1, FLAG_WRITE, 2, "Sha1 command", &do_sha1}
 };
 
-void init()
+void protocol_init()
 {
-	if(!initi)
+	if(!init)
 	{
 		int num_cmd = sizeof(commands)/sizeof(cmd_t);
 		cmd_dict = index_table_create(256);
@@ -62,7 +62,16 @@ void init()
 			cmd_id[i] = NULL;
 		for(i = 0; i < num_cmd; i++)
 			register_command(commands+i);
-		initi = true;
+		init = true;
+	}
+}
+
+void protocol_cleanup()
+{
+	if(init)
+	{
+		index_table_destroy(cmd_dict);
+		init = false;
 	}
 }
 
@@ -75,7 +84,6 @@ void register_command(cmd_t *cmd)
 
 void process_request(datastore_t* datastore, request_t* req)
 {
-	init();
 	req->reply.message = "";
 
 	if(strlen(req->name) > MAX_KEY_SIZE)
@@ -94,7 +102,6 @@ void process_request(datastore_t* datastore, request_t* req)
 
 int decode_request(request_t* request, char* req, int len)
 {
-	init();
 	memset(request, 0, sizeof(request));
 
 	request->reply.replied = 0;

@@ -76,7 +76,8 @@ typedef struct {
 extern index_table_t *cmd_dict;
 extern cmd_t *cmd_id[256];
 
-void init();
+void protocol_init();
+void protocol_cleanup();
 void register_command(cmd_t *cmd);
 
 void process_request(datastore_t* datastore, request_t* req);
