@@ -68,7 +68,20 @@ void _perror(char* message, ...)
 {
 	va_list argptr;
 	va_start(argptr,message);
-	vfprintf(stderr, message, argptr);
+
+	char date[TIME_STRLEN];
+	get_current_time_string(date, TIME_STRLEN);
+
+	char mess[strlen(date) + strlen(message) + strlen(DBG_LVL_STR[LVL_ERROR]) + 4];
+	mess[0] = '\0';
+	strcat(mess, "");
+	strcat(mess, date);
+	strcat (mess, " ");
+	strcat(mess, DBG_LVL_STR[LVL_ERROR]);
+	strcat(mess, "\t: ");
+	strcat(mess, message);
+
+	vfprintf(stderr, mess, argptr);
 	fprintf(stderr, " : %s\n", sys_errlist[errno]);
 	va_end(argptr);
 }
