@@ -28,7 +28,7 @@
 #define PROTOCOL_H_
 
 #include "datastorage.h"
-#include "indextable.h"
+#include "hashtable.h"
 
 #define OP_GET 0x00
 #define OP_PUT 0x01
@@ -74,7 +74,7 @@ typedef struct {
 	void (*process)(datastore_t*, request_t*);
 } cmd_t;
 
-extern index_table_t *cmd_dict;
+extern hashtable_t *cmd_dict;
 extern cmd_t *cmd_id[256];
 
 void protocol_init();

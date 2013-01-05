@@ -24,8 +24,8 @@
  *      Author: Pierre-Henri Symoneaux
  */
 
-#ifndef HASHTABLE_H_
-#define HASHTABLE_H_
+#ifndef TABLE_H_
+#define TABLE_H_
 
 #define TABLE_MAGIC 0x6F
 
@@ -71,4 +71,4 @@ void destroy_table(table_t* table);
 
 void table_resize(table_t* table, int new_capacity);
 
-#endif /* HASHTABLE_H_ */
+#endif /* TABLE_H_ */

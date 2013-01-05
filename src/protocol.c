@@ -37,7 +37,7 @@
 
 unsigned int last_id = 0;
 
-index_table_t *cmd_dict;
+hashtable_t *cmd_dict;
 cmd_t *cmd_id[256];
 bool init = false;
 
@@ -56,7 +56,7 @@ void protocol_init()
 	if(!init)
 	{
 		int num_cmd = sizeof(commands)/sizeof(cmd_t);
-		cmd_dict = index_table_create(256);
+		cmd_dict = hashtable_create(256);
 		int i;
 		for(i = 0; i < 256; i++)
 			cmd_id[i] = NULL;
@@ -70,7 +70,7 @@ void protocol_cleanup()
 {
 	if(init)
 	{
-		index_table_destroy(cmd_dict);
+		hashtable_destroy(cmd_dict);
 		init = false;
 	}
 }
@@ -78,7 +78,7 @@ void protocol_cleanup()
 void register_command(cmd_t *cmd)
 {
 	_log(LVL_DEBUG, "Registering command %s\n", cmd->name);
-	index_table_put(cmd_dict, cmd->name, cmd);
+	hashtable_put(cmd_dict, cmd->name, cmd);
 	cmd_id[cmd->op] = cmd;
 }
 
@@ -129,7 +129,7 @@ int decode_request(request_t* request, char* req, int len)
 		i++;
 	}
 	
-	int t = index_table_get(cmd_dict, op);
+	int t = hashtable_get(cmd_dict, op);
 	
 	if(t != -1) // TODO: Adapt indextable, -1 is not a good value for this case
 	{

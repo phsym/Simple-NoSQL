@@ -18,20 +18,20 @@
 */
 
 /*
- * indextable.c
+ * hashtable.c
  *
  *  Created on: 30 juil. 2012
  *      Author: Pierre-Henri Symoneaux
  */
 
-#include "indextable.h"
+#include "hashtable.h"
 
 #include <string.h>
 #include <stdlib.h>
 
-index_table_t* index_table_create(int capacity)
+hashtable_t* hashtable_create(int capacity)
 {
-	index_table_t* table = malloc(sizeof(index_table_t));
+	hashtable_t* table = malloc(sizeof(hashtable_t));
 	table->capacity = capacity;
 	table->keys_num = 0;
 	table->lists = malloc(sizeof(linked_list_t)*capacity);
@@ -43,12 +43,12 @@ index_table_t* index_table_create(int capacity)
 	return table;
 }
 
-void index_table_put(index_table_t* table, char* key, uintptr_t ptr)
+void hashtable_put(hashtable_t* table, char* key, uintptr_t ptr)
 {
 	int index = hash(key, strlen(key)) % table->capacity;
 	linked_list_t *list = (table->lists + index);
 	void* iterator;
-	index_t *ind = linked_list_iterate(list, &iterator);
+	hashtable_elem_t *ind = linked_list_iterate(list, &iterator);
 	while(ind != NULL)
 	{
 		if(strcmp(ind->key, key) == 0)
@@ -59,19 +59,19 @@ void index_table_put(index_table_t* table, char* key, uintptr_t ptr)
 		ind = linked_list_iterate(NULL, &iterator);
 	}
 
-	ind = malloc(sizeof(index_t)+strlen(key)+1);
+	ind = malloc(sizeof(hashtable_elem_t)+strlen(key)+1);
 	strcpy(ind->key, key);
 	ind->ptr = ptr;
 	linked_list_append(list, ind);
 	table->keys_num ++;
 }
 
-uintptr_t index_table_get(index_table_t* table, char* key)
+uintptr_t hashtable_get(hashtable_t* table, char* key)
 {
 	int index = hash(key, strlen(key)) % table->capacity;
 	linked_list_t *list = (table->lists + index);
 	void* iterator;
-	index_t *ind = linked_list_iterate(list, &iterator);
+	hashtable_elem_t *ind = linked_list_iterate(list, &iterator);
 	while(ind != NULL)
 	{
 		if(ind->key != NULL && strcmp(ind->key, key) == 0)
@@ -81,12 +81,12 @@ uintptr_t index_table_get(index_table_t* table, char* key)
 	return -1;
 }
 
-void index_table_remove(index_table_t* table, char* key)
+void hashtable_remove(hashtable_t* table, char* key)
 {
 	int index = hash(key, strlen(key)) % table->capacity;
 	linked_list_t *list = (table->lists + index);
 	void* iterator;
-	index_t *ind = linked_list_iterate(list, &iterator);
+	hashtable_elem_t *ind = linked_list_iterate(list, &iterator);
 	int i = 0;
 	while(ind != NULL)
 	{
@@ -101,7 +101,7 @@ void index_table_remove(index_table_t* table, char* key)
 	}
 }
 
-void index_table_clean(index_table_t* table)
+void hashtable_clean(hashtable_t* table)
 {
 	int i;
 	for(i = 0; i < table->capacity; i++)
@@ -109,19 +109,19 @@ void index_table_clean(index_table_t* table)
 	table->keys_num = 0;
 }
 
-void index_table_destroy(index_table_t* table)
+void hashtable_destroy(hashtable_t* table)
 {
-	index_table_clean(table);
+	hashtable_clean(table);
 	free(table->lists);
 	free(table);
 }
 
-int index_table_keys_number(index_table_t* table)
+int hashtable_keys_number(hashtable_t* table)
 {
 	return table->keys_num;
 }
 
-int index_table_count_keys(index_table_t* table)
+int hashtable_count_keys(hashtable_t* table)
 {
 	int count = 0;
 	int i;
@@ -131,7 +131,7 @@ int index_table_count_keys(index_table_t* table)
 		if(list != NULL)
 		{
 			void * iterator;
-			index_t *ind = linked_list_iterate(list, &iterator);
+			hashtable_elem_t *ind = linked_list_iterate(list, &iterator);
 			while(ind != NULL)
 			{
 				count++;
@@ -142,7 +142,7 @@ int index_table_count_keys(index_table_t* table)
 	return count;
 }
 
-void index_table_list_keys(index_table_t* table, char** keys, int len)
+void hashtable_list_keys(hashtable_t* table, char** keys, int len)
 {
 	int i;
 	int c = 0;
@@ -152,7 +152,7 @@ void index_table_list_keys(index_table_t* table, char** keys, int len)
 		if(list != NULL)
 		{
 			void * iterator;
-			index_t *ind = linked_list_iterate(list, &iterator);
+			hashtable_elem_t *ind = linked_list_iterate(list, &iterator);
 			while(ind != NULL)
 			{
 				if(c >= len)
@@ -164,7 +164,7 @@ void index_table_list_keys(index_table_t* table, char** keys, int len)
 	}
 }
 
-//void index_table_rehash(index_table_t* table, int new_capacity)
+//void hashtable_rehash(index_table_t* table, int new_capacity)
 //{
 //	//TODO : implement it
 //}

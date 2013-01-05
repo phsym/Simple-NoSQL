@@ -18,14 +18,14 @@
 */
 
 /*
- * indextable.h
+ * hashtable.h
  *
  *  Created on: 30 juil. 2012
  *      Author: Pierre-Henri Symoneaux
  */
 
-#ifndef INDEXTABLE_H_
-#define INDEXTABLE_H_
+#ifndef HASHTABLE_H_
+#define HASHTABLE_H_
 
 #include <stdint.h>
 #include "linked_list.h"
@@ -34,33 +34,33 @@ typedef struct {
 	int capacity;
 	int keys_num;
 	linked_list_t* lists;
-}index_table_t;
+}hashtable_t;
 
 typedef struct {
 	uintptr_t ptr;
 	char key[];
-}index_t;
+}hashtable_elem_t;
 
-index_table_t* index_table_create(int capacity);
+hashtable_t* hashtable_create(int capacity);
 
-void index_table_put(index_table_t* table, char* key, uintptr_t ptr);
+void hashtable_put(hashtable_t* table, char* key, uintptr_t ptr);
 
-uintptr_t index_table_get(index_table_t* table, char* key);
+uintptr_t hashtable_get(hashtable_t* table, char* key);
 
-void index_table_remove(index_table_t* table, char* key);
+void hashtable_remove(hashtable_t* table, char* key);
 
-void index_table_clean(index_table_t* table);
+void hashtable_clean(hashtable_t* table);
 
-void index_table_destroy(index_table_t* table);
+void hashtable_destroy(hashtable_t* table);
 
-int index_table_keys_number(index_table_t* table);
+int hashtable_keys_number(hashtable_t* table);
 
-int index_table_count_keys(index_table_t* table);
+int hashtable_count_keys(hashtable_t* table);
 
-void index_table_list_keys(index_table_t* table, char** keys, int len);
+void hashtable_list_keys(hashtable_t* table, char** keys, int len);
 
-//void index_table_rehash(index_table_t* table, int new_capacity);
+//void hashtable_rehash(index_table_t* table, int new_capacity);
 
 unsigned int hash(char* str, int str_len);
 
-#endif /* INDEXTABLE_H_ */
+#endif /* HASHTABLE_H_ */

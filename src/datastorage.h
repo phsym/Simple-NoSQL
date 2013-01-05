@@ -29,7 +29,7 @@
 
 #include "concurrency.h"
 #include "table.h"
-#include "indextable.h"
+#include "hashtable.h"
 
 #define MAX_KEY_SIZE 32
 #define MAX_VALUE_SIZE 40
@@ -40,7 +40,7 @@ typedef struct {
 }data_t;
 
 typedef struct {
-	index_table_t *index_table;
+	hashtable_t *index_table;
 	table_t *data_table;
 	rw_lock_t lock;
 }datastore_t;

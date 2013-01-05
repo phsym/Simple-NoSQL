@@ -109,8 +109,10 @@ void config_load(config_t* config, char* file)
 		else if(!strcmp(param, "index_length"))
 			config->index_len = atoi(value);
 		else if(!strcmp(param, "auth"))
+		{
 			if(!strcmp(value, "yes"))
 				config->auth = true;
+		}
 		else
 			_log(LVL_WARNING, "Unknown config parameter : %s = %s\n", param, value);
 	}
