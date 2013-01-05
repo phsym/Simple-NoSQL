@@ -131,7 +131,7 @@ int decode_request(request_t* request, char* req, int len)
 	
 	int t = hashtable_get(cmd_dict, op);
 	
-	if(t != -1) // TODO: Adapt indextable, -1 is not a good value for this case
+	if(t != -1) // TODO: Adapt hashtable, -1 is not a good value for this case
 	{
 		cmd_t *cmd = t;
 		

@@ -74,6 +74,8 @@ char* strtok_r(char* ori, char* tok, char** it)
 	if(ori != NULL)
 		*it = ori; // TODO: string copy
 		// strcpy(*it, ori);
+	if(*it == NULL)
+		return NULL;
 	char* old_it = *it;
 	char* c = strchr(*it, token);
 	if(c != NULL)
@@ -81,6 +83,8 @@ char* strtok_r(char* ori, char* tok, char** it)
 		*c = '\0';
 		*it = (c + 1);
 	}
+	else
+		*it = NULL;
 	return old_it;
 }
 #endif
