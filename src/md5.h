@@ -29,7 +29,7 @@
  * This implementation is using 32 bits long values for sizes
  */
 
-#define MD5_DIGEST_STR_LENGTH 32
+#define MD5_DIGEST_STR_LENGTH 33 // 32 + 1 for the '\0' character
 #define MD5_DIGEST_LENGTH 16
 
 typedef unsigned int md5_size;

@@ -8,7 +8,7 @@ Modified by Pierre-Henri Symoneaux
 #include <stdint.h>
 
 #define SHA1_DIGEST_LENGTH 20
-#define SHA1_DIGEST_STR_LENGTH 40
+#define SHA1_DIGEST_STR_LENGTH 41 // 40 + 1 for the '\0' character
 
 typedef struct {
     uint32_t state[5];

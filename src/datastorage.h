@@ -35,7 +35,7 @@
 #define MAX_VALUE_SIZE 40
 
 typedef struct {
-	char name[MAX_KEY_SIZE+1];
+	char name[MAX_KEY_SIZE+1];// +1 is for the '\0' character
 	char value[MAX_VALUE_SIZE+1];
 }data_t;
 
