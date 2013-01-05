@@ -38,6 +38,7 @@
 #define OP_MD5 0x05
 #define OP_SHA1 0x06
 
+#define FLAG_NONE 0x00
 #define FLAG_READ 0x01
 #define FLAG_WRITE 0x02
 #define FLAG_READ_WRITE (FLAG_READ|FLAG_WRITE)

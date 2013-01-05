@@ -46,7 +46,7 @@ cmd_t commands[] = {
 	{"put", OP_PUT, FLAG_WRITE, 2, "Put command", &do_put},
 	{"set", OP_SET, FLAG_WRITE, 2, "Set command", &do_set},
 	{"list", OP_LIST, FLAG_READ, 0, "List command", &do_list},
-	{"rmv", OP_RMV, FLAG_WRITE, 1, "Rmv command", &do_rmv},
+	{"rmv", OP_RMV, FLAG_WRITE, 1, "Remove command", &do_rmv},
 	{"md5", OP_MD5, FLAG_WRITE, 2, "Md5 command", &do_md5},
 	{"sha1", OP_SHA1, FLAG_WRITE, 2, "Sha1 command", &do_sha1}
 };
