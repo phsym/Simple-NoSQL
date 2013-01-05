@@ -35,8 +35,8 @@
 
 DBG_LVL DEBUG_LEVEL = LVL_DEBUG;
 
-char* DBG_LVL_STR[] = {"NONE", "FATAL", "ERROR", "WARNING", "INFO", "DEBUG", "TRACE"};
-int MAX_DEBUG_LEVEL = 7;
+const char* DBG_LVL_STR[] = {"NONE", "FATAL", "ERROR", "WARNING", "INFO", "DEBUG", "TRACE"};
+const int MAX_DEBUG_LEVEL = 7;
 
 void _log(DBG_LVL level, char* message,  ...)
 {
@@ -45,8 +45,15 @@ void _log(DBG_LVL level, char* message,  ...)
 
 	va_list argptr;
 	va_start(argptr,message);
-	char mess[strlen(message) + strlen(DBG_LVL_STR[level]) + 3];
+
+	char date[TIME_STRLEN];
+	get_current_time_string(date, TIME_STRLEN);
+
+	char mess[strlen(date) + strlen(message) + strlen(DBG_LVL_STR[level]) + 4];
 	mess[0] = '\0';
+	strcat(mess, "");
+	strcat(mess, date);
+	strcat (mess, " ");
 	strcat(mess, DBG_LVL_STR[level]);
 	strcat(mess, "\t: ");
 	strcat(mess, message);
@@ -71,7 +78,7 @@ void get_current_time_string(char* str, size_t len)
 #ifdef __MINGW32__
 	str[0] = '\0';
 	//TODO : Check string length
-	char buff[len];
+	char buff[TIME_STRLEN];
 	_strdate(buff);
 	strcat(str, buff);
 	strcat(str, " ");

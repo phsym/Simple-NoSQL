@@ -29,6 +29,8 @@
 
 #include <sys/types.h>
 
+#define TIME_STRLEN 18
+
 #define false 0x00
 #define true 0x01
 
@@ -45,9 +47,9 @@ typedef enum DBG_LVL{
 }DBG_LVL;
 
 extern DBG_LVL DEBUG_LEVEL;
-extern int MAX_DEBUG_LEVEL;
 
-extern char* DBG_LVL_STR[];
+extern const int MAX_DEBUG_LEVEL;
+extern const char* DBG_LVL_STR[];
 
 void _log(DBG_LVL level, char* message, ...);
 

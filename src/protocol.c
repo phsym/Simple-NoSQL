@@ -41,7 +41,7 @@ hashtable_t *cmd_dict;
 cmd_t *cmd_id[256];
 bool init = false;
 
-cmd_t commands[] = {
+const cmd_t commands[] = {
 	{"get", OP_GET, FLAG_READ, 1, "Get command", &do_get},
 	{"put", OP_PUT, FLAG_WRITE, 2, "Put command", &do_put},
 	{"set", OP_SET, FLAG_WRITE, 2, "Set command", &do_set},
