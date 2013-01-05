@@ -205,7 +205,7 @@ unsigned char *SHA1 (unsigned char * message, uint32_t len, unsigned char * dige
 void SHA1_to_str(unsigned char *d, char* str)
 {
 	int i;
-	char tmp[2];
+	char tmp[3];
 	str[0] = '\0';
 	for (i = 0; i < SHA1_DIGEST_LENGTH; i++) {
 		sprintf(tmp, "%02x", d[i]);
