@@ -27,6 +27,8 @@
 #ifndef UTILS_H_
 #define UTILS_H_
 
+#include <sys/types.h>
+
 #define false 0x00
 #define true 0x01
 
@@ -50,6 +52,8 @@ extern char* DBG_LVL_STR[];
 void _log(DBG_LVL level, char* message, ...);
 
 void _perror(char* message, ...);
+
+void get_current_time_string(char* str, size_t len);
 
 //MinGW doesn't know strtok_r
 #ifdef __MINGW32__

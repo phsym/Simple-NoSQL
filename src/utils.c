@@ -31,6 +31,7 @@
 #include <errno.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
 
 DBG_LVL DEBUG_LEVEL = LVL_DEBUG;
 
@@ -63,6 +64,27 @@ void _perror(char* message, ...)
 	vfprintf(stderr, message, argptr);
 	fprintf(stderr, " : %s\n", sys_errlist[errno]);
 	va_end(argptr);
+}
+
+void get_current_time_string(char* str, size_t len)
+{
+#ifdef __MINGW32__
+	str[0] = '\0';
+	//TODO : Check string length
+	char buff[len];
+	_strdate(buff);
+	strcat(str, buff);
+	strcat(str, " ");
+	_strtime(buff);
+	strcat(str, buff);
+#else
+	time_t t;
+	time(&t);
+	struct tm r;
+	gmtime_r(&t, &r);
+
+	strftime(str, len, "%D %T", &r);
+#endif
 }
 
 //MinGW doesn't know strtok_r
