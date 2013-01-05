@@ -3,9 +3,9 @@ export CC=gcc
 export CFLAGS=-W -Wall
 
 ifeq ($(DEBUG), yes)
-	CFLAGS:=$(CFLAGS) -g
+	CFLAGS:=$(CFLAGS) -g -O1
 else
-	CFLAGS:=$(CFLAGS) -O2
+	CFLAGS:=$(CFLAGS) -O1
 endif
 
 export UNAME=$(shell uname)
