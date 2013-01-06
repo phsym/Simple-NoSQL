@@ -29,11 +29,11 @@
 
 #define TABLE_MAGIC 0x6F
 
-#define ELEM_UNUSED 0x00
-#define ELEM_USED	0x01
+#define FLAG_NONE 0x00
+#define FLAG_USED	0x01
 
 typedef struct {
-	unsigned char used;
+	unsigned char flag;
 	int next_free;
 	char data[];
 }table_elem_t;

@@ -59,7 +59,7 @@ void table_init(table_t* table, int data_size, int capacity)
 		}
 		table_elem_t *elem = (void*)table->table + i * table->blk_size;
 		memset(elem->data, 0, data_size);
-		elem->used = ELEM_UNUSED;
+		elem->flag = FLAG_NONE;
 		if(i < capacity-1)
 			elem->next_free = i+1;
 		else
@@ -154,7 +154,7 @@ int table_put(table_t* table, void* data)
 	table->first_free = e->next_free;
 	e->next_free = -1;
 	memcpy(e->data, data, table->data_size);
-	e->used = ELEM_USED;
+	e->flag |= FLAG_USED;
 	return index;
 }
 
@@ -163,7 +163,7 @@ void* table_get_ref(table_t* table, int index)
 	if(index >= table->capacity)
 		return NULL;
 	table_elem_t *e = ((void*)table->table + index * table->blk_size);
-	if(e->used == ELEM_UNUSED)
+	if((e->flag & FLAG_USED) == 0)
 		return NULL;
 	return e->data;
 }
@@ -173,7 +173,7 @@ void table_get_copy(table_t* table, int index, void* ptr)
 	if(index >= table->capacity)
 		ptr = NULL;
 	table_elem_t *e = ((void*)table->table + index * table->blk_size);
-	if(e->used == ELEM_UNUSED)
+	if((e->flag & FLAG_USED) == 0)
 		ptr = NULL;
 	memcpy(ptr, e->data, table->data_size);
 }
@@ -183,9 +183,9 @@ void table_remove(table_t* table, int index)
 	if(index < table->capacity)
 	{
 		table_elem_t *e = ((void*)table->table + index * table->blk_size);
-		if(e->used == ELEM_UNUSED)
+		if((e->flag & FLAG_USED) == 0)
 			return;
-		e->used = ELEM_UNUSED;
+		e->flag = FLAG_NONE;
 		e->next_free = table->first_free;
 		table->first_free = index;
 	}
