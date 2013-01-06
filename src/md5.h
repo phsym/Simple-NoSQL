@@ -67,6 +67,6 @@ void md5_update (struct md5_ctx *context);
 void md5_final (unsigned char *digest, struct md5_ctx *context);
 
 void md5_to_str(unsigned char *d, char* str);
-void md5_str(unsigned char *M, md5_size len, char* digest_str);
+void md5_str(char *M, md5_size len, char* digest_str);
 
 #endif /* MD5_H_ */

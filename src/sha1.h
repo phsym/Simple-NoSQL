@@ -23,4 +23,4 @@ void SHA1Final(unsigned char digest[20], SHA1_CTX* context);
 
 unsigned char *SHA1 (unsigned char * message, uint32_t len, unsigned char * digest);
 void SHA1_to_str(unsigned char *d, char* str);
-void SHA1_str(unsigned char *M, uint32_t len, char* digest_str);
+void SHA1_str(char *M, uint32_t len, char* digest_str);

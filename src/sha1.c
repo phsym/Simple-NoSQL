@@ -213,9 +213,9 @@ void SHA1_to_str(unsigned char *d, char* str)
 	}
 }
 
-void SHA1_str(unsigned char *M, uint32_t len, char* digest_str)
+void SHA1_str(char *M, uint32_t len, char* digest_str)
 {
 	unsigned char digest[SHA1_DIGEST_LENGTH];
-	SHA1(M, len, digest);
+	SHA1((unsigned char*)M, len, digest);
 	SHA1_to_str(digest, digest_str);
 }
