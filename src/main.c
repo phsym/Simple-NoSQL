@@ -27,6 +27,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <signal.h>
+#include <string.h>
 
 #include "network.h"
 #include "protocol.h"
@@ -43,19 +44,29 @@ typedef struct {
 
 Application app;
 
-void sig_broken_pipe(int signal)
+void sig_broken_pipe()
 {
 	_log(LVL_WARNING, "Broken pipe\n");
 	return;
 }
 
-void sig_interrupt(int signal)
+void sig_interrupt()
 {
 	_log(LVL_INFO, "Interrupted !!!\n");
 
 	app.running = false;
 	_log(LVL_INFO, "Stopping server ...\n");
 	server_stop(app.server);
+}
+
+void usage(char* bin_name)
+{
+	printf("\nUSAGE : %s [options]\n\n", bin_name);
+	printf("Options :\n");
+	printf("\t -c <config_file> : Specify the config file to use (default is ./config.cfg)\n");
+	printf("\t -h : Print this help\n");
+	printf("\n");
+	exit(-1);
 }
 
 int main(int argc, char* argv[])
@@ -65,11 +76,25 @@ int main(int argc, char* argv[])
 //		printf ("%d : \033[%d;01mBonjour\033[00m\n", r, r);
 //	exit(0);
 
+	char* config_file = "config.cfg";
+
+	if(argc > 1)
+	{
+		int i;
+		for (i = 1; i < argc; i++)
+		{
+			if((strcmp(argv[i], "-c") == 0) && (i < argc -1))
+				config_file = argv[++i];
+			else if(strcmp(argv[i], "-h") == 0)
+				usage(argv[0]);
+		}
+	}
+
 	_log(LVL_INFO, "Starting server ... \n");
 
 	_log(LVL_INFO, "Loading settings ... \n");
 	app.config = malloc(sizeof(config_t));
-	config_load(app.config,"config.cfg");
+	config_load(app.config, config_file);
 
 	_log(LVL_DEBUG, "Initializing signal handlers ... \n");
 	//Initialize interrupts handlers
