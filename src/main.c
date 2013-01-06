@@ -44,15 +44,15 @@ typedef struct {
 
 Application app;
 
-void sig_broken_pipe()
+void sig_broken_pipe(int signal)
 {
-	_log(LVL_WARNING, "Broken pipe\n");
+	_log(LVL_WARNING, "Broken pipe (signal %d)\n", signal);
 	return;
 }
 
-void sig_interrupt()
+void sig_interrupt(int signal)
 {
-	_log(LVL_INFO, "Interrupted !!!\n");
+	_log(LVL_INFO, "Interrupted by signal %d\n", signal);
 
 	app.running = false;
 	_log(LVL_INFO, "Stopping server ...\n");
