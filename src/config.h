@@ -54,6 +54,8 @@ void config_storage_sz(config_t* config, char* value);
 void config_index_len(config_t* config, char* value);
 void config_auth(config_t* config, char* value);
 
+void config_init(config_t* config);
+void config_apply_param(config_t* config, char* param, char* value);
 void config_load(config_t* config, char* file);
 
 #endif /* CONFIG_H_ */

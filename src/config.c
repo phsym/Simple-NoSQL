@@ -92,17 +92,39 @@ void config_auth(config_t* config, char* value)
 		config->auth = true;
 }
 
-void config_load(config_t* config, char* file)
+void config_init(config_t* config)
 {
-	config->file = file;
-
-	//Default settings
 	config->bind_address = 0;
 	config->bind_port = 1234;
 	config->debug_lvl = DEBUG_LEVEL;
 	config->index_len = 1024*1024;
 	config->storage_size = 1024*1024;
 	config->auth = false;
+}
+
+void config_apply_param(config_t* config, char* param, char* value)
+{
+	int num_param = sizeof(conf_p)/sizeof(config_param_t);
+	int i;
+	bool found = false;
+	for (i = 0; i < num_param; i++)
+	{
+		if(!strcmp(param, conf_p[i].name))
+		{
+			conf_p[i].conf_hdl(config, value);
+			found = true;
+		}
+	}
+	
+	if(!found)
+		_log(LVL_WARNING, "Unknown config parameter : %s\n", param);
+}
+
+void config_load(config_t* config, char* file)
+{
+	//Default settings
+	config_init(config);
+	config->file = file;
 
 	FILE* fd = fopen(file, "r");
 	if(fd == NULL)
@@ -136,20 +158,7 @@ void config_load(config_t* config, char* file)
 
 		_log(LVL_DEBUG, "%s = %s\n", param, value);
 		
-		int num_param = sizeof(conf_p)/sizeof(config_param_t);
-		int i;
-		bool found = false;
-		for (i = 0; i < num_param; i++)
-		{
-			if(!strcmp(param, conf_p[i].name))
-			{
-				conf_p[i].conf_hdl(config, value);
-				found = true;
-			}
-		}
-		
-		if(!found)
-			_log(LVL_WARNING, "Unknown config parameter : %s = %s\n", param, value);
+		config_apply_param(config, param, value);
 	}
 	fclose(fd);
 }
