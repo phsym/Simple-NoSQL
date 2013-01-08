@@ -41,6 +41,57 @@
 
 #include "utils.h"
 
+config_param_t conf_p[] = {
+	{"port", &config_port},
+	{"address", &config_address},
+	{"debug_level", &config_debug_lvl},
+	{"storage_size", &config_storage_sz},
+	{"index_length", &config_index_len},
+	{"auth", &config_auth}
+};
+
+void config_port(config_t* config, char* value)
+{
+	config->bind_port = atoi(value)&0x0000ffff;
+}
+
+void config_address(config_t* config, char* value)
+{
+	config->bind_address = inet_addr(value);
+}
+
+void config_debug_lvl(config_t* config, char* value)
+{
+	int i;
+	DBG_LVL lvl = LVL_INFO; //Default value
+	for(i = 0; i < MAX_DEBUG_LEVEL; i++)
+	{
+		if(!strcmp(value, DBG_LVL_STR[i]))
+		{
+			lvl = i;
+			break;
+		}
+	}
+	config->debug_lvl = lvl;
+	DEBUG_LEVEL = lvl;
+}
+
+void config_storage_sz(config_t* config, char* value)
+{
+	config->storage_size = atoi(value);
+}
+
+void config_index_len(config_t* config, char* value)
+{
+	config->index_len = atoi(value);
+}
+
+void config_auth(config_t* config, char* value)
+{
+	if(!strcmp(value, "yes"))
+		config->auth = true;
+}
+
 void config_load(config_t* config, char* file)
 {
 	config->file = file;
@@ -84,36 +135,20 @@ void config_load(config_t* config, char* file)
 		char* value = strtok_r(NULL, "=", it);
 
 		_log(LVL_DEBUG, "%s = %s\n", param, value);
-
-		if(!strcmp(param, "port"))
-			config->bind_port = atoi(value)&0x0000ffff;
-		else if(!strcmp(param, "address"))
-			config->bind_address = inet_addr(value);
-		else if(!strcmp(param, "debug_level"))
+		
+		int num_param = sizeof(conf_p)/sizeof(config_param_t);
+		int i;
+		bool found = false;
+		for (i = 0; i < num_param; i++)
 		{
-			int i;
-			DBG_LVL lvl = LVL_INFO; //Default value
-			for(i = 0; i < MAX_DEBUG_LEVEL; i++)
+			if(!strcmp(param, conf_p[i].name))
 			{
-				if(!strcmp(value, DBG_LVL_STR[i]))
-				{
-					lvl = i;
-					break;
-				}
+				conf_p[i].conf_hdl(config, value);
+				found = true;
 			}
-			config->debug_lvl = lvl;
-			DEBUG_LEVEL = lvl;
 		}
-		else if(!strcmp(param, "storage_size"))
-			config->storage_size = atoi(value);
-		else if(!strcmp(param, "index_length"))
-			config->index_len = atoi(value);
-		else if(!strcmp(param, "auth"))
-		{
-			if(!strcmp(value, "yes"))
-				config->auth = true;
-		}
-		else
+		
+		if(!found)
 			_log(LVL_WARNING, "Unknown config parameter : %s = %s\n", param, value);
 	}
 	fclose(fd);

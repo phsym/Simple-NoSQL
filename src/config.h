@@ -42,6 +42,18 @@ typedef struct{
 	bool auth;
 }config_t;
 
+typedef struct {
+	char* name;
+	void (*conf_hdl)(config_t*, char*);
+} config_param_t;
+
+void config_port(config_t* config, char* value);
+void config_address(config_t* config, char* value);
+void config_debug_lvl(config_t* config, char* value);
+void config_storage_sz(config_t* config, char* value);
+void config_index_len(config_t* config, char* value);
+void config_auth(config_t* config, char* value);
+
 void config_load(config_t* config, char* file);
 
 #endif /* CONFIG_H_ */
