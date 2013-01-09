@@ -174,12 +174,11 @@ TH_HDL server_handler(void* serv)
 	}
 #endif
 	
-	int sock = socket(AF_INET, SOCK_STREAM, 0);
-	server->socket = sock;
+	server->socket = socket(AF_INET, SOCK_STREAM, 0);
 
 #ifndef __MINGW32__
 	int val = 1;
-	setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, (void*)&val, sizeof(val));
+	setsockopt(server->socket, SOL_SOCKET, SO_REUSEADDR, (void*)&val, sizeof(val));
 #endif
 
 	struct sockaddr_in addr;
@@ -188,13 +187,13 @@ TH_HDL server_handler(void* serv)
 	addr.sin_addr.s_addr = server->bind_addr;
 
 
-	if(bind(sock, (struct sockaddr*)&addr, sizeof(struct sockaddr_in)) != 0)
+	if(bind(server->socket, (struct sockaddr*)&addr, sizeof(struct sockaddr_in)) != 0)
 	{
 		_perror("Error Bind");
 		TH_RETURN;
 	}
 
-	if(listen(sock, 1000) != 0)
+	if(listen(server->socket, 1000) != 0)
 	{
 		_perror("Error listen");
 		TH_RETURN;
@@ -205,7 +204,7 @@ TH_HDL server_handler(void* serv)
 	_log(LVL_INFO, "Accepting connections\n");
 	while(server->running)
 	{
-		int client_sock = accept(sock, (struct sockaddr*)&addr_client, &socklen);
+		int client_sock = accept(server->socket, (struct sockaddr*)&addr_client, &socklen);
 		if(!server->running)
 			break;
 		else if(client_sock < 0)
@@ -224,7 +223,7 @@ TH_HDL server_handler(void* serv)
 
 	//TODO : wait client
 
-	close(sock);
+	close(server->socket);
 	TH_RETURN;
 }
 
