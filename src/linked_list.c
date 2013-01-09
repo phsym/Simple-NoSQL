@@ -99,30 +99,30 @@ void* linked_list_iterate(linked_list_t* list, void** iterator)
 void linked_list_remove(linked_list_t* list, int index, int free_data)
 {
 	int i= 0;
-		if(index >= list->size)
-			return;
-		linked_elem_t* elem = list->first;
-		while(i < list->size && elem != NULL)
+	if(index >= list->size)
+		return;
+	linked_elem_t* elem = list->first;
+	while(i < list->size && elem != NULL)
+	{	
+		if(i == index)
 		{
-			if(i == index)
-			{
-				if(elem->next != NULL)
-					elem->next->prev = elem->prev;
-				if(elem->prev != NULL)
-					elem->prev->next = elem->next;
-				if(list->first == elem)
-					list->first = NULL;
-				if(list->last == elem)
-					list->last = NULL;
-				if(free_data)
-					free(elem->ptr);
-				free(elem);
-				list->size --;
-				return;
-			}
-			elem = elem->next;
-			i++;
+			if(elem->next != NULL)
+				elem->next->prev = elem->prev;
+			if(elem->prev != NULL)
+				elem->prev->next = elem->next;
+			if(list->first == elem)
+				list->first = elem->next;
+			if(list->last == elem)
+				list->last = elem->prev;
+			if(free_data)
+				free(elem->ptr);
+			free(elem);
+			list->size --;
+			return;
 		}
+		elem = elem->next;
+		i++;
+	}
 }
 
 void linked_list_clean(linked_list_t* list, int free_data)
