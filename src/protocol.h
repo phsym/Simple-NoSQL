@@ -37,6 +37,7 @@
 #define OP_SET 0x04
 #define OP_MD5 0x05
 #define OP_SHA1 0x06
+#define OP_COUNT 0x07
 
 #define FLAG_NONE 0x00
 #define FLAG_READ 0x01
@@ -94,5 +95,6 @@ void do_list(datastore_t* datastore, request_t* request);
 void do_rmv(datastore_t* datastore, request_t* request);
 void do_md5(datastore_t* datastore, request_t* request);
 void do_sha1(datastore_t* datastore, request_t* request);
+void do_count(datastore_t* datastore, request_t* req);
 
 #endif /* PROTOCOL_H_ */

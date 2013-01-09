@@ -48,7 +48,8 @@ const cmd_t commands[] = {
 	{"list", OP_LIST, FLAG_READ, 0, "List command", &do_list},
 	{"rmv", OP_RMV, FLAG_WRITE, 1, "Remove command", &do_rmv},
 	{"md5", OP_MD5, FLAG_WRITE, 2, "Md5 command", &do_md5},
-	{"sha1", OP_SHA1, FLAG_WRITE, 2, "Sha1 command", &do_sha1}
+	{"sha1", OP_SHA1, FLAG_WRITE, 2, "Sha1 command", &do_sha1},
+	{"count", OP_COUNT, FLAG_READ, 0, "Count command", &do_count},
 };
 
 void protocol_init()
@@ -167,6 +168,7 @@ void encode_reply(request_t* req, char* buff, int buff_len)
 				strcat(buff, req->reply.value);
 				strcat(buff, "\r\n");
 				break;
+			case OP_COUNT:
 			case OP_LIST:
 				strcat(buff, req->reply.message);
 				free(req->reply.message);
@@ -242,4 +244,11 @@ void do_sha1(datastore_t* datastore, request_t* req)
 	char digest_str[SHA1_DIGEST_STR_LENGTH];
 	SHA1_str(req->value, strlen(req->value), digest_str);
 	req->reply.rc = datastore_set(datastore, req->name, digest_str);
+}
+
+void do_count(datastore_t* datastore, request_t* req)
+{
+	req->reply.message = malloc(9);
+	snprintf(req->reply.message, 8, "%d\n", datastore_keys_number(datastore));
+	req->reply.rc = 0;
 }
