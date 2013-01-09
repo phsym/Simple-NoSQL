@@ -41,7 +41,7 @@
 
 #include "utils.h"
 
-config_param_t conf_p[] = {
+const config_param_t conf_p[] = {
 	{"port", &config_port},
 	{"address", &config_address},
 	{"debug_level", &config_debug_lvl},
