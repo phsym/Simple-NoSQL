@@ -139,6 +139,15 @@ void sha256_update(struct sha256 *s, const void *m, unsigned long len)
 	memcpy(s->buf, p, len);
 }
 
+unsigned char *SHA256(const unsigned char *m, unsigned long len, unsigned char *md)
+{
+	struct sha256 s;
+	sha256_init(&s);
+	sha256_update(&s, m, len);
+	sha256_sum(&s, md);
+	return md;
+}
+
 void SHA256_to_str(unsigned char *d, char* str)
 {
 	int i;

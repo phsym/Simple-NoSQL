@@ -21,14 +21,8 @@ void sha256_sum(struct sha256 *s, uint8_t md[32]);
 #define SHA256_DIGEST_LENGTH 32
 #define SHA256_DIGEST_STR_LENGTH 65 // 64 + 1 for the '\0' character
 
-static inline unsigned char *SHA256(const unsigned char *m, unsigned long len, unsigned char *md)
-{
-	struct sha256 s;
-	sha256_init(&s);
-	sha256_update(&s, m, len);
-	sha256_sum(&s, md);
-	return md;
-}
+unsigned char *SHA256(const unsigned char *m, unsigned long len, unsigned char *md);
+
 static inline int SHA256_Init(SHA256_CTX *s) {sha256_init(s); return 1;}
 static inline int SHA256_Update(SHA256_CTX *s, const void *m, unsigned long len) {sha256_update(s, m, len); return 1;}
 static inline int SHA256_Final(unsigned char *md, SHA256_CTX *s) {sha256_sum(s, md); return 1;}
