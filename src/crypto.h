@@ -28,10 +28,26 @@
 #define CRYPTO_H_
 
 #include <stdint.h>
+#include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
+#include "hashtable.h"
 
 typedef struct {
 	char* name;
+	size_t digest_len;
+	size_t digest_str_len;
 	unsigned char* (*hash_func)(const unsigned char *m, uint32_t len, unsigned char *md);
 } hash_algo_t;
+
+extern hashtable_t *hash_algo_dict;
+
+void crypto_init();
+void crypto_cleanup();
+void crypto_register_hash_algo(hash_algo_t* algo);
+hash_algo_t* crypto_get_hash_algo(char* algo_name);
+
+void crypto_hash_to_str(const hash_algo_t* algo, unsigned char *d, char* str);
+void crypto_hash_str(const hash_algo_t* algo, const char *M, uint32_t len, char* digest_str);
 
 #endif /* CRYPTO_H_ */

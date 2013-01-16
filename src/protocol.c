@@ -41,7 +41,7 @@ unsigned int last_id = 0;
 
 hashtable_t *cmd_dict;
 cmd_t *cmd_id[256];
-bool init = false;
+bool _proto_init = false;
 
 const cmd_t commands[] = {
 	{"get", OP_GET, FLAG_READ, 1, "Get command", &do_get},
@@ -57,7 +57,7 @@ const cmd_t commands[] = {
 
 void protocol_init()
 {
-	if(!init)
+	if(!_proto_init)
 	{
 		int num_cmd = sizeof(commands)/sizeof(cmd_t);
 		cmd_dict = hashtable_create(256);
@@ -66,16 +66,16 @@ void protocol_init()
 			cmd_id[i] = NULL;
 		for(i = 0; i < num_cmd; i++)
 			register_command(commands+i);
-		init = true;
+		_proto_init = true;
 	}
 }
 
 void protocol_cleanup()
 {
-	if(init)
+	if(_proto_init)
 	{
 		hashtable_destroy(cmd_dict);
-		init = false;
+		_proto_init = false;
 	}
 }
 
