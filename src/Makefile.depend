@@ -6,7 +6,7 @@ bin/fifo.o: fifo.c fifo.h
 bin/hashtable.o: hashtable.c hashtable.h linked_list.h
 bin/linked_list.o: linked_list.c linked_list.h
 bin/main.o: main.c network.h concurrency.h protocol.h datastorage.h table.h \
- hashtable.h linked_list.h utils.h config.h
+ hashtable.h linked_list.h utils.h config.h sha256.h
 bin/md5.o: md5.c md5.h
 bin/network.o: network.c network.h concurrency.h protocol.h datastorage.h \
  table.h hashtable.h linked_list.h utils.h md5.h

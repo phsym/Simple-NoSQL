@@ -1,6 +1,7 @@
 /* public domain sha256 implementation based on fips180-3 */
 #include <stdint.h>
 #include <string.h>
+#include <stdio.h>
 #include "sha256.h"
 
 static uint32_t ror(uint32_t n, int k) { return (n >> k) | (n << (32-k)); }
@@ -136,4 +137,22 @@ void sha256_update(struct sha256 *s, const void *m, unsigned long len)
 	for (; len >= 64; len -= 64, p += 64)
 		processblock(s, p);
 	memcpy(s->buf, p, len);
+}
+
+void SHA256_to_str(unsigned char *d, char* str)
+{
+	int i;
+	char tmp[3];
+	str[0] = '\0';
+	for (i = 0; i < SHA256_DIGEST_LENGTH; i++) {
+	sprintf(tmp, "%02x", d[i]);
+	strcat(str, tmp);
+	}
+}
+
+void SHA256_str(char *M, unsigned long len, char* digest_str)
+{
+	unsigned char digest[SHA256_DIGEST_LENGTH];
+	SHA256((unsigned char*)M, len, digest);
+	SHA256_to_str(digest, digest_str);
 }
