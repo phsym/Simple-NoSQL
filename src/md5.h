@@ -1,24 +1,3 @@
-/*
-* md5.h
-* Implementation of the md5 algorithm described in RFC1321
-* Copyright (C) 2005 Quentin Carbonneaux <crazyjoke@free.fr>
-* Modified by Pierre-Henri Symoneaux
-*
-* This program is free software; you can redistribute it and/or modify
-* it under the terms of the GNU General Public License as published by
-* the Free Software Foundation; either version 3 of the License, or
-* (at your option) any later version.
-*
-* This program is distributed in the hope that it will be useful,
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-* GNU General Public License for more details.
-*
-* You should have received a copy of the GNU General Public License
-* along with this program; if not, write to the Free Software
-* Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 US
-*/
-
 #ifndef MD5_H_
 #define MD5_H_
 
@@ -32,41 +11,53 @@
 #define MD5_DIGEST_STR_LENGTH 33 // 32 + 1 for the '\0' character
 #define MD5_DIGEST_LENGTH 16
 
-typedef unsigned int md5_size;
+#include <stdint.h>
 
-/* MD5 context */
-struct md5_ctx {
-        struct {
-                unsigned int A, B, C, D; /* registers */
-        } regs;
-        unsigned char *buf;
-        md5_size size;
-        md5_size bits;
+/*  The following tests optimise behaviour on little-endian
+    machines, where there is no need to reverse the byte order
+    of 32 bit words in the MD5 computation.  By default,
+    HIGHFIRST is defined, which indicates we're running on a
+    big-endian (most significant byte first) machine, on which
+    the byteReverse function in md5.c must be invoked. However,
+    byteReverse is coded in such a way that it is an identity
+    function when run on a little-endian machine, so calling it
+    on such a platform causes no harm apart from wasting time. 
+    If the platform is known to be little-endian, we speed
+    things up by undefining HIGHFIRST, which defines
+    byteReverse as a null macro.  Doing things in this manner
+    insures we work on new platforms regardless of their byte
+    order.  */
+
+#define HIGHFIRST
+
+#if defined(__i386__) || defined(__x86_64__) || defined(__amd64__)
+#undef HIGHFIRST
+#endif
+
+/*  On machines where "long" is 64 bits, we need to declare
+    uint32 as something guaranteed to be 32 bits.  */
+
+typedef uint32_t uint32;
+
+struct MD5Context {
+        uint32 buf[4];
+        uint32 bits[2];
+        unsigned char in[64];
 };
 
-/* Size of the MD5 buffer */
-#define MD5_BUFFER 1024
+void MD5Init(struct MD5Context *ctx);
+void MD5Update(struct MD5Context *ctx, unsigned char *buf, uint32_t len);
+void MD5Final(unsigned char *digest, struct MD5Context *ctx);
+void MD5Transform(uint32 *buf, uint32 *in);
 
-/* Basic md5 functions */
-#define F(x,y,z) ((x & y) | (~x & z))
-#define G(x,y,z) ((x & z) | (~z & y))
-#define H(x,y,z) (x ^ y ^ z)
-#define I(x,y,z) (y ^ (x | ~z))
+/*
+ * This is needed to make RSAREF happy on some MS-DOS compilers.
+ */
+typedef struct MD5Context MD5_CTX;
 
-/* Rotate left 32 bits values (words) */
-#define ROTATE_LEFT(w,s) ((w << s) | ((w & 0xFFFFFFFF) >> (32 - s)))
+unsigned char* MD5(unsigned char * message, uint32_t len, unsigned char * digest);
 
-#define FF(a,b,c,d,x,s,t) (a = b + ROTATE_LEFT((a + F(b,c,d) + x + t), s))
-#define GG(a,b,c,d,x,s,t) (a = b + ROTATE_LEFT((a + G(b,c,d) + x + t), s))
-#define HH(a,b,c,d,x,s,t) (a = b + ROTATE_LEFT((a + H(b,c,d) + x + t), s))
-#define II(a,b,c,d,x,s,t) (a = b + ROTATE_LEFT((a + I(b,c,d) + x + t), s))
-
-unsigned char *md5 (unsigned char *, md5_size, unsigned char *);
-void md5_init (struct md5_ctx *);
-void md5_update (struct md5_ctx *context);
-void md5_final (unsigned char *digest, struct md5_ctx *context);
-
-void md5_to_str(unsigned char *d, char* str);
-void md5_str(char *M, md5_size len, char* digest_str);
+void MD5_to_str(unsigned char *d, char* str);
+void MD5_str(char *M, uint32_t len, char* digest_str);
 
 #endif /* MD5_H_ */

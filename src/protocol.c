@@ -26,6 +26,7 @@
 
 
 #include <stdlib.h>
+#include <stdio.h>
 #include <string.h>
 #include <ctype.h>
 
@@ -235,7 +236,7 @@ void do_rmv(datastore_t* datastore, request_t* req)
 void do_md5(datastore_t* datastore, request_t* req)
 {
 	char digest_str[MD5_DIGEST_STR_LENGTH];
-	md5_str(req->value, strlen(req->value), digest_str);
+	MD5_str(req->value, strlen(req->value), digest_str);
 	req->reply.rc = datastore_set(datastore, req->name, digest_str);
 }
 

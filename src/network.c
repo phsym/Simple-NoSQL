@@ -91,7 +91,7 @@ bool client_authenticate(client_t* cli)
 		strcat(cat, pass);
 		
 		char digest_str[MD5_DIGEST_STR_LENGTH];
-		md5_str(cat, strlen(cat), digest_str);
+		MD5_str(cat, strlen(cat), digest_str);
 		
 		_log(LVL_DEBUG, "Auth token : %s\n", digest_str);
 		
