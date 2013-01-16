@@ -118,7 +118,7 @@ void sha256_sum(struct sha256 *s, uint8_t md[20])
 	}
 }
 
-void sha256_update(struct sha256 *s, const void *m, unsigned long len)
+void sha256_update(struct sha256 *s, const void *m, uint32_t len)
 {
 	const uint8_t *p = m;
 	unsigned r = s->len % 64;
@@ -139,7 +139,7 @@ void sha256_update(struct sha256 *s, const void *m, unsigned long len)
 	memcpy(s->buf, p, len);
 }
 
-unsigned char *SHA256(const unsigned char *m, unsigned long len, unsigned char *md)
+unsigned char *SHA256(const unsigned char *m, uint32_t len, unsigned char *md)
 {
 	struct sha256 s;
 	sha256_init(&s);
@@ -159,7 +159,7 @@ void SHA256_to_str(unsigned char *d, char* str)
 	}
 }
 
-void SHA256_str(char *M, unsigned long len, char* digest_str)
+void SHA256_str(char *M, uint32_t len, char* digest_str)
 {
 	unsigned char digest[SHA256_DIGEST_LENGTH];
 	SHA256((unsigned char*)M, len, digest);
