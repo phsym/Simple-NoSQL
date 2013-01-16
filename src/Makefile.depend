@@ -1,6 +1,7 @@
 bin/concurrency.o: concurrency.c concurrency.h utils.h
 bin/config.o: config.c config.h utils.h
-bin/crypto.o: crypto.c crypto.h
+bin/crypto.o: crypto.c crypto.h hashtable.h linked_list.h md5.h sha1.h \
+ sha256.h utils.h
 bin/datastorage.o: datastorage.c datastorage.h concurrency.h table.h \
  hashtable.h linked_list.h utils.h
 bin/fifo.o: fifo.c fifo.h

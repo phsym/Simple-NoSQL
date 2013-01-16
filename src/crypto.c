@@ -25,3 +25,30 @@
  */
 
 #include "crypto.h"
+#include "md5.h"
+#include "sha1.h"
+#include "sha256.h"
+#include "utils.h"
+
+const hash_algo_t hash_a[] = {
+		{"MD5", &MD5},
+		{"SHA1", &SHA1},
+		{"SHA256", &SHA256}
+};
+
+hashtable_t *hash_algo_dict;
+
+void crypto_init()
+{
+	hash_algo_dict = hashtable_create(128);
+	int n = sizeof(hash_a)/sizeof(hash_algo_t);
+	int i;
+	for(i = 0; i < n; i++)
+		crypto_register_hash_algo(hash_a +i);
+}
+
+void crypto_register_hash_algo(hash_algo_t* algo)
+{
+	_log(LVL_DEBUG, "Registering hash algorithm %s\n", algo->name);
+	hashtable_put(hash_algo_dict, algo->name, algo);
+}
