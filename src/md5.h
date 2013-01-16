@@ -46,7 +46,7 @@ struct MD5Context {
 };
 
 void MD5Init(struct MD5Context *ctx);
-void MD5Update(struct MD5Context *ctx, unsigned char *buf, uint32_t len);
+void MD5Update(struct MD5Context *ctx, const unsigned char *buf, uint32_t len);
 void MD5Final(unsigned char *digest, struct MD5Context *ctx);
 void MD5Transform(uint32 *buf, uint32 *in);
 
@@ -55,9 +55,9 @@ void MD5Transform(uint32 *buf, uint32 *in);
  */
 typedef struct MD5Context MD5_CTX;
 
-unsigned char* MD5(unsigned char * message, uint32_t len, unsigned char * digest);
+unsigned char* MD5(const unsigned char * message, uint32_t len, unsigned char * digest);
 
 void MD5_to_str(unsigned char *d, char* str);
-void MD5_str(char *M, uint32_t len, char* digest_str);
+void MD5_str(const char *M, uint32_t len, char* digest_str);
 
 #endif /* MD5_H_ */

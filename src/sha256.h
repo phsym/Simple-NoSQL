@@ -28,5 +28,5 @@ static inline int SHA256_Update(SHA256_CTX *s, const void *m, uint32_t len) {sha
 static inline int SHA256_Final(unsigned char *md, SHA256_CTX *s) {sha256_sum(s, md); return 1;}
 
 void SHA256_to_str(unsigned char *d, char* str);
-void SHA256_str(char *M, uint32_t len, char* digest_str);
+void SHA256_str(const char *M, uint32_t len, char* digest_str);
 #endif

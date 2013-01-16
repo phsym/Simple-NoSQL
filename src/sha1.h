@@ -21,6 +21,6 @@ void SHA1Init(SHA1_CTX* context);
 void SHA1Update(SHA1_CTX* context, const unsigned char* data, uint32_t len);
 void SHA1Final(unsigned char digest[20], SHA1_CTX* context);
 
-unsigned char *SHA1 (unsigned char * message, uint32_t len, unsigned char * digest);
+unsigned char *SHA1 (const unsigned char * message, uint32_t len, unsigned char * digest);
 void SHA1_to_str(unsigned char *d, char* str);
-void SHA1_str(char *M, uint32_t len, char* digest_str);
+void SHA1_str(const char *M, uint32_t len, char* digest_str);

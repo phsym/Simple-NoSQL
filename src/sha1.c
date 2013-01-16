@@ -192,7 +192,7 @@ unsigned char c;
     memset(&finalcount, '\0', sizeof(finalcount));
 }
 
-unsigned char *SHA1 (unsigned char * message, uint32_t len, unsigned char * digest)
+unsigned char *SHA1 (const unsigned char * message, uint32_t len, unsigned char * digest)
 {
 	SHA1_CTX ctx;
 	SHA1Init(&ctx);
@@ -213,7 +213,7 @@ void SHA1_to_str(unsigned char *d, char* str)
 	}
 }
 
-void SHA1_str(char *M, uint32_t len, char* digest_str)
+void SHA1_str(const char *M, uint32_t len, char* digest_str)
 {
 	unsigned char digest[SHA1_DIGEST_LENGTH];
 	SHA1((unsigned char*)M, len, digest);

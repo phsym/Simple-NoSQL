@@ -159,7 +159,7 @@ void SHA256_to_str(unsigned char *d, char* str)
 	}
 }
 
-void SHA256_str(char *M, uint32_t len, char* digest_str)
+void SHA256_str(const char *M, uint32_t len, char* digest_str)
 {
 	unsigned char digest[SHA256_DIGEST_LENGTH];
 	SHA256((unsigned char*)M, len, digest);

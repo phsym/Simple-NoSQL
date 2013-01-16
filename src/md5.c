@@ -61,7 +61,7 @@ void MD5Init(struct MD5Context *ctx)
  * Update context to reflect the concatenation of another buffer full
  * of bytes.
  */
-void MD5Update(struct MD5Context *ctx, unsigned char *buf, uint32_t len)
+void MD5Update(struct MD5Context *ctx, const unsigned char *buf, uint32_t len)
 {
     uint32 t;
 
@@ -251,7 +251,7 @@ void MD5Transform(uint32 *buf, uint32 *in)
     buf[3] += d;
 }
 
-unsigned char* MD5(unsigned char * message, uint32_t len, unsigned char * digest)
+unsigned char* MD5(const unsigned char * message, uint32_t len, unsigned char * digest)
 {
 	MD5_CTX ctx;
 	MD5Init(&ctx);
@@ -272,7 +272,7 @@ void MD5_to_str(unsigned char *d, char* str)
 	}
 }
 
-void MD5_str(char *M, uint32_t len, char* digest_str)
+void MD5_str(const char *M, uint32_t len, char* digest_str)
 {
 	unsigned char digest[MD5_DIGEST_LENGTH];
 	MD5((unsigned char*)M, len, digest);
