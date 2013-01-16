@@ -9,7 +9,7 @@ bin/main.o: main.c network.h concurrency.h protocol.h datastorage.h table.h \
  hashtable.h linked_list.h utils.h config.h
 bin/md5.o: md5.c md5.h
 bin/network.o: network.c network.h concurrency.h protocol.h datastorage.h \
- table.h hashtable.h linked_list.h utils.h md5.h
+ table.h hashtable.h linked_list.h utils.h sha256.h
 bin/protocol.o: protocol.c protocol.h datastorage.h concurrency.h table.h \
  hashtable.h linked_list.h utils.h md5.h sha1.h sha256.h
 bin/sha1.o: sha1.c sha1.h
