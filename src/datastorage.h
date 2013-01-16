@@ -32,7 +32,7 @@
 #include "hashtable.h"
 
 #define MAX_KEY_SIZE 32
-#define MAX_VALUE_SIZE 40
+#define MAX_VALUE_SIZE 64
 
 typedef struct {
 	char name[MAX_KEY_SIZE+1];// +1 is for the '\0' character

@@ -35,6 +35,7 @@
 
 #include "md5.h"
 #include "sha1.h"
+#include "sha256.h"
 
 unsigned int last_id = 0;
 
@@ -51,6 +52,7 @@ const cmd_t commands[] = {
 	{"md5", OP_MD5, FLAG_WRITE, 2, "Md5 command", &do_md5},
 	{"sha1", OP_SHA1, FLAG_WRITE, 2, "Sha1 command", &do_sha1},
 	{"count", OP_COUNT, FLAG_READ, 0, "Count command", &do_count},
+	{"sha256", OP_SHA256, FLAG_WRITE, 2, "Sha256 command", &do_sha256}
 };
 
 void protocol_init()
@@ -252,4 +254,11 @@ void do_count(datastore_t* datastore, request_t* req)
 	req->reply.message = malloc(9);
 	snprintf(req->reply.message, 8, "%d\n", datastore_keys_number(datastore));
 	req->reply.rc = 0;
+}
+
+void do_sha256(datastore_t* datastore, request_t* req)
+{
+	char digest_str[SHA256_DIGEST_STR_LENGTH];
+	SHA256_str(req->value, strlen(req->value), digest_str);
+	req->reply.rc = datastore_set(datastore, req->name, digest_str);
 }
