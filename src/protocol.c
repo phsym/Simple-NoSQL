@@ -232,6 +232,13 @@ void do_count(datastore_t* datastore, request_t* req)
 
 void do_digest(datastore_t* datastore, request_t* req)
 {
+	//Convert digest algorithm name to lowercase
+	int i = 0;
+	while(req->argv[0][i] != '\0')
+	{
+		req->argv[0][i] = tolower(req->argv[0][i]);
+		i++;
+	}
 	hash_algo_t* algo = crypto_get_hash_algo(req->argv[0]);
 	if(algo == NULL)
 	{
