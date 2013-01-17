@@ -41,7 +41,7 @@
 
 #include "network.h"
 #include "utils.h"
-#include "sha256.h"
+#include "crypto.h";
 
 #ifdef __MINGW32__
 	bool WSAinit = false; //Is Winsock Initialized
@@ -90,8 +90,9 @@ bool client_authenticate(client_t* cli)
 		strcat(cat, ":");
 		strcat(cat, pass);
 		
-		char digest_str[SHA256_DIGEST_STR_LENGTH];
-		SHA256_str(cat, strlen(cat), digest_str);
+		hash_algo_t* algo = crypto_get_hash_algo("sha256");
+		char digest_str[algo->digest_str_len];
+		crypto_hash_str(algo, cat, strlen(cat), digest_str);
 		
 		_log(LVL_DEBUG, "Auth token : %s\n", digest_str);
 		

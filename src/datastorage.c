@@ -31,7 +31,6 @@
 #include <stdio.h>
 #include "utils.h"
 
-
 datastore_t* datastore_create(int storage_size, int index_length)
 {
 	char* storagefile = "./datastorage.dat";
@@ -72,6 +71,7 @@ datastore_t* datastore_create(int storage_size, int index_length)
 
 char* datastore_lookup(datastore_t* datastore, char* key)
 {
+	CHECK_KEY_SIZE(key);
 	rw_lock_read_lock(&datastore->lock);
 	char* value = NULL;
 	int index = hashtable_get(datastore->index_table, key);
@@ -89,6 +89,8 @@ char* datastore_lookup(datastore_t* datastore, char* key)
 
 int datastore_put(datastore_t* datastore, char* key, char* value)
 {
+	CHECK_KEY_SIZE(key);
+	CHECK_VALUE_SIZE(value);
 	rw_lock_write_lock(&datastore->lock);
 	int index = hashtable_get(datastore->index_table, key);
 	if(index < 0)
@@ -107,6 +109,8 @@ int datastore_put(datastore_t* datastore, char* key, char* value)
 
 int datastore_set(datastore_t* datastore, char* key, char* value)
 {
+	CHECK_KEY_SIZE(key);
+	CHECK_VALUE_SIZE(value);
 	rw_lock_write_lock(&datastore->lock);
 	int index = hashtable_get(datastore->index_table, key);
 	if (index < 0) {
@@ -127,6 +131,7 @@ int datastore_set(datastore_t* datastore, char* key, char* value)
 
 int datastore_remove(datastore_t* datastore, char* key)
 {
+	CHECK_KEY_SIZE(key);
 	rw_lock_write_lock(&datastore->lock);
 	int index = hashtable_get(datastore->index_table, key);
 	if(index >= 0)

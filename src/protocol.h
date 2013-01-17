@@ -29,16 +29,15 @@
 
 #include "datastorage.h"
 #include "hashtable.h"
+#include "utils.h"
 
 #define OP_GET 0x00
 #define OP_PUT 0x01
 #define OP_RMV 0x02
 #define OP_LIST 0x03
 #define OP_SET 0x04
-#define OP_MD5 0x05
-#define OP_SHA1 0x06
-#define OP_COUNT 0x07
-#define OP_SHA256 0x08
+#define OP_COUNT 0x05
+#define OP_DIGEST 0x06
 
 #define FLAG_NONE 0x00
 #define FLAG_READ 0x01
@@ -51,19 +50,19 @@
 
 typedef struct reply_t{
 	//TODO : multiple attribute
-	int replied;
+	bool replied;
 	char* name;
 	char* value;
-
 	unsigned char rc;
 	char* message;
 
 } reply_t;
 
+//TODO : multiple request
+
 typedef struct request_t{
 	unsigned int id;
 	unsigned char op;
-	//TODO : multiple attribute
 	int argc;
 	char* argv[MAX_ARGC];
 	reply_t reply;
@@ -96,9 +95,7 @@ void do_put(datastore_t* datastore, request_t* request);
 void do_set(datastore_t* datastore, request_t* request);
 void do_list(datastore_t* datastore, request_t* request);
 void do_rmv(datastore_t* datastore, request_t* request);
-void do_md5(datastore_t* datastore, request_t* request);
-void do_sha1(datastore_t* datastore, request_t* request);
 void do_count(datastore_t* datastore, request_t* req);
-void do_sha256(datastore_t* datastore, request_t* req);
+void do_digest(datastore_t* datastore, request_t* req);
 
 #endif /* PROTOCOL_H_ */

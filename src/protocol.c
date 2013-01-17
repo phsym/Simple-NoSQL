@@ -32,10 +32,7 @@
 
 #include "protocol.h"
 #include "utils.h"
-
-#include "md5.h"
-#include "sha1.h"
-#include "sha256.h"
+#include "crypto.h"
 
 unsigned int last_id = 0;
 
@@ -49,10 +46,8 @@ const cmd_t commands[] = {
 	{"set", OP_SET, FLAG_WRITE, 2, "Set command", &do_set},
 	{"list", OP_LIST, FLAG_READ, 0, "List command", &do_list},
 	{"rmv", OP_RMV, FLAG_WRITE, 1, "Remove command", &do_rmv},
-	{"md5", OP_MD5, FLAG_WRITE, 2, "Md5 command", &do_md5},
-	{"sha1", OP_SHA1, FLAG_WRITE, 2, "Sha1 command", &do_sha1},
 	{"count", OP_COUNT, FLAG_READ, 0, "Count command", &do_count},
-	{"sha256", OP_SHA256, FLAG_WRITE, 2, "Sha256 command", &do_sha256}
+	{"digest", OP_DIGEST, FLAG_WRITE, 3, "Hash digest calculation", &do_digest}
 };
 
 void protocol_init()
@@ -90,11 +85,6 @@ void process_request(datastore_t* datastore, request_t* req)
 {
 	req->reply.message = "";
 
-//	if(strlen(req->name) > MAX_KEY_SIZE)
-//		req->name[MAX_KEY_SIZE] = '\0';
-//	if(strlen(req->value) > MAX_VALUE_SIZE)
-//		req->value[MAX_VALUE_SIZE] = '\0';
-			
 	if(cmd_id[req->op] != NULL)
 		cmd_id[req->op]->process(datastore, req);
 	else
@@ -102,13 +92,14 @@ void process_request(datastore_t* datastore, request_t* req)
 		req->reply.message = "Unknown operation";
 		req->reply.rc = -1;
 	}
+	req->reply.replied = true;
 }
 
 int decode_request(request_t* request, char* req, int len)
 {
 	memset(request, 0, sizeof(request));
 
-	request->reply.replied = 0;
+	request->reply.replied = false;
 	request->id = last_id ++;
 
 	int i;
@@ -232,20 +223,6 @@ void do_rmv(datastore_t* datastore, request_t* req)
 	req->reply.rc = datastore_remove(datastore, req->argv[0]);
 }
 
-void do_md5(datastore_t* datastore, request_t* req)
-{
-	char digest_str[MD5_DIGEST_STR_LENGTH];
-	MD5_str(req->argv[1], strlen(req->argv[1]), digest_str);
-	req->reply.rc = datastore_set(datastore, req->argv[0], digest_str);
-}
-
-void do_sha1(datastore_t* datastore, request_t* req)
-{
-	char digest_str[SHA1_DIGEST_STR_LENGTH];
-	SHA1_str(req->argv[1], strlen(req->argv[1]), digest_str);
-	req->reply.rc = datastore_set(datastore, req->argv[0], digest_str);
-}
-
 void do_count(datastore_t* datastore, request_t* req)
 {
 	req->reply.message = malloc(9);
@@ -253,9 +230,18 @@ void do_count(datastore_t* datastore, request_t* req)
 	req->reply.rc = 0;
 }
 
-void do_sha256(datastore_t* datastore, request_t* req)
+void do_digest(datastore_t* datastore, request_t* req)
 {
-	char digest_str[SHA256_DIGEST_STR_LENGTH];
-	SHA256_str(req->argv[1], strlen(req->argv[1]), digest_str);
-	req->reply.rc = datastore_set(datastore, req->argv[0], digest_str);
+	hash_algo_t* algo = crypto_get_hash_algo(req->argv[0]);
+	if(algo == NULL)
+	{
+		char *error = "Unknown hash algorithm";
+		_log(LVL_DEBUG, "%s : %s", error, req->argv[0]);
+		req->reply.rc = -1;
+		req->reply.message = error;
+		return;
+	}
+	char digest_str[algo->digest_str_len];
+	crypto_hash_str(algo, req->argv[2], strlen(req->argv[2]), digest_str);
+	req->reply.rc = datastore_set(datastore, req->argv[1], digest_str);
 }

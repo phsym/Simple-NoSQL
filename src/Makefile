@@ -1,4 +1,3 @@
-#MKDEP=gcc -MM -o .depend *.c
 MKDEP=gcc -MM *.c | sed -e "s/\(.*\.o\)/bin\/\1/" > Makefile.depend
 SRC=$(wildcard *.c)
 HDR=$(wildcard *.h)
