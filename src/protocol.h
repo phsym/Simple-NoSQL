@@ -47,6 +47,8 @@
 
 //TODO : Binary protocol
 
+#define MAX_ARGC 16
+
 typedef struct reply_t{
 	//TODO : multiple attribute
 	int replied;
@@ -62,8 +64,8 @@ typedef struct request_t{
 	unsigned int id;
 	unsigned char op;
 	//TODO : multiple attribute
-	char* name;
-	char* value;
+	int argc;
+	char* argv[MAX_ARGC];
 	reply_t reply;
 } request_t;
 

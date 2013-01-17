@@ -31,6 +31,9 @@
 
 #define TIME_STRLEN 18
 
+#define MAX(a,b) (a > b ? a : b)
+#define MIN(a,b) (a < b ? a : b)
+
 #define false 0x00
 #define true 0x01
 

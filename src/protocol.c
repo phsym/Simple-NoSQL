@@ -90,10 +90,10 @@ void process_request(datastore_t* datastore, request_t* req)
 {
 	req->reply.message = "";
 
-	if(strlen(req->name) > MAX_KEY_SIZE)
-		req->name[MAX_KEY_SIZE] = '\0';
-	if(strlen(req->value) > MAX_VALUE_SIZE)
-		req->value[MAX_VALUE_SIZE] = '\0';
+//	if(strlen(req->name) > MAX_KEY_SIZE)
+//		req->name[MAX_KEY_SIZE] = '\0';
+//	if(strlen(req->value) > MAX_VALUE_SIZE)
+//		req->value[MAX_VALUE_SIZE] = '\0';
 			
 	if(cmd_id[req->op] != NULL)
 		cmd_id[req->op]->process(datastore, req);
@@ -110,8 +110,10 @@ int decode_request(request_t* request, char* req, int len)
 
 	request->reply.replied = 0;
 	request->id = last_id ++;
-	request->name = "";
-	request->value = "";
+
+	int i;
+	for(i = 0; i < MAX_ARGC; i++)
+		request->argv[i] = "";
 
 	char* c = strchr(req, '\n');
 	if(c != NULL)
@@ -126,7 +128,7 @@ int decode_request(request_t* request, char* req, int len)
 		return -1;
 
 	//Convert command to lowercase
-	int i = 0;
+	i = 0;
 	while(op[i] != '\0')
 	{
 		op[i] = tolower(op[i]);
@@ -140,16 +142,11 @@ int decode_request(request_t* request, char* req, int len)
 		cmd_t *cmd = t;
 		
 		request->op = cmd->op;
-		if(cmd->argc > 0)
+		request->argc = cmd->argc;
+		for(i = 0; i < MIN(cmd->argc, MAX_ARGC); i++)
 		{
-			request->name = strtok_r(NULL, " ", str);
-			if(request->name == NULL)
-				return -1;
-		}
-		if(cmd->argc > 1)
-		{
-			request->value = strtok_r(NULL, " ", str);
-			if(request->value == NULL)
+			request->argv[i] = strtok_r(NULL, " ", str);
+			if(request->argv[i] == NULL)
 				return -1;
 		}
 	}
@@ -190,8 +187,8 @@ void encode_reply(request_t* req, char* buff, int buff_len)
 
 void do_get(datastore_t* datastore, request_t* req)
 {
-	req->reply.value = datastore_lookup(datastore, req->name);
-	req->reply.name = req->name;
+	req->reply.value = datastore_lookup(datastore, req->argv[0]);
+	req->reply.name = req->argv[0];
 	if(req->reply.value == NULL)
 	{
 		req->reply.rc = -1;
@@ -203,12 +200,12 @@ void do_get(datastore_t* datastore, request_t* req)
 
 void do_put(datastore_t* datastore, request_t* req)
 {
-	req->reply.rc = datastore_put(datastore, req->name, req->value);
+	req->reply.rc = datastore_put(datastore, req->argv[0], req->argv[1]);
 }
 
 void do_set(datastore_t* datastore, request_t* req)
 {
-	req->reply.rc = datastore_set(datastore, req->name, req->value);
+	req->reply.rc = datastore_set(datastore, req->argv[0], req->argv[1]);
 }
 
 void do_list(datastore_t* datastore, request_t* req)
@@ -232,21 +229,21 @@ void do_list(datastore_t* datastore, request_t* req)
 
 void do_rmv(datastore_t* datastore, request_t* req)
 {
-	req->reply.rc = datastore_remove(datastore, req->name);
+	req->reply.rc = datastore_remove(datastore, req->argv[0]);
 }
 
 void do_md5(datastore_t* datastore, request_t* req)
 {
 	char digest_str[MD5_DIGEST_STR_LENGTH];
-	MD5_str(req->value, strlen(req->value), digest_str);
-	req->reply.rc = datastore_set(datastore, req->name, digest_str);
+	MD5_str(req->argv[1], strlen(req->argv[1]), digest_str);
+	req->reply.rc = datastore_set(datastore, req->argv[0], digest_str);
 }
 
 void do_sha1(datastore_t* datastore, request_t* req)
 {
 	char digest_str[SHA1_DIGEST_STR_LENGTH];
-	SHA1_str(req->value, strlen(req->value), digest_str);
-	req->reply.rc = datastore_set(datastore, req->name, digest_str);
+	SHA1_str(req->argv[1], strlen(req->argv[1]), digest_str);
+	req->reply.rc = datastore_set(datastore, req->argv[0], digest_str);
 }
 
 void do_count(datastore_t* datastore, request_t* req)
@@ -259,6 +256,6 @@ void do_count(datastore_t* datastore, request_t* req)
 void do_sha256(datastore_t* datastore, request_t* req)
 {
 	char digest_str[SHA256_DIGEST_STR_LENGTH];
-	SHA256_str(req->value, strlen(req->value), digest_str);
-	req->reply.rc = datastore_set(datastore, req->name, digest_str);
+	SHA256_str(req->argv[1], strlen(req->argv[1]), digest_str);
+	req->reply.rc = datastore_set(datastore, req->argv[0], digest_str);
 }

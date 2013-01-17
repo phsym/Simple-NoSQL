@@ -34,6 +34,7 @@
 #include "datastorage.h"
 #include "utils.h"
 #include "config.h"
+#include "crypto.h"
 
 typedef struct {
 	volatile bool running;
@@ -112,6 +113,9 @@ int main(int argc, char* argv[])
 	_log(LVL_INFO, "Initializing data storage ...\n");
 	app.datastore = datastore_create(app.config->storage_size, app.config->index_len);
 
+	_log(LVL_INFO, "Initializing crypto ...\n");
+	crypto_init();
+
 	_log(LVL_INFO, "Initializing protocol ...\n");
 	protocol_init();
 
@@ -126,6 +130,7 @@ int main(int argc, char* argv[])
 	server_destroy(app.server);
 
 	protocol_cleanup();
+	crypto_cleanup();
 
 	datastore_destroy(app.datastore);
 
