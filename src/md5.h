@@ -57,7 +57,4 @@ typedef struct MD5Context MD5_CTX;
 
 unsigned char* MD5(const unsigned char * message, uint32_t len, unsigned char * digest);
 
-void MD5_to_str(unsigned char *d, char* str);
-void MD5_str(const char *M, uint32_t len, char* digest_str);
-
 #endif /* MD5_H_ */

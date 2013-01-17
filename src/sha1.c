@@ -201,21 +201,3 @@ unsigned char *SHA1 (const unsigned char * message, uint32_t len, unsigned char 
 
 	return digest;
 }
-
-void SHA1_to_str(unsigned char *d, char* str)
-{
-	int i;
-	char tmp[3];
-	str[0] = '\0';
-	for (i = 0; i < SHA1_DIGEST_LENGTH; i++) {
-		sprintf(tmp, "%02x", d[i]);
-		strcat(str, tmp);
-	}
-}
-
-void SHA1_str(const char *M, uint32_t len, char* digest_str)
-{
-	unsigned char digest[SHA1_DIGEST_LENGTH];
-	SHA1((unsigned char*)M, len, digest);
-	SHA1_to_str(digest, digest_str);
-}

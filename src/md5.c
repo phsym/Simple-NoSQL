@@ -260,21 +260,3 @@ unsigned char* MD5(const unsigned char * message, uint32_t len, unsigned char * 
 	
 	return digest;
 }
-
-void MD5_to_str(unsigned char *d, char* str)
-{
-	int i;
-	char tmp[3];
-	str[0] = '\0';
-	for (i = 0; i < MD5_DIGEST_LENGTH; i++) {
-		sprintf(tmp, "%02x", d[i]);
-		strcat(str, tmp);
-	}
-}
-
-void MD5_str(const char *M, uint32_t len, char* digest_str)
-{
-	unsigned char digest[MD5_DIGEST_LENGTH];
-	MD5((unsigned char*)M, len, digest);
-	MD5_to_str(digest, digest_str);
-}

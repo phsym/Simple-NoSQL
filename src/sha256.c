@@ -147,21 +147,3 @@ unsigned char *SHA256(const unsigned char *m, uint32_t len, unsigned char *md)
 	sha256_sum(&s, md);
 	return md;
 }
-
-void SHA256_to_str(unsigned char *d, char* str)
-{
-	int i;
-	char tmp[3];
-	str[0] = '\0';
-	for (i = 0; i < SHA256_DIGEST_LENGTH; i++) {
-	sprintf(tmp, "%02x", d[i]);
-	strcat(str, tmp);
-	}
-}
-
-void SHA256_str(const char *M, uint32_t len, char* digest_str)
-{
-	unsigned char digest[SHA256_DIGEST_LENGTH];
-	SHA256((unsigned char*)M, len, digest);
-	SHA256_to_str(digest, digest_str);
-}

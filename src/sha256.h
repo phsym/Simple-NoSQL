@@ -1,5 +1,10 @@
 /* public domain sha256 implementation based on fips180-3 */
 
+#ifndef SHA256_H_
+#define SHA256_H_
+
+#include <stdint.h>
+
 struct sha256 {
 	uint64_t len;    /* processed message length */
 	uint32_t h[8];   /* hash state */
@@ -15,7 +20,6 @@ void sha256_update(struct sha256 *s, const void *m, uint32_t len);
 /* part of the message might be left in s, zero it if secrecy is needed */
 void sha256_sum(struct sha256 *s, uint8_t md[32]);
 
-#if 1
 /* openssl api */
 #define SHA256_CTX struct sha256
 #define SHA256_DIGEST_LENGTH 32
@@ -27,6 +31,4 @@ static inline int SHA256_Init(SHA256_CTX *s) {sha256_init(s); return 1;}
 static inline int SHA256_Update(SHA256_CTX *s, const void *m, uint32_t len) {sha256_update(s, m, len); return 1;}
 static inline int SHA256_Final(unsigned char *md, SHA256_CTX *s) {sha256_sum(s, md); return 1;}
 
-void SHA256_to_str(unsigned char *d, char* str);
-void SHA256_str(const char *M, uint32_t len, char* digest_str);
-#endif
+#endif /* SHA256_H_ */
