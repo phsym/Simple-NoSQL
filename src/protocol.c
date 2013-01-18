@@ -47,7 +47,8 @@ const cmd_t commands[] = {
 	{"list", OP_LIST, FLAG_READ, 0, "List command", &do_list},
 	{"rmv", OP_RMV, FLAG_WRITE, 1, "Remove command", &do_rmv},
 	{"count", OP_COUNT, FLAG_READ, 0, "Count command", &do_count},
-	{"digest", OP_DIGEST, FLAG_WRITE, 3, "Hash digest calculation", &do_digest}
+	{"digest", OP_DIGEST, FLAG_WRITE, 3, "Hash digest calculation", &do_digest},
+	{"help", OP_HELP, FLAG_NONE, 0, "Help command", &do_help}
 };
 
 void protocol_init()
@@ -159,6 +160,7 @@ void encode_reply(request_t* req, char* buff, int buff_len)
 				strcat(buff, req->reply.value);
 				strcat(buff, "\r\n");
 				break;
+			case OP_HELP:
 			case OP_COUNT:
 			case OP_LIST:
 				strcat(buff, req->reply.message);
@@ -251,4 +253,23 @@ void do_digest(datastore_t* datastore, request_t* req)
 	char digest_str[algo->digest_str_len];
 	crypto_hash_str(algo, req->argv[2], strlen(req->argv[2]), digest_str);
 	req->reply.rc = datastore_set(datastore, req->argv[1], digest_str);
+}
+
+void do_help(datastore_t* datastore, request_t* req)
+{
+	int n = hashtable_keys_number(cmd_dict);
+
+	char* keys[n];
+	hashtable_list_keys(cmd_dict, keys, n);
+	size_t size = n*(MAX_KEY_SIZE+1)*sizeof(char);
+	size = size>0 ? size : 1;
+	req->reply.message = malloc(size);
+	memset(req->reply.message, '\0', size);
+	int i;
+	for(i = 0; i < n; i++)
+	{
+		strncat(req->reply.message, keys[i], MAX_KEY_SIZE);
+		strcat(req->reply.message, "\r\n");
+	}
+	req->reply.rc = 0;
 }
