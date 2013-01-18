@@ -127,7 +127,7 @@ TH_HDL client_handler(void* client)
 	while(cli->running && cli->server->running)
 	{
 		//readline
-		int r = read_line(cli->sock, buff, BUFF_SIZE, true);
+		int r = read_line(cli->sock, buff, BUFF_SIZE, false);
 		if(r <= 0)
 			break;
 		request_t req;
@@ -153,7 +153,7 @@ TH_HDL client_handler(void* client)
 	close(cli->sock);
 	free(client);
 
-	_log(LVL_TRACE, "Thread_exited\n", buff);
+	_log(LVL_TRACE, "Client thread exited\n", buff);
 	TH_RETURN;
 }
 

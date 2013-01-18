@@ -288,7 +288,6 @@ void do_help(request_t* req)
 
 void do_quit(request_t* req)
 {
-	stop_client(req->client);
 	req->client->running = false;
 	req->reply.rc = 0;
 	req->reply.message = "GoodBye";

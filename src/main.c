@@ -110,14 +110,14 @@ int main(int argc, char* argv[])
 
 	app.running = true;
 
-	_log(LVL_INFO, "Initializing data storage ...\n");
-	app.datastore = datastore_create(app.config->storage_size, app.config->index_len);
-
 	_log(LVL_DEBUG, "Initializing crypto ...\n");
 	crypto_init();
 
 	_log(LVL_DEBUG, "Initializing protocol ...\n");
 	protocol_init();
+
+	_log(LVL_INFO, "Initializing data storage ...\n");
+	app.datastore = datastore_create(app.config->storage_size, app.config->index_len);
 
 	_log(LVL_INFO, "Initializing server ...\n");
 	app.server = server_create(app.config->bind_address, app.config->bind_port, app.config->auth, app.datastore);
