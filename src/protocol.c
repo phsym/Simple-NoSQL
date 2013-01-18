@@ -49,7 +49,8 @@ const cmd_t commands[] = {
 	{"count", OP_COUNT, FLAG_READ, 0, "Count command", &do_count},
 	{"digest", OP_DIGEST, FLAG_WRITE, 3, "Hash digest calculation", &do_digest},
 	{"help", OP_HELP, FLAG_NONE, 0, "Help command", &do_help},
-	{"quit", OP_QUIT, FLAG_NONE, 0, "Quit command", &do_quit}
+	{"quit", OP_QUIT, FLAG_NONE, 0, "Quit command", &do_quit},
+	{"trace", OP_TRACE, FLAG_NONE, 1, "Trace command", &do_trace}
 };
 
 void protocol_init()
@@ -285,4 +286,27 @@ void do_quit(request_t* req)
 	req->client->running = false;
 	req->reply.rc = 0;
 	req->reply.message = "GoodBye";
+}
+
+void do_trace(request_t* req)
+{
+	//Make log level case unsensitive
+	int i = 0;
+	while(req->argv[0][i] != '\0')
+	{
+		req->argv[0][i] = toupper(req->argv[0][i]);
+		i++;
+	}
+	for(i = 0; i < MAX_DEBUG_LEVEL; i++)
+	{
+		if(!strcmp(req->argv[0], DBG_LVL_STR[i]))
+		{
+			_log(LVL_INFO, "Changing trace level to %s\n", DBG_LVL_STR[i]);
+			DEBUG_LEVEL = i;
+			req->reply.rc = 0;
+			return;
+		}
+	}
+	req->reply.rc = -1;
+	return;
 }

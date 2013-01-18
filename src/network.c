@@ -221,6 +221,7 @@ TH_HDL server_handler(void* serv)
 #ifdef __MINGW32__
 			strncpy(client->address, inet_ntoa(addr_client.sin_addr), 20);
 #else
+			//This is more secure in a multithreaded environement
 			inet_ntoa_r(addr_client.sin_addr, client->address, 20);
 #endif
 			thread_create(&(client->thread), &client_handler, client, 1);

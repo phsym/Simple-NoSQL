@@ -33,7 +33,7 @@
 #include <string.h>
 #include <time.h>
 
-DBG_LVL DEBUG_LEVEL = LVL_DEBUG;
+DBG_LVL DEBUG_LEVEL = LVL_INFO;
 
 const char* DBG_LVL_STR[] = {"NONE", "FATAL", "ERROR", "WARNING", "INFO", "DEBUG", "TRACE"};
 const int MAX_DEBUG_LEVEL = 7;
