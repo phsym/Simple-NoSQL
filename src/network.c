@@ -41,7 +41,8 @@
 
 #include "network.h"
 #include "utils.h"
-#include "crypto.h";
+#include "protocol.h"
+#include "crypto.h"
 
 #ifdef __MINGW32__
 	bool WSAinit = false; //Is Winsock Initialized
@@ -140,10 +141,10 @@ TH_HDL client_handler(void* client)
 
 		_log(LVL_TRACE, "Request received : %s\n", buff);
 
-		if(decode_request(&req, buff, r) < 0)
+		if(decode_request(cli, &req, buff, r) < 0)
 			continue;
 		// Process request
-		process_request(cli->server->datastore, &req);
+		process_request(&req);
 
 		//Send response
 		encode_reply(&req, buff, BUFF_SIZE);

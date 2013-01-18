@@ -28,7 +28,6 @@
 #define NETWORK_H_
 
 #include "concurrency.h"
-#include "protocol.h"
 #include "datastorage.h"
 #include "utils.h"
 

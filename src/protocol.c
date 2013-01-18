@@ -82,12 +82,12 @@ void register_command(cmd_t *cmd)
 	cmd_id[cmd->op] = cmd;
 }
 
-void process_request(datastore_t* datastore, request_t* req)
+void process_request(request_t* req)
 {
 	req->reply.message = "";
 
 	if(cmd_id[req->op] != NULL)
-		cmd_id[req->op]->process(datastore, req);
+		cmd_id[req->op]->process(req);
 	else
 	{
 		req->reply.message = "Unknown operation";
@@ -96,12 +96,13 @@ void process_request(datastore_t* datastore, request_t* req)
 	req->reply.replied = true;
 }
 
-int decode_request(request_t* request, char* req, int len)
+int decode_request(client_t* client, request_t* request, char* req, int len)
 {
 	memset(request, 0, sizeof(request));
 
 	request->reply.replied = false;
 	request->id = last_id ++;
+	request->client = client;
 
 	int i;
 	for(i = 0; i < MAX_ARGC; i++)
@@ -178,9 +179,9 @@ void encode_reply(request_t* req, char* buff, int buff_len)
 	}
 }
 
-void do_get(datastore_t* datastore, request_t* req)
+void do_get(request_t* req)
 {
-	req->reply.value = datastore_lookup(datastore, req->argv[0]);
+	req->reply.value = datastore_lookup(req->client->server->datastore, req->argv[0]);
 	req->reply.name = req->argv[0];
 	if(req->reply.value == NULL)
 	{
@@ -191,22 +192,22 @@ void do_get(datastore_t* datastore, request_t* req)
 		req->reply.rc = 0;
 }
 
-void do_put(datastore_t* datastore, request_t* req)
+void do_put(request_t* req)
 {
-	req->reply.rc = datastore_put(datastore, req->argv[0], req->argv[1]);
+	req->reply.rc = datastore_put(req->client->server->datastore, req->argv[0], req->argv[1]);
 }
 
-void do_set(datastore_t* datastore, request_t* req)
+void do_set(request_t* req)
 {
-	req->reply.rc = datastore_set(datastore, req->argv[0], req->argv[1]);
+	req->reply.rc = datastore_set(req->client->server->datastore, req->argv[0], req->argv[1]);
 }
 
-void do_list(datastore_t* datastore, request_t* req)
+void do_list(request_t* req)
 {
-	int n = datastore_keys_number(datastore);
+	int n = datastore_keys_number(req->client->server->datastore);
 	char* keys[n];
 	// TODO : filtering
-	datastore_list_keys(datastore, keys, n);
+	datastore_list_keys(req->client->server->datastore, keys, n);
 	size_t size = n*(MAX_KEY_SIZE+1)*sizeof(char);
 	size = size>0 ? size : 1;
 	req->reply.message = malloc(size);
@@ -220,19 +221,19 @@ void do_list(datastore_t* datastore, request_t* req)
 	req->reply.rc = 0;
 }
 
-void do_rmv(datastore_t* datastore, request_t* req)
+void do_rmv(request_t* req)
 {
-	req->reply.rc = datastore_remove(datastore, req->argv[0]);
+	req->reply.rc = datastore_remove(req->client->server->datastore, req->argv[0]);
 }
 
-void do_count(datastore_t* datastore, request_t* req)
+void do_count(request_t* req)
 {
 	req->reply.message = malloc(9);
-	snprintf(req->reply.message, 8, "%d\n", datastore_keys_number(datastore));
+	snprintf(req->reply.message, 8, "%d\n", datastore_keys_number(req->client->server->datastore));
 	req->reply.rc = 0;
 }
 
-void do_digest(datastore_t* datastore, request_t* req)
+void do_digest(request_t* req)
 {
 	//Convert digest algorithm name to lowercase
 	int i = 0;
@@ -252,10 +253,10 @@ void do_digest(datastore_t* datastore, request_t* req)
 	}
 	char digest_str[algo->digest_str_len];
 	crypto_hash_str(algo, req->argv[2], strlen(req->argv[2]), digest_str);
-	req->reply.rc = datastore_set(datastore, req->argv[1], digest_str);
+	req->reply.rc = datastore_set(req->client->server->datastore, req->argv[1], digest_str);
 }
 
-void do_help(datastore_t* datastore, request_t* req)
+void do_help(request_t* req)
 {
 	int n = hashtable_keys_number(cmd_dict);
 

@@ -30,6 +30,7 @@
 #include "datastorage.h"
 #include "hashtable.h"
 #include "utils.h"
+#include "network.h"
 
 #define OP_GET 0x00
 #define OP_PUT 0x01
@@ -64,6 +65,7 @@ typedef struct reply_t{
 typedef struct request_t{
 	unsigned int id;
 	unsigned char op;
+	client_t* client;
 	int argc;
 	char* argv[MAX_ARGC];
 	reply_t reply;
@@ -75,7 +77,7 @@ typedef struct {
 	char flag;
 	int argc;
 	char* description;
-	void (*process)(datastore_t*, request_t*);
+	void (*process)(request_t*);
 } cmd_t;
 
 extern hashtable_t *cmd_dict;
@@ -85,19 +87,19 @@ void protocol_init();
 void protocol_cleanup();
 void register_command(cmd_t *cmd);
 
-void process_request(datastore_t* datastore, request_t* req);
+void process_request(request_t* req);
 
-int decode_request(request_t* request, char* req, int len);
+int decode_request(client_t* client, request_t* request, char* req, int len);
 
 void encode_reply(request_t* req, char* buff, int buff_len);
 
-void do_get(datastore_t* datastore, request_t* request);
-void do_put(datastore_t* datastore, request_t* request);
-void do_set(datastore_t* datastore, request_t* request);
-void do_list(datastore_t* datastore, request_t* request);
-void do_rmv(datastore_t* datastore, request_t* request);
-void do_count(datastore_t* datastore, request_t* req);
-void do_digest(datastore_t* datastore, request_t* req);
-void do_help(datastore_t* datastore, request_t* req);
+void do_get(request_t* request);
+void do_put(request_t* request);
+void do_set( request_t* request);
+void do_list(request_t* request);
+void do_rmv(request_t* request);
+void do_count(request_t* req);
+void do_digest(request_t* req);
+void do_help(request_t* req);
 
 #endif /* PROTOCOL_H_ */
