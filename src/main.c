@@ -37,7 +37,7 @@
 #include "crypto.h"
 
 typedef struct {
-	volatile bool running;
+	bool running;
 	server_t* server;
 	datastore_t* datastore;
 	config_t* config;

@@ -51,7 +51,8 @@ const cmd_t commands[] = {
 	{"help", OP_HELP, FLAG_NONE, 0, "Help command", &do_help},
 	{"quit", OP_QUIT, FLAG_NONE, 0, "Quit command", &do_quit},
 	{"trace", OP_TRACE, FLAG_NONE, 1, "Trace command", &do_trace},
-	{"time", OP_TIME, FLAG_NONE, 0, "Get server time", &do_time}
+	{"time", OP_TIME, FLAG_NONE, 0, "Get server time", &do_time},
+	{"ping", OP_PING, FLAG_NONE, 0, "Ping server", &do_ping}
 };
 
 void protocol_init()
@@ -169,14 +170,16 @@ void encode_reply(request_t* req, char* buff, int buff_len)
 			case OP_TIME:
 			case OP_LIST:
 				strcat(buff, req->reply.message);
+				strcat(buff, "\r\n");
 				free(req->reply.message);
 				break;
+			case OP_PING:
 			case OP_QUIT:
 				strcat(buff, req->reply.message);
+				strcat(buff, "\r\n");
 				break;
 			default:
 				break;
-			//TODO : add line break to all response here
 		}
 	}
 	else
@@ -237,7 +240,7 @@ void do_rmv(request_t* req)
 void do_count(request_t* req)
 {
 	req->reply.message = malloc(9);
-	snprintf(req->reply.message, 8, "%d\n", datastore_keys_number(req->client->server->datastore));
+	snprintf(req->reply.message, 8, "%d", datastore_keys_number(req->client->server->datastore));
 	req->reply.rc = 0;
 }
 
@@ -310,6 +313,7 @@ void do_trace(request_t* req)
 			return;
 		}
 	}
+	req->reply.message = "Invalid trace level";
 	req->reply.rc = -1;
 	return;
 }
@@ -318,6 +322,11 @@ void do_time(request_t* req)
 {
 	req->reply.message = malloc(TIME_STRLEN);
 	get_current_time_string(req->reply.message, TIME_STRLEN);
-	strcat(req->reply.message, "\r\n");
+	req->reply.rc = 0;
+}
+
+void do_ping(request_t* req)
+{
+	req-> reply.message = "PONG";
 	req->reply.rc = 0;
 }

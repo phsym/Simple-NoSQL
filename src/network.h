@@ -36,7 +36,7 @@
 //TODO : Transactions (server side, and client side)
 
 typedef struct {
-	volatile bool running;
+	bool running;
 	thread_t thread;
 	int socket;
 	short port;
