@@ -217,8 +217,14 @@ TH_HDL server_handler(void* serv)
 			client->server = server;
 			client->sock = client_sock;
 			client->running = false;
+			client->port = addr_client.sin_port;
+#ifdef __MINGW32__
+			strncpy(client->address, inet_ntoa(addr_client.sin_addr), 20);
+#else
+			inet_ntoa_r(addr_client.sin_addr, client->address, 20);
+#endif
 			thread_create(&(client->thread), &client_handler, client, 1);
-			_log(LVL_DEBUG, "New connection from %s:%d\n", inet_ntoa(addr_client.sin_addr),addr_client.sin_port);
+			_log(LVL_DEBUG, "New connection from %s:%d\n", inet_ntoa(addr_client.sin_addr),client->port);
 		}
 	}
 

@@ -46,6 +46,8 @@ typedef struct {
 }server_t;
 
 typedef struct {
+	char address[20]; // IP address
+	u_short port;
 	bool running;
 	thread_t thread;
 	server_t* server;
