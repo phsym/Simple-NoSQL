@@ -40,6 +40,7 @@
 #define OP_COUNT 0x05
 #define OP_DIGEST 0x06
 #define OP_HELP 0x07
+#define OP_QUIT 0x08
 
 #define FLAG_NONE 0x00
 #define FLAG_READ 0x01
@@ -101,5 +102,6 @@ void do_rmv(request_t* request);
 void do_count(request_t* req);
 void do_digest(request_t* req);
 void do_help(request_t* req);
+void do_quit(request_t* req);
 
 #endif /* PROTOCOL_H_ */

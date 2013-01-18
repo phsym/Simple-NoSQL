@@ -48,7 +48,8 @@ const cmd_t commands[] = {
 	{"rmv", OP_RMV, FLAG_WRITE, 1, "Remove command", &do_rmv},
 	{"count", OP_COUNT, FLAG_READ, 0, "Count command", &do_count},
 	{"digest", OP_DIGEST, FLAG_WRITE, 3, "Hash digest calculation", &do_digest},
-	{"help", OP_HELP, FLAG_NONE, 0, "Help command", &do_help}
+	{"help", OP_HELP, FLAG_NONE, 0, "Help command", &do_help},
+	{"quit", OP_QUIT, FLAG_NONE, 0, "Quit command", &do_quit}
 };
 
 void protocol_init()
@@ -167,6 +168,9 @@ void encode_reply(request_t* req, char* buff, int buff_len)
 				strcat(buff, req->reply.message);
 				free(req->reply.message);
 				break;
+			case OP_QUIT:
+				strcat(buff, req->reply.message);
+				break;
 			default:
 				break;
 		}
@@ -273,4 +277,12 @@ void do_help(request_t* req)
 		strcat(req->reply.message, "\r\n");
 	}
 	req->reply.rc = 0;
+}
+
+void do_quit(request_t* req)
+{
+	stop_client(req->client);
+	req->client->running = false;
+	req->reply.rc = 0;
+	req->reply.message = "GoodBye";
 }

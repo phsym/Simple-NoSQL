@@ -28,6 +28,7 @@
 #ifdef __MINGW32__
 	#include <winsock2.h>
 	#define socklen_t int // winsock doesn't have socklen_t
+	#define SHUT_WR SD_BOTH // winsock doesn't have SHUT_WR
 #else
 	#include <sys/socket.h>
 	#include <netinet/in.h>
@@ -117,21 +118,13 @@ bool client_authenticate(client_t* cli)
 TH_HDL client_handler(void* client)
 {
 	client_t* cli = (client_t*)client;
-
-	if(cli->server->auth)
-	{
-		if(!client_authenticate(cli))
-		{
-			//TODO : Generalize client cleanup
-			close(cli->sock);
-			free(client);
-			TH_RETURN;
-		}
-	}
-	
 	char buff[BUFF_SIZE];
+
+	cli->running = true;
+	if(cli->server->auth && !client_authenticate(cli))
+			cli->running = false;
 	
-	while(cli->server->running)
+	while(cli->running && cli->server->running)
 	{
 		//readline
 		int r = read_line(cli->sock, buff, BUFF_SIZE, true);
@@ -152,10 +145,15 @@ TH_HDL client_handler(void* client)
 		_log(LVL_TRACE, "Reply sent : %s\n", buff);
 		send(cli->sock, buff, strlen(buff), 0);
 	}
-	close(cli->sock);
 
+	_log(LVL_TRACE, "Exiting client thread\n", buff);
+
+	cli->running = false;
+	shutdown(cli->sock, SHUT_WR);
+	close(cli->sock);
 	free(client);
 
+	_log(LVL_TRACE, "Thread_exited\n", buff);
 	TH_RETURN;
 }
 
@@ -218,6 +216,7 @@ TH_HDL server_handler(void* serv)
 			client_t *client = malloc(sizeof(client_t));
 			client->server = server;
 			client->sock = client_sock;
+			client->running = false;
 			thread_create(&(client->thread), &client_handler, client, 1);
 			_log(LVL_DEBUG, "New connection from %s:%d\n", inet_ntoa(addr_client.sin_addr),addr_client.sin_port);
 		}
@@ -255,6 +254,13 @@ void server_stop(server_t* server)
 #else
 	pthread_cancel(server->thread); // TODO: Wait clients end
 #endif
+}
+
+void stop_client(client_t* client)
+{
+	client->running = false;
+	shutdown(client->sock, SHUT_WR);
+	close(client->sock);
 }
 
 void server_destroy(server_t* server)

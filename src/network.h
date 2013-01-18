@@ -46,6 +46,7 @@ typedef struct {
 }server_t;
 
 typedef struct {
+	bool running;
 	thread_t thread;
 	server_t* server;
 	int sock;
@@ -56,6 +57,8 @@ server_t* server_create(unsigned int bind_addr, short port, bool auth, datastore
 void server_stop(server_t* server);
 
 void server_destroy(server_t* server);
+
+void stop_client(client_t* client);
 
 bool client_authenticate(client_t* cli);
 
