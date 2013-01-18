@@ -50,7 +50,8 @@ const cmd_t commands[] = {
 	{"digest", OP_DIGEST, FLAG_WRITE, 3, "Hash digest calculation", &do_digest},
 	{"help", OP_HELP, FLAG_NONE, 0, "Help command", &do_help},
 	{"quit", OP_QUIT, FLAG_NONE, 0, "Quit command", &do_quit},
-	{"trace", OP_TRACE, FLAG_NONE, 1, "Trace command", &do_trace}
+	{"trace", OP_TRACE, FLAG_NONE, 1, "Trace command", &do_trace},
+	{"time", OP_TIME, FLAG_NONE, 0, "Get server time", &do_time}
 };
 
 void protocol_init()
@@ -165,6 +166,7 @@ void encode_reply(request_t* req, char* buff, int buff_len)
 				break;
 			case OP_HELP:
 			case OP_COUNT:
+			case OP_TIME:
 			case OP_LIST:
 				strcat(buff, req->reply.message);
 				free(req->reply.message);
@@ -174,6 +176,7 @@ void encode_reply(request_t* req, char* buff, int buff_len)
 				break;
 			default:
 				break;
+			//TODO : add line break to all response here
 		}
 	}
 	else
@@ -309,4 +312,12 @@ void do_trace(request_t* req)
 	}
 	req->reply.rc = -1;
 	return;
+}
+
+void do_time(request_t* req)
+{
+	req->reply.message = malloc(TIME_STRLEN);
+	get_current_time_string(req->reply.message, TIME_STRLEN);
+	strcat(req->reply.message, "\r\n");
+	req->reply.rc = 0;
 }

@@ -42,6 +42,7 @@
 #define OP_HELP 0x07
 #define OP_QUIT 0x08
 #define OP_TRACE 0x09
+#define OP_TIME 0x0a
 
 #define FLAG_NONE 0x00
 #define FLAG_READ 0x01
@@ -105,5 +106,6 @@ void do_digest(request_t* req);
 void do_help(request_t* req);
 void do_quit(request_t* req);
 void do_trace(request_t* req);
+void do_time(request_t* req);
 
 #endif /* PROTOCOL_H_ */
