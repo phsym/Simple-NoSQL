@@ -120,7 +120,7 @@ int main(int argc, char* argv[])
 	app.datastore = datastore_create(app.config->storage_size, app.config->index_len);
 
 	_log(LVL_INFO, "Initializing server ...\n");
-	app.server = server_create(app.config->bind_address, app.config->bind_port, app.config->auth, app.datastore);
+	app.server = server_create(app.config->bind_address, app.config->bind_port, app.config->auth, app.datastore, 1000);
 
 	_log(LVL_INFO, "Starting network ...\n");
 	server_start(app.server);

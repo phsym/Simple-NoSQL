@@ -50,7 +50,7 @@
 #endif
 
 
-server_t* server_create(unsigned int bind_addr, short port, bool auth, datastore_t* datastore)
+server_t* server_create(unsigned int bind_addr, short port, bool auth, datastore_t* datastore, int max_client)
 {
 	server_t* server = malloc(sizeof(server_t));
 	server->running = 0;
@@ -59,7 +59,36 @@ server_t* server_create(unsigned int bind_addr, short port, bool auth, datastore
 	server->datastore = datastore;
 	server->bind_addr = bind_addr;
 	server->auth = auth;
+	server->max_client = max_client;
+	server->clients = malloc(max_client*sizeof(client_t**));
+	int i;
+	for(i = 0; i < max_client; i++)
+		*(server->clients + i) = NULL;
 	return server;
+}
+
+int server_register_cient(server_t* server, client_t* client)
+{
+	int i;
+	for(i = 0; i < server->max_client; i++)
+	{
+			if (*(server->clients + i) == NULL)
+			{
+				*(server->clients + i) = client;
+				return i;
+			}
+	}
+	return -1;
+}
+
+void server_unregister_client(server_t* server, client_t* client)
+{
+	int i;
+	for(i = 0; i < server->max_client; i++)
+	{
+		if(*(server->clients + i) == client)
+			*(server->clients + i) = NULL;
+	}
 }
 
 bool client_authenticate(client_t* cli)
@@ -151,6 +180,7 @@ TH_HDL client_handler(void* client)
 	cli->running = false;
 	shutdown(cli->sock, SHUT_WR);
 	close(cli->sock);
+	server_unregister_client(cli->server, cli);
 	free(client);
 
 	_log(LVL_TRACE, "Client thread exited\n", buff);
@@ -193,7 +223,7 @@ TH_HDL server_handler(void* serv)
 		TH_RETURN;
 	}
 
-	if(listen(server->socket, 1000) != 0)
+	if(listen(server->socket, server->max_client) != 0)
 	{
 		_perror("Error listen");
 		TH_RETURN;
@@ -224,6 +254,7 @@ TH_HDL server_handler(void* serv)
 			//This is more secure in a multithreaded environement
 			inet_ntoa_r(addr_client.sin_addr, client->address, 20);
 #endif
+			server_register_cient(server, client);
 			thread_create(&(client->thread), &client_handler, client, 1);
 			_log(LVL_DEBUG, "New connection from %s:%d\n", inet_ntoa(addr_client.sin_addr),client->port);
 		}
@@ -274,6 +305,7 @@ void server_destroy(server_t* server)
 {
 	if(server->running)
 		server_stop(server);
+	free(server->clients);
 	free(server);
 }
 

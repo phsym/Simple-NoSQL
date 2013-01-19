@@ -106,18 +106,15 @@ void config_apply_param(config_t* config, char* param, char* value)
 {
 	int num_param = sizeof(conf_p)/sizeof(config_param_t);
 	int i;
-	bool found = false;
 	for (i = 0; i < num_param; i++)
 	{
 		if(!strcmp(param, conf_p[i].name))
 		{
 			conf_p[i].conf_hdl(config, value);
-			found = true;
+			return;
 		}
 	}
-	
-	if(!found)
-		_log(LVL_WARNING, "Unknown config parameter : %s\n", param);
+	_log(LVL_WARNING, "Unknown config parameter : %s\n", param);
 }
 
 void config_load(config_t* config, char* file)

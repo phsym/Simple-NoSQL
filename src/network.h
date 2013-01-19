@@ -35,30 +35,39 @@
 
 //TODO : Transactions (server side, and client side)
 
-typedef struct {
+
+
+typedef struct server_t{
 	bool running;
 	thread_t thread;
 	int socket;
 	short port;
 	unsigned int bind_addr;
+	int max_client;
+	struct client_t **clients;
 	bool auth;
+
 	datastore_t* datastore;
 }server_t;
 
-typedef struct {
+typedef struct client_t{
 	char address[20]; // IP address
 	u_short port;
 	bool running;
 	thread_t thread;
-	server_t* server;
+	struct server_t* server;
 	int sock;
 }client_t;
 
-server_t* server_create(unsigned int bind_addr, short port, bool auth, datastore_t* datastore);
+server_t* server_create(unsigned int bind_addr, short port, bool auth, datastore_t* datastore, int max_client);
 
 void server_stop(server_t* server);
 
 void server_destroy(server_t* server);
+
+int server_register_cient(server_t* server, client_t* client);
+
+void server_unregister_client(server_t* server, client_t* client);
 
 void stop_client(client_t* client);
 
