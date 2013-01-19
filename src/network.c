@@ -265,6 +265,7 @@ TH_HDL server_handler(void* serv)
 #endif
 			if(server_register_cient(server, client) < 0)
 			{
+				_log(LVL_WARNING, "Max number of active connections reached : %d\n", server->max_client);
 				stop_client(client);
 				free(client);
 				continue;
