@@ -35,8 +35,6 @@
 
 //TODO : Transactions (server side, and client side)
 
-
-
 typedef struct server_t{
 	bool running;
 	thread_t thread;

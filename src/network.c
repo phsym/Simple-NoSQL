@@ -165,7 +165,7 @@ TH_HDL client_handler(void* client)
 	while(cli->running && cli->server->running)
 	{
 		//readline
-		int r = read_line(cli->sock, buff, BUFF_SIZE, false);
+		int r = read_line(cli->sock, buff, BUFF_SIZE, true);
 		if(r <= 0)
 			break;
 		request_t req;
