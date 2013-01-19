@@ -47,8 +47,14 @@ const config_param_t conf_p[] = {
 	{"debug_level", &config_debug_lvl},
 	{"storage_size", &config_storage_sz},
 	{"index_length", &config_index_len},
-	{"auth", &config_auth}
+	{"auth", &config_auth},
+	{"max_clients", &config_max_client}
 };
+
+void config_max_client(config_t* config, char* value)
+{
+	config->max_clients = atoi(value);
+}
 
 void config_port(config_t* config, char* value)
 {
@@ -92,6 +98,9 @@ void config_auth(config_t* config, char* value)
 		config->auth = true;
 }
 
+/*
+ * Load default configuration
+ */
 void config_init(config_t* config)
 {
 	config->bind_address = 0;
@@ -100,6 +109,7 @@ void config_init(config_t* config)
 	config->index_len = 1024*1024;
 	config->storage_size = 1024*1024;
 	config->auth = false;
+	config->max_clients = 1000;
 }
 
 void config_apply_param(config_t* config, char* param, char* value)

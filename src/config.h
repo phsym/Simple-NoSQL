@@ -37,6 +37,7 @@ typedef struct{
 	DBG_LVL debug_lvl;
 	int storage_size;
 	int index_len;
+	int max_clients;
 	short bind_port;
 	unsigned int bind_address;
 	bool auth;
@@ -47,6 +48,7 @@ typedef struct {
 	void (*conf_hdl)(config_t*, char*);
 } config_param_t;
 
+void config_max_client(config_t* config, char* value);
 void config_port(config_t* config, char* value);
 void config_address(config_t* config, char* value);
 void config_debug_lvl(config_t* config, char* value);
