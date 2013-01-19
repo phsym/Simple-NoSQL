@@ -60,6 +60,7 @@ server_t* server_create(unsigned int bind_addr, short port, bool auth, datastore
 	server->bind_addr = bind_addr;
 	server->auth = auth;
 	server->max_client = max_client;
+	server->num_clients = 0;
 	server->clients = malloc(max_client*sizeof(client_t**));
 	int i;
 	for(i = 0; i < max_client; i++)
@@ -69,12 +70,15 @@ server_t* server_create(unsigned int bind_addr, short port, bool auth, datastore
 
 int server_register_cient(server_t* server, client_t* client)
 {
+	if(server->num_clients >= server->max_client)
+		return -1;
 	int i;
 	for(i = 0; i < server->max_client; i++)
 	{
 			if (*(server->clients + i) == NULL)
 			{
 				*(server->clients + i) = client;
+				server->num_clients++;
 				return i;
 			}
 	}
@@ -83,11 +87,16 @@ int server_register_cient(server_t* server, client_t* client)
 
 void server_unregister_client(server_t* server, client_t* client)
 {
+	if(server->num_clients <= 0)
+		return;
 	int i;
 	for(i = 0; i < server->max_client; i++)
 	{
 		if(*(server->clients + i) == client)
+		{
 			*(server->clients + i) = NULL;
+			server->num_clients--;
+		}
 	}
 }
 
@@ -254,7 +263,12 @@ TH_HDL server_handler(void* serv)
 			//This is more secure in a multithreaded environement
 			inet_ntoa_r(addr_client.sin_addr, client->address, 20);
 #endif
-			server_register_cient(server, client);
+			if(server_register_cient(server, client) < 0)
+			{
+				stop_client(client);
+				free(client);
+				continue;
+			}
 			thread_create(&(client->thread), &client_handler, client, 1);
 			_log(LVL_DEBUG, "New connection from %s:%d\n", inet_ntoa(addr_client.sin_addr),client->port);
 		}

@@ -44,6 +44,7 @@ typedef struct server_t{
 	short port;
 	unsigned int bind_addr;
 	int max_client;
+	int num_clients;
 	struct client_t **clients;
 	bool auth;
 
