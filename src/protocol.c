@@ -52,7 +52,8 @@ const cmd_t commands[] = {
 	{"quit", OP_QUIT, FLAG_NONE, 0, "Quit command", &do_quit},
 	{"trace", OP_TRACE, FLAG_NONE, 1, "Trace command", &do_trace},
 	{"time", OP_TIME, FLAG_NONE, 0, "Get server time", &do_time},
-	{"ping", OP_PING, FLAG_NONE, 0, "Ping server", &do_ping}
+	{"ping", OP_PING, FLAG_NONE, 0, "Ping server", &do_ping},
+	{"clients", OP_CLIENTS, FLAG_NONE, 0, "List clients", &do_clients}
 };
 
 void protocol_init()
@@ -168,6 +169,7 @@ void encode_reply(request_t* req, char* buff, int buff_len)
 			case OP_HELP:
 			case OP_COUNT:
 			case OP_TIME:
+			case OP_CLIENTS:
 			case OP_LIST:
 				strcat(buff, req->reply.message);
 				strcat(buff, "\r\n");
@@ -327,5 +329,24 @@ void do_time(request_t* req)
 void do_ping(request_t* req)
 {
 	req-> reply.message = "PONG";
+	req->reply.rc = 0;
+}
+
+void do_clients(request_t* req)
+{
+	server_t* server = req->client->server;
+	int i;
+	char buff[1024];
+	req->reply.message = malloc(1024*server->num_clients);
+	req->reply.message[0] = '\0';
+	for(i = 0; i < server->max_client; i++)
+	{
+		client_t* cli = server->clients[i];
+		if(cli != NULL)
+		{
+			sprintf(buff, "%d : %s:%d\r\n", i, cli->address, cli->port);
+			strcat(req->reply.message, buff);
+		}
+	}
 	req->reply.rc = 0;
 }

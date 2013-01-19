@@ -44,6 +44,7 @@
 #define OP_TRACE 0x09
 #define OP_TIME 0x0a
 #define OP_PING 0x0b
+#define OP_CLIENTS 0x0c
 
 #define FLAG_NONE 0x00
 #define FLAG_READ 0x01
@@ -109,5 +110,6 @@ void do_quit(request_t* req);
 void do_trace(request_t* req);
 void do_time(request_t* req);
 void do_ping(request_t* req);
+void do_clients(request_t* req);
 
 #endif /* PROTOCOL_H_ */
