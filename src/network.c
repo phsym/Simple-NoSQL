@@ -53,7 +53,7 @@
 server_t* server_create(unsigned int bind_addr, short port, bool auth, datastore_t* datastore, int max_client)
 {
 	server_t* server = malloc(sizeof(server_t));
-	server->running = 0;
+	server->running = false;
 	server->socket = -1;
 	server->port = port;
 	server->datastore = datastore;
@@ -77,6 +77,7 @@ int server_register_cient(server_t* server, client_t* client)
 	{
 			if (*(server->clients + i) == NULL)
 			{
+				_log(LVL_TRACE, "Registering client on server\n");
 				*(server->clients + i) = client;
 				server->num_clients++;
 				return i;
@@ -94,6 +95,7 @@ void server_unregister_client(server_t* server, client_t* client)
 	{
 		if(*(server->clients + i) == client)
 		{
+			_log(LVL_TRACE, "Unregistering client from server\n");
 			*(server->clients + i) = NULL;
 			server->num_clients--;
 		}
@@ -288,10 +290,21 @@ void server_wait_end(server_t* server)
 
 void server_stop(server_t* server)
 {
-	//TODO : Notify clients
+	//Stop server
 	server->running = false;
 	close(server->socket);
 	server->socket = -1;
+	// Stop clients
+	int i;
+	for(i = 0; i < server->max_client; i++)
+	{
+		if(server->clients[i] != NULL)
+		{
+			stop_client(server->clients[i]);
+			//Join clients
+			thread_join(&server->clients[i]->thread);
+		}
+	}
 #ifdef __MINGW32__
 	//TODO : Cancel Thread
 	if(WSAinit)
@@ -300,7 +313,7 @@ void server_stop(server_t* server)
 		WSAinit = false;
 	}
 #else
-	pthread_cancel(server->thread); // TODO: Wait clients end
+	pthread_cancel(server->thread);
 #endif
 }
 
