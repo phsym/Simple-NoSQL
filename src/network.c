@@ -257,12 +257,7 @@ TH_HDL server_handler(void* serv)
 			client->sock = client_sock;
 			client->running = false;
 			client->port = addr_client.sin_port;
-#ifdef __MINGW32__
 			strncpy(client->address, inet_ntoa(addr_client.sin_addr), 20);
-#else
-			//This is more secure in a multithreaded environement
-			inet_ntoa_r(addr_client.sin_addr, client->address, 20);
-#endif
 			if(server_register_cient(server, client) < 0)
 			{
 				_log(LVL_WARNING, "Max number of active connections reached : %d\n", server->max_client);
