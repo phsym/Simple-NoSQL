@@ -61,7 +61,7 @@ void protocol_init()
 	if(!_proto_init)
 	{
 		int num_cmd = sizeof(commands)/sizeof(cmd_t);
-		cmd_dict = hashtable_create(256);
+		cmd_dict = ht_create(256);
 		int i;
 		for(i = 0; i < 256; i++)
 			cmd_id[i] = NULL;
@@ -75,7 +75,7 @@ void protocol_cleanup()
 {
 	if(_proto_init)
 	{
-		hashtable_destroy(cmd_dict);
+		ht_destroy(cmd_dict);
 		_proto_init = false;
 	}
 }
@@ -83,7 +83,7 @@ void protocol_cleanup()
 void register_command(cmd_t *cmd)
 {
 	_log(LVL_DEBUG, "Registering command %s\n", cmd->name);
-	hashtable_put(cmd_dict, cmd->name, cmd);
+	ht_put(cmd_dict, cmd->name, cmd);
 	cmd_id[cmd->op] = cmd;
 }
 
@@ -133,12 +133,10 @@ int decode_request(client_t* client, request_t* request, char* req, int len)
 		i++;
 	}
 	
-	int t = hashtable_get(cmd_dict, op);
+	cmd_t *cmd = ht_get(cmd_dict, op);
 	
-	if(t != -1) // TODO: Adapt hashtable, -1 is not a good value for this case
+	if(cmd != NULL)
 	{
-		cmd_t *cmd = t;
-		
 		request->op = cmd->op;
 		request->argc = cmd->argc;
 		for(i = 0; i < MIN(cmd->argc, MAX_ARGC); i++)
@@ -271,10 +269,9 @@ void do_digest(request_t* req)
 
 void do_help(request_t* req)
 {
-	int n = hashtable_keys_number(cmd_dict);
-
+	int n = cmd_dict->e_num;
 	char* keys[n];
-	hashtable_list_keys(cmd_dict, keys, n);
+	ht_list_keys(cmd_dict, keys, n);
 	size_t size = n*(MAX_KEY_SIZE+1)*sizeof(char);
 	size = size>0 ? size : 1;
 	req->reply.message = malloc(size);

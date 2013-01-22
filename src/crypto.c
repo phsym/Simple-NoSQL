@@ -24,6 +24,11 @@
  *      Author: Pierre-Henri Symoneaux
  */
 
+#include <stdint.h>
+#include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
+
 #include "crypto.h"
 #include "md5.h"
 #include "sha1.h"
@@ -44,7 +49,7 @@ void crypto_init()
 {
 	if(!_cryp_init)
 	{
-		hash_algo_dict = hashtable_create(128);
+		hash_algo_dict = ht_create(128);
 		int n = sizeof(hash_a)/sizeof(hash_algo_t);
 		int i;
 		for(i = 0; i < n; i++)
@@ -57,7 +62,7 @@ void crypto_cleanup()
 {
 	if(_cryp_init)
 	{
-		hashtable_destroy(hash_algo_dict);
+		ht_destroy(hash_algo_dict);
 		_cryp_init = false;
 	}
 }
@@ -65,21 +70,18 @@ void crypto_cleanup()
 void crypto_register_hash_algo(hash_algo_t* algo)
 {
 	_log(LVL_DEBUG, "Registering hash algorithm %s\n", algo->name);
-	hashtable_put(hash_algo_dict, algo->name, algo);
+	ht_put(hash_algo_dict, algo->name, algo);
 }
 
 hash_algo_t* crypto_get_hash_algo(char* algo_name)
 {
-	int a = hashtable_get(hash_algo_dict, algo_name);
-	if(a == -1)
-		return NULL;
-	else
-		return (hash_algo_t*)a;
+	return (hash_algo_t*)ht_get(hash_algo_dict, algo_name);
+
 }
 
 void crypto_hash_to_str(const hash_algo_t* algo, unsigned char *d, char* str)
 {
-	int i;
+	unsigned int i;
 	char tmp[3];
 	str[0] = '\0';
 	for (i = 0; i < algo->digest_len; i++) {

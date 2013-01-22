@@ -1,0 +1,255 @@
+/*
+* Simple-NoSQL
+* Copyright (C) 2012 Pierre-Henri Symoneaux
+*
+* This program is free software; you can redistribute it and/or modify
+* it under the terms of the GNU General Public License as published by
+* the Free Software Foundation; either version 3 of the License, or
+* (at your option) any later version.
+*
+* This program is distributed in the hope that it will be useful,
+* but WITHOUT ANY WARRANTY; without even the implied warranty of
+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+* GNU General Public License for more details.
+*
+* You should have received a copy of the GNU General Public License
+* along with this program; if not, write to the Free Software
+* Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 US
+*/
+
+/*
+ * containers.c
+ *
+ *  Created on: 22 janv. 2013
+ *      Author: Pierre-Henri Symoneaux
+ */
+
+#include <stdlib.h>
+#include <string.h>
+
+#include "containers.h"
+
+/* Internal funcion to calculate hash for keys */
+static unsigned int ht_calc_hash(char* key, size_t len)
+{
+	unsigned int h = 0;
+	unsigned int i;
+	for(i = 0; i < len; i++)
+		h = 31 * h + key[i];
+	return h;
+}
+
+/* 	Create a hashtable with capacity 'capacity'
+	and return a pointer to it*/
+hashtable_t* ht_create(unsigned int capacity)
+{
+	hashtable_t* hasht = malloc(sizeof(hashtable_t));
+	if(!hasht)
+		return NULL;
+	if((hasht->table = malloc(capacity*sizeof(hash_elem_t*))) == NULL)
+	{
+		free(hasht->table);
+		return NULL;
+	}
+	hasht->capacity = capacity;
+	hasht->e_num = 0;
+	unsigned int i;
+	for(i = 0; i < capacity; i++)
+		hasht->table[i] = NULL;
+	return hasht;
+}
+
+/* 	Store data in the hashtable. If data with the same key are already stored,
+	they are overwritten, and return by the function. Else it return NULL.
+	Return HT_ERROR if there are memory alloc error*/
+void* ht_put(hashtable_t* hasht, char* key, void* data)
+{
+	unsigned int h = ht_calc_hash(key, strlen(key)) % hasht->capacity;
+	hash_elem_t* e = hasht->table[h];
+
+	while(e != NULL)
+	{
+		if(!strcmp(e->key, key))
+		{
+			void* ret = e->data;
+			e->data = data;
+			return ret;
+		}
+		e = e->next;
+	}
+
+	// Getting here means the key doesn't already exist
+
+	if((e = malloc(sizeof(hash_elem_t)+strlen(key)+1)) == NULL)
+		return HT_ERROR;
+	strcpy(e->key, key);
+	e->data = data;
+
+	// Add the element at the beginning of the linked list
+	e->next = hasht->table[h];
+	hasht->table[h] = e;
+	hasht->e_num ++;
+
+	return NULL;
+}
+
+/* Retrieve data from the hashtable */
+void* ht_get(hashtable_t* hasht, char* key)
+{
+	unsigned int h = ht_calc_hash(key, strlen(key)) % hasht->capacity;
+	hash_elem_t* e = hasht->table[h];
+	while(e != NULL)
+	{
+		if(!strcmp(e->key, key))
+			return e->data;
+		e = e->next;
+	}
+	return NULL;
+}
+
+/* 	Remove data from the hashtable. Return the data removed from the table
+	so that we can free memory if needed */
+void* ht_remove(hashtable_t* hasht, char* key)
+{
+	unsigned int h = ht_calc_hash(key, strlen(key)) % hasht->capacity;
+	hash_elem_t** e = hasht->table + h;
+	hash_elem_t* prev = NULL;
+	while(*e != NULL)
+	{
+		if(!strcmp((*e)->key, key))
+		{
+			void* ret = (*e)->data;
+			if(prev != NULL)
+				prev->next = (*e)->next;
+			free(*e);
+			*e = NULL;
+			hasht->e_num --;
+			return ret;
+		}
+		prev = *e;
+		*e = (*e)->next;
+	}
+	return NULL;
+}
+
+/* List keys. k should have length equals or greater than the number of keys */
+void ht_list_keys(hashtable_t* hasht, char** k, size_t len)
+{
+	if(len < hasht->e_num)
+		return;
+	int ki = 0; //Index to the current string in **k
+	int i = hasht->capacity;
+	while(--i >= 0)
+	{
+		hash_elem_t* e = hasht->table[i];
+		while(e)
+		{
+			k[ki++] = e->key;
+			e = e->next;
+		}
+	}
+}
+
+/* Iterate through table's elements. */
+hash_elem_t* ht_iterate(hashtable_t* hasht, hash_elem_it* iterator)
+{
+	if(hasht != NULL)
+	{
+		iterator->ht = hasht;
+		iterator->index = 0;
+		iterator->elem = hasht->table[0];
+		return ht_iterate(NULL, iterator);
+	}
+	else
+	{
+		if(iterator->elem == NULL && iterator->index < iterator->ht->capacity - 1)
+		{
+			iterator->index++;
+			iterator->elem = iterator->ht->table[iterator->index];
+			return ht_iterate(NULL, iterator);
+		}
+		else if(iterator->elem != NULL)
+		{
+			hash_elem_t* e = iterator->elem;
+			iterator->elem = e->next;
+			return e;
+		}
+		else
+			return NULL;
+	}
+}
+
+/* Iterate through keys. */
+char* ht_iterate_keys(hashtable_t* hasht, hash_elem_it* iterator)
+{
+	hash_elem_t* e = ht_iterate(hasht, iterator);
+	return (e == NULL ? NULL : e->key);
+}
+
+/* Iterate through values. */
+void* ht_iterate_values(hashtable_t* hasht, hash_elem_it* iterator)
+{
+	hash_elem_t* e = ht_iterate(hasht, iterator);
+	return (e == NULL ? NULL : e->data);
+}
+
+/* 	Removes all elements stored in the hashtable.
+	if free_data, all stored datas are also freed.*/
+void ht_clear(hashtable_t* hasht, int free_data)
+{
+	hash_elem_it it = HT_ITERATOR_INIT;
+	char* k = ht_iterate_keys(hasht, &it);
+	while(k != NULL)
+	{
+		free_data ? free(ht_remove(hasht, k)) : ht_remove(hasht, k);
+		k = ht_iterate_keys(NULL, &it);
+	}
+}
+
+/* 	Destroy the hash table, and free memory.
+	Data still stored are freed*/
+void ht_destroy(hashtable_t* hasht)
+{
+	ht_clear(hasht, 1); // Delete and free all.
+	free(hasht->table);
+	free(hasht);
+}
+
+
+#ifdef TEST_HASHTABLE
+#include <stdio.h>
+/* Main function for testing purpose only */
+int main()
+{
+	hashtable_t *ht = ht_create(1024);
+	ht_put(ht, "foo", "bar");
+	printf("%s\n", (char*)ht_get(ht, "foo"));
+	ht_put(ht, "foo", "rab");
+	printf("%s\n", (char*)ht_get(ht, "foo"));
+	ht_remove(ht, "foo");
+	if(!ht_get(ht, "foo"))
+		printf("foo removed\n");
+
+	ht_put(ht, "foo", "bar");
+	ht_put(ht, "toto", "titi");
+
+	printf("Listing\n");
+	char* str[ht->e_num];
+	ht_list_keys(ht, str, ht->e_num);
+
+	unsigned int i;
+	for(i = 0; i < ht->e_num; i++)
+		printf("%s\n", str[i]);
+
+	hash_elem_it it;
+	hash_elem_t* e = ht_iterate(ht, &it);
+	while(e != NULL)
+	{
+		printf("%s = %s \n", e->key, (char*)e->data);
+		e = ht_iterate(NULL, &it);
+	}
+
+	ht_destroy(ht);
+	return 0;
+}
+#endif

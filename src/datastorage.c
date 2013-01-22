@@ -30,12 +30,13 @@
 #include <string.h>
 #include <stdio.h>
 #include "utils.h"
+#include "containers.h"
 
 datastore_t* datastore_create(int storage_size, int index_length)
 {
 	char* storagefile = "./datastorage.dat";
 	datastore_t* store = malloc(sizeof(datastore_t));
-	store->index_table = hashtable_create(index_length);
+	store->index_table = ht_create(index_length);
 	store->data_table = table_map_load(storagefile);
 	if(store->data_table == NULL)
 	{
@@ -59,7 +60,7 @@ datastore_t* datastore_create(int storage_size, int index_length)
 			if(tmp != NULL)
 			{
 				_log(LVL_TRACE, "found %s at index %d\n", tmp->name, i);
-				hashtable_put(store->index_table, tmp->name, i);
+				ht_put(store->index_table, tmp->name, i);
 			}
 		}
 		p = (100 * i)/store->data_table->capacity;
@@ -74,7 +75,7 @@ char* datastore_lookup(datastore_t* datastore, char* key)
 	CHECK_KEY_SIZE(key);
 	rw_lock_read_lock(&datastore->lock);
 	char* value = NULL;
-	int index = hashtable_get(datastore->index_table, key);
+	int index = ht_get(datastore->index_table, key);
 	if(index >= 0)
 	{
 		data_t* data = table_get_ref(datastore->data_table, index);
@@ -92,14 +93,14 @@ int datastore_put(datastore_t* datastore, char* key, char* value)
 	CHECK_KEY_SIZE(key);
 	CHECK_VALUE_SIZE(value);
 	rw_lock_write_lock(&datastore->lock);
-	int index = hashtable_get(datastore->index_table, key);
+	int index = ht_get(datastore->index_table, key);
 	if(index < 0)
 	{
 		data_t data;
 		strncpy(data.name, key, MAX_KEY_SIZE+1);
 		strncpy(data.value, value, MAX_VALUE_SIZE+1);
 		index = table_put(datastore->data_table, &data);
-		hashtable_put(datastore->index_table, key, index);
+		ht_put(datastore->index_table, key, index);
 		rw_lock_write_unlock(&datastore->lock);
 		return 0;
 	}
@@ -112,13 +113,13 @@ int datastore_set(datastore_t* datastore, char* key, char* value)
 	CHECK_KEY_SIZE(key);
 	CHECK_VALUE_SIZE(value);
 	rw_lock_write_lock(&datastore->lock);
-	int index = hashtable_get(datastore->index_table, key);
+	int index = ht_get(datastore->index_table, key);
 	if (index < 0) {
 		data_t data;
 		strncpy(data.name, key, MAX_KEY_SIZE+1);
 		strncpy(data.value, value, MAX_VALUE_SIZE+1);
 		index = table_put(datastore->data_table, &data);
-		hashtable_put(datastore->index_table, key, index);
+		ht_put(datastore->index_table, key, index);
 	}
 	else
 	{
@@ -133,11 +134,11 @@ int datastore_remove(datastore_t* datastore, char* key)
 {
 	CHECK_KEY_SIZE(key);
 	rw_lock_write_lock(&datastore->lock);
-	int index = hashtable_get(datastore->index_table, key);
+	int index = ht_get(datastore->index_table, key);
 	if(index >= 0)
 	{
 		table_remove(datastore->data_table, index);
-		hashtable_remove(datastore->index_table, key);
+		ht_remove(datastore->index_table, key);
 		rw_lock_write_unlock(&datastore->lock);
 		return 0;
 	}
@@ -148,7 +149,7 @@ int datastore_remove(datastore_t* datastore, char* key)
 int datastore_keys_number(datastore_t* datastore)
 {
 	rw_lock_read_lock(&datastore->lock);
-	int n = hashtable_keys_number(datastore->index_table);
+	int n = datastore->index_table->e_num;
 	rw_lock_read_unlock(&datastore->lock);
 	return n;
 }
@@ -156,7 +157,8 @@ int datastore_keys_number(datastore_t* datastore)
 int datastore_count_keys(datastore_t* datastore)
 {
 	rw_lock_read_lock(&datastore->lock);
-	int i = hashtable_count_keys(datastore->index_table);
+//	int i = hashtable_count_keys(datastore->index_table);
+	int i = datastore->index_table->e_num;
 	rw_lock_read_unlock(&datastore->lock);
 	return i;
 }
@@ -164,14 +166,14 @@ int datastore_count_keys(datastore_t* datastore)
 void datastore_list_keys(datastore_t* datastore, char **keys, int len)
 {
 	rw_lock_read_lock(&datastore->lock);
-	hashtable_list_keys(datastore->index_table, keys, len);
+	ht_list_keys(datastore->index_table, keys, len);
 	rw_lock_read_unlock(&datastore->lock);
 }
 
 void datastore_destroy(datastore_t* datastore)
 {
 	rw_lock_write_lock(&datastore->lock);
-	hashtable_destroy(datastore->index_table);
+	ht_destroy(datastore->index_table);
 	destroy_map_table(datastore->data_table);
 	rw_lock_destroy(&datastore->lock);
 	free(datastore);

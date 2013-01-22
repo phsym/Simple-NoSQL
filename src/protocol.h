@@ -28,7 +28,7 @@
 #define PROTOCOL_H_
 
 #include "datastorage.h"
-#include "hashtable.h"
+#include "containers.h"
 #include "utils.h"
 #include "network.h"
 

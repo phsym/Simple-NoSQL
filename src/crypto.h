@@ -27,11 +27,7 @@
 #ifndef CRYPTO_H_
 #define CRYPTO_H_
 
-#include <stdint.h>
-#include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
-#include "hashtable.h"
+#include "containers.h"
 
 typedef struct {
 	char* name;

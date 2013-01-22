@@ -29,15 +29,10 @@
 
 #include "concurrency.h"
 #include "table.h"
-#include "hashtable.h"
+#include "containers.h"
 
 #define MAX_KEY_SIZE 32
 #define MAX_VALUE_SIZE 64
-
-//	if(strlen(req->name) > MAX_KEY_SIZE)
-//		req->name[MAX_KEY_SIZE] = '\0';
-//	if(strlen(req->value) > MAX_VALUE_SIZE)
-//		req->value[MAX_VALUE_SIZE] = '\0';
 
 #define CHECK_KEY_SIZE(k) if(strlen(k) > MAX_KEY_SIZE) k[MAX_KEY_SIZE] = '\0'
 #define CHECK_VALUE_SIZE(v) if(strlen(v) > MAX_VALUE_SIZE) v[MAX_VALUE_SIZE] = '\0'
