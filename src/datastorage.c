@@ -32,6 +32,11 @@
 #include "utils.h"
 #include "containers.h"
 
+typedef union {
+	void* v;
+	int i;
+} pi_u;
+
 datastore_t* datastore_create(int storage_size, int index_length)
 {
 	char* storagefile = "./datastorage.dat";
@@ -45,25 +50,25 @@ datastore_t* datastore_create(int storage_size, int index_length)
 	}
 	else
 	{
-		int i;
+		pi_u pi;
 		int p;
 		data_t* tmp;
-		for(i = 0; i < store->data_table->capacity; i++)
+		for(pi.i = 0; pi.i < store->data_table->capacity; pi.i++)
 		{
-			p = (100 * i)/store->data_table->capacity;
-			if(i%(store->data_table->capacity/100) == 0)
+			p = (100 * pi.i)/store->data_table->capacity;
+			if(pi.i%(store->data_table->capacity/100) == 0)
 			{
 				_log(LVL_INFO, "Rebuilding index table : %d%%\r", p);
 				fflush(stdout);
 			}
-			tmp = table_get_ref(store->data_table, i);
+			tmp = table_get_ref(store->data_table, pi.i);
 			if(tmp != NULL)
 			{
-				_log(LVL_TRACE, "found %s at index %d\n", tmp->name, i);
-				ht_put(store->index_table, tmp->name, i);
+				_log(LVL_TRACE, "found %s at index %d\n", tmp->name, pi.i);
+				ht_put(store->index_table, tmp->name, pi.v);
 			}
 		}
-		p = (100 * i)/store->data_table->capacity;
+		p = (100 * pi.i)/store->data_table->capacity;
 		_log(LVL_INFO, "Rebuilding index table : %d%%\r\n", p);
 	}
 	rw_lock_init(&store->lock);
@@ -75,10 +80,11 @@ char* datastore_lookup(datastore_t* datastore, char* key)
 	CHECK_KEY_SIZE(key);
 	rw_lock_read_lock(&datastore->lock);
 	char* value = NULL;
-	int index = ht_get(datastore->index_table, key);
-	if(index >= 0)
+	pi_u index;
+	index.v = ht_get(datastore->index_table, key);
+	if(index.v != NULL)
 	{
-		data_t* data = table_get_ref(datastore->data_table, index);
+		data_t* data = table_get_ref(datastore->data_table, index.i);
 		if(data != NULL)
 		{
 			value = data->value;
@@ -93,14 +99,15 @@ int datastore_put(datastore_t* datastore, char* key, char* value)
 	CHECK_KEY_SIZE(key);
 	CHECK_VALUE_SIZE(value);
 	rw_lock_write_lock(&datastore->lock);
-	int index = ht_get(datastore->index_table, key);
-	if(index < 0)
+	pi_u index;
+	index.v = ht_get(datastore->index_table, key);
+	if(index.v == NULL)
 	{
 		data_t data;
 		strncpy(data.name, key, MAX_KEY_SIZE+1);
 		strncpy(data.value, value, MAX_VALUE_SIZE+1);
-		index = table_put(datastore->data_table, &data);
-		ht_put(datastore->index_table, key, index);
+		index.i = table_put(datastore->data_table, &data);
+		ht_put(datastore->index_table, key, index.v);
 		rw_lock_write_unlock(&datastore->lock);
 		return 0;
 	}
@@ -113,17 +120,18 @@ int datastore_set(datastore_t* datastore, char* key, char* value)
 	CHECK_KEY_SIZE(key);
 	CHECK_VALUE_SIZE(value);
 	rw_lock_write_lock(&datastore->lock);
-	int index = ht_get(datastore->index_table, key);
-	if (index < 0) {
+	pi_u index;
+	index.v = ht_get(datastore->index_table, key);
+	if (index.v == NULL) {
 		data_t data;
 		strncpy(data.name, key, MAX_KEY_SIZE+1);
 		strncpy(data.value, value, MAX_VALUE_SIZE+1);
-		index = table_put(datastore->data_table, &data);
-		ht_put(datastore->index_table, key, index);
+		index.i = table_put(datastore->data_table, &data);
+		ht_put(datastore->index_table, key, index.v);
 	}
 	else
 	{
-		data_t *data = table_get_ref(datastore->data_table, index);
+		data_t *data = table_get_ref(datastore->data_table, index.i);
 		strncpy(data->value, value, MAX_VALUE_SIZE+1);
 	}
 	rw_lock_write_unlock(&datastore->lock);
@@ -134,10 +142,11 @@ int datastore_remove(datastore_t* datastore, char* key)
 {
 	CHECK_KEY_SIZE(key);
 	rw_lock_write_lock(&datastore->lock);
-	int index = ht_get(datastore->index_table, key);
-	if(index >= 0)
+	pi_u index;
+	index.v = ht_get(datastore->index_table, key);
+	if(index.v != NULL)
 	{
-		table_remove(datastore->data_table, index);
+		table_remove(datastore->data_table, index.i);
 		ht_remove(datastore->index_table, key);
 		rw_lock_write_unlock(&datastore->lock);
 		return 0;

@@ -34,7 +34,7 @@
 #include "sha256.h"
 #include "utils.h"
 
-const hash_algo_t hash_a[] = {
+hash_algo_t hash_a[] = {
 		{"md5", MD5_DIGEST_LENGTH, MD5_DIGEST_STR_LENGTH, &MD5},
 		{"sha1", SHA1_DIGEST_LENGTH, SHA1_DIGEST_STR_LENGTH, &SHA1},
 		{"sha256", SHA256_DIGEST_LENGTH, SHA256_DIGEST_STR_LENGTH, &SHA256}
