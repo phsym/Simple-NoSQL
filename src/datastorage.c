@@ -192,6 +192,7 @@ void datastore_list_keys(datastore_t* datastore, char **keys, int len)
 void datastore_destroy(datastore_t* datastore)
 {
 	rw_lock_write_lock(&datastore->lock);
+	ht_clear(datastore->index_table, 0);
 	ht_destroy(datastore->index_table);
 	destroy_map_table(datastore->data_table);
 	rw_lock_destroy(&datastore->lock);
