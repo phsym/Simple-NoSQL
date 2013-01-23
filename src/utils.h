@@ -29,6 +29,9 @@
 
 #include <sys/types.h>
 
+//UNUSED macro is for removing warnings about unused parameter
+#define UNUSED(x) (void)(x)
+
 #define TIME_STRLEN 18
 
 #define MAX(a,b) (a > b ? a : b)

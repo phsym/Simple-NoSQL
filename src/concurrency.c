@@ -61,6 +61,7 @@ void semaphore_init(semaphore_t* sem, int value, int max_value)
 #ifdef __MINGW32__
 	*sem = CreateSemaphore(NULL, value, max_value, NULL);
 #else
+	UNUSED(max_value); // max_value is only for MinGW
 	sem_init(sem, 0, value);
 #endif
 }
