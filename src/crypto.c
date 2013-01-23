@@ -49,7 +49,7 @@ void crypto_init()
 {
 	if(!_cryp_init)
 	{
-		hash_algo_dict = ht_create(128);
+		hash_algo_dict = ht_create(4096);
 		int n = sizeof(hash_a)/sizeof(hash_algo_t);
 		int i;
 		for(i = 0; i < n; i++)
@@ -62,6 +62,7 @@ void crypto_cleanup()
 {
 	if(_cryp_init)
 	{
+		ht_clear(hash_algo_dict, 0);
 		ht_destroy(hash_algo_dict);
 		_cryp_init = false;
 	}

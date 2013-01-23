@@ -129,9 +129,12 @@ int main(int argc, char* argv[])
 	server_wait_end(app.server);
 	server_destroy(app.server);
 
+	_log(LVL_DEBUG, "Protocol cleanup\n");
 	protocol_cleanup();
+	_log(LVL_DEBUG, "Crypto cleanup\n");
 	crypto_cleanup();
 
+	_log(LVL_DEBUG, "Destroy datastore\n");
 	datastore_destroy(app.datastore);
 
 	free(app.config);

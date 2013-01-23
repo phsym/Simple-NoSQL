@@ -75,6 +75,7 @@ void protocol_cleanup()
 {
 	if(_proto_init)
 	{
+		ht_clear(cmd_dict, 0);
 		ht_destroy(cmd_dict);
 		_proto_init = false;
 	}
