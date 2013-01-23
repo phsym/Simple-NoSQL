@@ -107,7 +107,12 @@ int datastore_put(datastore_t* datastore, char* key, char* value)
 		strncpy(data.name, key, MAX_KEY_SIZE+1);
 		strncpy(data.value, value, MAX_VALUE_SIZE+1);
 		index.i = table_put(datastore->data_table, &data);
-		ht_put(datastore->index_table, key, index.v);
+		if(ht_put(datastore->index_table, key, index.v) == HT_ERROR)
+		{
+			table_remove(datastore->data_table, index.i);
+			rw_lock_write_unlock(&datastore->lock);
+			return -1;
+		}
 		rw_lock_write_unlock(&datastore->lock);
 		return 0;
 	}
@@ -127,7 +132,12 @@ int datastore_set(datastore_t* datastore, char* key, char* value)
 		strncpy(data.name, key, MAX_KEY_SIZE+1);
 		strncpy(data.value, value, MAX_VALUE_SIZE+1);
 		index.i = table_put(datastore->data_table, &data);
-		ht_put(datastore->index_table, key, index.v);
+		if(ht_put(datastore->index_table, key, index.v) == HT_ERROR)
+		{
+			table_remove(datastore->data_table, index.i);
+			rw_lock_write_unlock(&datastore->lock);
+			return -1;
+		}
 	}
 	else
 	{

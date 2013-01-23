@@ -51,7 +51,7 @@ typedef struct {
 // Inititalize hashtable iterator on hashtable 'ht'
 #define HT_ITERATOR(ht) {ht, 0, ht->table[0]}
 
-void* HT_ERROR; // Data pointing to HT_ERROR are returned in case of error
+extern void* HT_ERROR; // Data pointing to HT_ERROR are returned in case of error
 
 /* 	Create a hashtable with capacity 'capacity'
 	and return a pointer to it*/
