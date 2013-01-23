@@ -48,7 +48,8 @@ typedef struct {
 	hash_elem_t* elem; 	// Curent element in the list
 } hash_elem_it;
 
-#define HT_ITERATOR_INIT {NULL, 0, NULL}
+// Inititalize hashtable iterator on hashtable 'ht'
+#define HT_ITERATOR(ht) {ht, 0, ht->table[0]}
 
 void* HT_ERROR; // Data pointing to HT_ERROR are returned in case of error
 
@@ -71,14 +72,18 @@ void* ht_remove(hashtable_t* hasht, char* key);
 /* List keys. k should have length equals or greater than the number of keys */
 void ht_list_keys(hashtable_t* hasht, char** k, size_t len);
 
+/* 	List values. v should have length equals or greater 
+	than the number of stored elements */
+void ht_list_values(hashtable_t* hasht, void** v, size_t len);
+
 /* Iterate through table's elements. */
-hash_elem_t* ht_iterate(hashtable_t* hasht, hash_elem_it* iterator);
+hash_elem_t* ht_iterate(hash_elem_it* iterator);
 
 /* Iterate through keys. */
-char* ht_iterate_keys(hashtable_t* hasht, hash_elem_it* iterator);
+char* ht_iterate_keys(hash_elem_it* iterator);
 
 /* Iterate through values. */
-void* ht_iterate_values(hashtable_t* hasht, hash_elem_it* iterator);
+void* ht_iterate_values(hash_elem_it* iterator);
 
 /* 	Removes all elements stored in the hashtable.
 	if free_data, all stores datas are also freed.*/

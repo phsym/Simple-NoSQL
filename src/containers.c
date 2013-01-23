@@ -29,13 +29,14 @@
 
 #include "containers.h"
 
-/* Internal funcion to calculate hash for keys */
-static unsigned int ht_calc_hash(char* key, size_t len)
+/* 	Internal funcion to calculate hash for keys.
+	It's based on the DJB algorithm from Daniel J. Bernstein.
+	The key must be ended by '\0' character.*/
+static unsigned int ht_calc_hash(char* key)
 {
-	unsigned int h = 0;
-	unsigned int i;
-	for(i = 0; i < len; i++)
-		h = 31 * h + key[i];
+	unsigned int h = 5381;
+	while(*(key++))
+		h = ((h << 5) + h) + (*key);
 	return h;
 }
 
@@ -64,7 +65,7 @@ hashtable_t* ht_create(unsigned int capacity)
 	Return HT_ERROR if there are memory alloc error*/
 void* ht_put(hashtable_t* hasht, char* key, void* data)
 {
-	unsigned int h = ht_calc_hash(key, strlen(key)) % hasht->capacity;
+	unsigned int h = ht_calc_hash(key) % hasht->capacity;
 	hash_elem_t* e = hasht->table[h];
 
 	while(e != NULL)
@@ -96,7 +97,7 @@ void* ht_put(hashtable_t* hasht, char* key, void* data)
 /* Retrieve data from the hashtable */
 void* ht_get(hashtable_t* hasht, char* key)
 {
-	unsigned int h = ht_calc_hash(key, strlen(key)) % hasht->capacity;
+	unsigned int h = ht_calc_hash(key) % hasht->capacity;
 	hash_elem_t* e = hasht->table[h];
 	while(e != NULL)
 	{
@@ -111,7 +112,7 @@ void* ht_get(hashtable_t* hasht, char* key)
 	so that we can free memory if needed */
 void* ht_remove(hashtable_t* hasht, char* key)
 {
-	unsigned int h = ht_calc_hash(key, strlen(key)) % hasht->capacity;
+	unsigned int h = ht_calc_hash(key) % hasht->capacity;
 	hash_elem_t** e = hasht->table + h;
 	hash_elem_t* prev = NULL;
 	while(*e != NULL)
@@ -150,46 +151,55 @@ void ht_list_keys(hashtable_t* hasht, char** k, size_t len)
 	}
 }
 
-/* Iterate through table's elements. */
-hash_elem_t* ht_iterate(hashtable_t* hasht, hash_elem_it* iterator)
+/* 	List values. v should have length equals or greater 
+	than the number of stored elements */
+void ht_list_values(hashtable_t* hasht, void** v, size_t len)
 {
-	if(hasht != NULL)
+	if(len < hasht->e_num)
+		return;
+	int vi = 0; //Index to the current string in **v
+	int i = hasht->capacity;
+	while(--i >= 0)
 	{
-		iterator->ht = hasht;
-		iterator->index = 0;
-		iterator->elem = hasht->table[0];
-		return ht_iterate(NULL, iterator);
-	}
-	else
-	{
-		if(iterator->elem == NULL && iterator->index < iterator->ht->capacity - 1)
+		hash_elem_t* e = hasht->table[i];
+		while(e)
 		{
-			iterator->index++;
-			iterator->elem = iterator->ht->table[iterator->index];
-			return ht_iterate(NULL, iterator);
+			v[vi++] = e->data;
+			e = e->next;
 		}
-		else if(iterator->elem != NULL)
-		{
-			hash_elem_t* e = iterator->elem;
-			iterator->elem = e->next;
-			return e;
-		}
-		else
-			return NULL;
 	}
 }
 
-/* Iterate through keys. */
-char* ht_iterate_keys(hashtable_t* hasht, hash_elem_it* iterator)
+/* Iterate through table's elements. */
+hash_elem_t* ht_iterate(hash_elem_it* iterator)
 {
-	hash_elem_t* e = ht_iterate(hasht, iterator);
+	if(iterator->elem == NULL && iterator->index < iterator->ht->capacity - 1)
+	{
+		iterator->index++;
+		iterator->elem = iterator->ht->table[iterator->index];
+		return ht_iterate(iterator);
+	}
+	else if(iterator->elem != NULL)
+	{
+		hash_elem_t* e = iterator->elem;
+		iterator->elem = e->next;
+		return e;
+	}
+	else
+		return NULL;
+}
+
+/* Iterate through keys. */
+char* ht_iterate_keys(hash_elem_it* iterator)
+{
+	hash_elem_t* e = ht_iterate(iterator);
 	return (e == NULL ? NULL : e->key);
 }
 
 /* Iterate through values. */
-void* ht_iterate_values(hashtable_t* hasht, hash_elem_it* iterator)
+void* ht_iterate_values(hash_elem_it* iterator)
 {
-	hash_elem_t* e = ht_iterate(hasht, iterator);
+	hash_elem_t* e = ht_iterate(iterator);
 	return (e == NULL ? NULL : e->data);
 }
 
@@ -197,12 +207,12 @@ void* ht_iterate_values(hashtable_t* hasht, hash_elem_it* iterator)
 	if free_data, all stored datas are also freed.*/
 void ht_clear(hashtable_t* hasht, int free_data)
 {
-	hash_elem_it it = HT_ITERATOR_INIT;
-	char* k = ht_iterate_keys(hasht, &it);
+	hash_elem_it it = HT_ITERATOR(hasht);
+	char* k = ht_iterate_keys(&it);
 	while(k != NULL)
 	{
 		free_data ? free(ht_remove(hasht, k)) : ht_remove(hasht, k);
-		k = ht_iterate_keys(NULL, &it);
+		k = ht_iterate_keys(&it);
 	}
 }
 
@@ -233,20 +243,33 @@ int main()
 	ht_put(ht, "foo", "bar");
 	ht_put(ht, "toto", "titi");
 
-	printf("Listing\n");
+	printf("Listing keys\n");
 	char* str[ht->e_num];
-	ht_list_keys(ht, str, ht->e_num);
-
 	unsigned int i;
+	ht_list_keys(ht, str, ht->e_num);
+	for(i = 0; i < ht->e_num; i++)
+		printf("%s\n", str[i]);
+	
+	printf("Listing values\n");
+	ht_list_values(ht, (void**)str, ht->e_num);
 	for(i = 0; i < ht->e_num; i++)
 		printf("%s\n", str[i]);
 
-	hash_elem_it it;
-	hash_elem_t* e = ht_iterate(ht, &it);
+	hash_elem_it it = HT_ITERATOR(ht);
+	hash_elem_t* e = ht_iterate(&it);
 	while(e != NULL)
 	{
 		printf("%s = %s \n", e->key, (char*)e->data);
-		e = ht_iterate(NULL, &it);
+		e = ht_iterate(&it);
+	}
+	
+	printf("Iterating keys\n");
+	hash_elem_it it2 = HT_ITERATOR(ht);
+	char* k = ht_iterate_keys(&it2);
+	while(k != NULL)
+	{
+		printf("%s\n", k);
+		k = ht_iterate_keys(&it2);
 	}
 
 	ht_destroy(ht);
