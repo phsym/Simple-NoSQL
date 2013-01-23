@@ -27,6 +27,8 @@
 #ifndef CRYPTO_H_
 #define CRYPTO_H_
 
+#include <stdint.h>
+
 #include "containers.h"
 
 typedef struct {
