@@ -116,22 +116,24 @@ void* ht_get(hashtable_t* hasht, char* key)
 void* ht_remove(hashtable_t* hasht, char* key)
 {
 	unsigned int h = ht_calc_hash(key) % hasht->capacity;
-	hash_elem_t** e = hasht->table + h;
+	hash_elem_t* e = hasht->table[h];
 	hash_elem_t* prev = NULL;
-	while(*e != NULL)
+	while(e != NULL)
 	{
-		if(!strcmp((*e)->key, key))
+		if(!strcmp(e->key, key))
 		{
-			void* ret = (*e)->data;
+			void* ret = e->data;
 			if(prev != NULL)
-				prev->next = (*e)->next;
-			free(*e);
-			*e = NULL;
+				prev->next = e->next;
+			else
+				hasht->table[h] = e->next;
+			free(e);
+			e = NULL;
 			hasht->e_num --;
 			return ret;
 		}
-		prev = *e;
-		*e = (*e)->next;
+		prev = e;
+		e = e->next;
 	}
 	return NULL;
 }
