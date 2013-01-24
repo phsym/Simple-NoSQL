@@ -70,7 +70,7 @@ server_t* server_create(unsigned int bind_addr, short port, bool auth, datastore
 	return server;
 }
 
-client_t* client_create(server_t* server, int sock, struct sockaddr_in addr)
+client_t* client_create(server_t* server, int sock, char* address, u_short port)
 {
 	client_t *client = malloc(sizeof(client_t));
 	if(client == NULL)
@@ -78,9 +78,9 @@ client_t* client_create(server_t* server, int sock, struct sockaddr_in addr)
 	client->server = server;
 	client->sock = sock;
 	client->running = false;
-	client->port = addr.sin_port;
+	client->port = port;
 	client->trans_open = false;
-	strncpy(client->address, inet_ntoa(addr.sin_addr), 20);
+	strncpy(client->address, address, 20);
 	if(server_register_client(server, client) < 0)
 	{
 		_log(LVL_WARNING, "Max number of active connections reached : %d\n", server->max_client);
@@ -275,7 +275,7 @@ TH_HDL server_handler(void* serv)
 			_perror("Error accept");
 		else
 		{
-			client_t *client = client_create(server, client_sock, addr_client);
+			client_t *client = client_create(server, client_sock, inet_ntoa(addr.sin_addr), addr.sin_port);
 			if(client == NULL)
 				continue;
 			_log(LVL_DEBUG, "New connection from %s:%d\n", inet_ntoa(addr_client.sin_addr),client->port);

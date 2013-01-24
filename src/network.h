@@ -61,7 +61,7 @@ typedef struct client_t{
 
 server_t* server_create(unsigned int bind_addr, short port, bool auth, datastore_t* datastore, int max_client);
 
-client_t* client_create(server_t* server, int sock, struct sockaddr_in addr);
+client_t* client_create(server_t* server, int sock, char* address, u_short port);
 
 void server_stop(server_t* server);
 
