@@ -34,7 +34,9 @@
 
 typedef struct {
 	unsigned char flag;
-	int next_free;
+	// ind is multi-pupose : When block unused, it points to the next free block, when used it contains the index of the block.
+	// A pointer to this value is stored in the index table
+	int ind;
 	char data[];
 }table_elem_t;
 
@@ -55,7 +57,9 @@ table_t* table_create(int data_size, int capacity);
 
 table_t* table_map_load(char* filename);
 
-int table_put(table_t* table, void* data);
+int* table_put(table_t* table, void* data);
+
+table_elem_t* table_get_block(table_t* table, int index);
 
 void* table_get_ref(table_t* table, int index);
 
