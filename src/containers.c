@@ -176,20 +176,20 @@ void ht_list_values(hashtable_t* hasht, void** v, size_t len)
 /* Iterate through table's elements. */
 hash_elem_t* ht_iterate(hash_elem_it* iterator)
 {
-	if(iterator->elem == NULL && iterator->index < iterator->ht->capacity - 1)
+	while(iterator->elem == NULL)
 	{
-		iterator->index++;
-		iterator->elem = iterator->ht->table[iterator->index];
-		return ht_iterate(iterator);
+		if(iterator->index < iterator->ht->capacity - 1)
+		{
+			iterator->index++;
+			iterator->elem = iterator->ht->table[iterator->index];
+		}
+		else
+			return NULL;
 	}
-	else if(iterator->elem != NULL)
-	{
-		hash_elem_t* e = iterator->elem;
+	hash_elem_t* e = iterator->elem;
+	if(e)
 		iterator->elem = e->next;
-		return e;
-	}
-	else
-		return NULL;
+	return e;
 }
 
 /* Iterate through keys. */
