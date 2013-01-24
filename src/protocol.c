@@ -53,7 +53,8 @@ cmd_t commands[] = {
 	{"trace", OP_TRACE, FLAG_NONE, 1, "Trace command", &do_trace},
 	{"time", OP_TIME, FLAG_NONE, 0, "Get server time", &do_time},
 	{"ping", OP_PING, FLAG_NONE, 0, "Ping server", &do_ping},
-	{"who", OP_WHO, FLAG_NONE, 0, "List clients", &do_who}
+	{"who", OP_WHO, FLAG_NONE, 0, "List clients", &do_who},
+	{"flush", OP_FLUSH, FLAG_WRITE, 0, "Flush database", &do_flush}
 };
 
 void protocol_init()
@@ -349,5 +350,11 @@ void do_who(request_t* req)
 			strcat(req->reply.message, buff);
 		}
 	}
+	req->reply.rc = 0;
+}
+
+void do_flush(request_t* req)
+{
+	datastore_clear(req->client->server->datastore);
 	req->reply.rc = 0;
 }

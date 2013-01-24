@@ -186,6 +186,21 @@ void datastore_list_keys(datastore_t* datastore, char **keys, int len)
 	rw_lock_read_unlock(&datastore->lock);
 }
 
+void datastore_clear(datastore_t* datastore)
+{
+	rw_lock_read_lock(&datastore->lock);
+	hash_elem_it it = HT_ITERATOR(datastore->index_table);
+	hash_elem_t* e;
+	int* ind;
+	while((e = ht_iterate(&it)) != NULL)
+	{
+		ind = e->data;
+		table_remove(datastore->data_table, *ind);
+		ht_remove(datastore->index_table, e->key);
+	}
+	rw_lock_read_unlock(&datastore->lock);
+}
+
 void datastore_destroy(datastore_t* datastore)
 {
 	rw_lock_write_lock(&datastore->lock);

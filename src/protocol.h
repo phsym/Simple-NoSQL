@@ -32,23 +32,24 @@
 #include "utils.h"
 #include "network.h"
 
-#define OP_GET 0x00
-#define OP_PUT 0x01
-#define OP_RMV 0x02
-#define OP_LIST 0x03
-#define OP_SET 0x04
-#define OP_COUNT 0x05
-#define OP_DIGEST 0x06
-#define OP_HELP 0x07
-#define OP_QUIT 0x08
-#define OP_TRACE 0x09
-#define OP_TIME 0x0a
-#define OP_PING 0x0b
-#define OP_WHO 0x0c
+#define OP_GET 		0x00
+#define OP_PUT 		0x01
+#define OP_RMV 		0x02
+#define OP_LIST 	0x03
+#define OP_SET 		0x04
+#define OP_COUNT 	0x05
+#define OP_DIGEST 	0x06
+#define OP_HELP 	0x07
+#define OP_QUIT 	0x08
+#define OP_TRACE 	0x09
+#define OP_TIME 	0x0a
+#define OP_PING 	0x0b
+#define OP_WHO 		0x0c
+#define OP_FLUSH 	0x0d
 
-#define FLAG_NONE 0x00
-#define FLAG_READ 0x01
-#define FLAG_WRITE 0x02
+#define FLAG_NONE 	0x00
+#define FLAG_READ 	0x01
+#define FLAG_WRITE 	0x02
 #define FLAG_READ_WRITE (FLAG_READ|FLAG_WRITE)
 
 //TODO : Binary protocol
@@ -110,5 +111,6 @@ void do_trace(request_t* req);
 void do_time(request_t* req);
 void do_ping(request_t* req);
 void do_who(request_t* req);
+void do_flush(request_t* req);
 
 #endif /* PROTOCOL_H_ */

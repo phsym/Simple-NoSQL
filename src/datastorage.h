@@ -64,6 +64,8 @@ int datastore_count_keys(datastore_t* datastore);
 
 void datastore_list_keys(datastore_t* datastore, char **keys, int len);
 
+void datastore_clear(datastore_t* datastore);
+
 void datastore_destroy(datastore_t* datastore);
 
 #endif /* DATASTORAGE_H_ */
