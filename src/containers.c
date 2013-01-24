@@ -68,6 +68,8 @@ hashtable_t* ht_create(unsigned int capacity)
 	Return HT_ERROR if there are memory alloc error*/
 void* ht_put(hashtable_t* hasht, char* key, void* data)
 {
+	if(data == NULL)
+		return NULL;
 	unsigned int h = ht_calc_hash(key) % hasht->capacity;
 	hash_elem_t* e = hasht->table[h];
 

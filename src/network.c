@@ -53,6 +53,8 @@
 server_t* server_create(unsigned int bind_addr, short port, bool auth, datastore_t* datastore, int max_client)
 {
 	server_t* server = malloc(sizeof(server_t));
+	if(server == NULL)
+		return NULL;
 	server->running = false;
 	server->socket = -1;
 	server->port = port;
@@ -68,7 +70,28 @@ server_t* server_create(unsigned int bind_addr, short port, bool auth, datastore
 	return server;
 }
 
-int server_register_cient(server_t* server, client_t* client)
+client_t* client_create(server_t* server, int sock, struct sockaddr_in addr)
+{
+	client_t *client = malloc(sizeof(client_t));
+	if(client == NULL)
+		return NULL;
+	client->server = server;
+	client->sock = sock;
+	client->running = false;
+	client->port = addr.sin_port;
+	client->trans_open = false;
+	strncpy(client->address, inet_ntoa(addr.sin_addr), 20);
+	if(server_register_client(server, client) < 0)
+	{
+		_log(LVL_WARNING, "Max number of active connections reached : %d\n", server->max_client);
+		stop_client(client);
+		free(client);
+		return NULL;
+	}
+	return client;
+}
+
+int server_register_client(server_t* server, client_t* client)
 {
 	if(server->num_clients >= server->max_client)
 		return -1;
@@ -249,31 +272,24 @@ TH_HDL server_handler(void* serv)
 		if(!server->running)
 			break;
 		else if(client_sock < 0)
-		{
 			_perror("Error accept");
-		}
 		else
 		{
-			client_t *client = malloc(sizeof(client_t));
-			client->server = server;
-			client->sock = client_sock;
-			client->running = false;
-			client->port = addr_client.sin_port;
-			strncpy(client->address, inet_ntoa(addr_client.sin_addr), 20);
-			if(server_register_cient(server, client) < 0)
-			{
-				_log(LVL_WARNING, "Max number of active connections reached : %d\n", server->max_client);
-				stop_client(client);
-				free(client);
+			client_t *client = client_create(server, client_sock, addr_client);
+			if(client == NULL)
 				continue;
-			}
-			thread_create(&(client->thread), &client_handler, client, 1);
 			_log(LVL_DEBUG, "New connection from %s:%d\n", inet_ntoa(addr_client.sin_addr),client->port);
+			thread_create(&(client->thread), &client_handler, client, 1);		
 		}
 	}
 
-	//TODO : wait client
-
+	//Wait clients end
+	int i;
+	for(i = 0; i < server->max_client; i++)
+	{
+		if(server->clients[i] != NULL)
+			thread_join(&(server->clients[i]->thread));
+	}
 	close(server->socket);
 	TH_RETURN;
 }
@@ -299,11 +315,7 @@ void server_stop(server_t* server)
 	for(i = 0; i < server->max_client; i++)
 	{
 		if(server->clients[i] != NULL)
-		{
 			stop_client(server->clients[i]);
-			//Join clients
-			thread_join(&server->clients[i]->thread);
-		}
 	}
 #ifdef __MINGW32__
 	//TODO : Cancel Thread

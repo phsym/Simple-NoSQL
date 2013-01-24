@@ -56,15 +56,18 @@ typedef struct client_t{
 	thread_t thread;
 	struct server_t* server;
 	int sock;
+	bool trans_open;
 }client_t;
 
 server_t* server_create(unsigned int bind_addr, short port, bool auth, datastore_t* datastore, int max_client);
+
+client_t* client_create(server_t* server, int sock, struct sockaddr_in addr);
 
 void server_stop(server_t* server);
 
 void server_destroy(server_t* server);
 
-int server_register_cient(server_t* server, client_t* client);
+int server_register_client(server_t* server, client_t* client);
 
 void server_unregister_client(server_t* server, client_t* client);
 

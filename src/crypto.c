@@ -48,7 +48,7 @@ void crypto_init()
 {
 	if(!_cryp_init)
 	{
-		hash_algo_dict = ht_create(4096);
+		hash_algo_dict = ht_create(32);
 		int n = sizeof(hash_a)/sizeof(hash_algo_t);
 		int i;
 		for(i = 0; i < n; i++)

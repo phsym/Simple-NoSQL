@@ -62,10 +62,7 @@ typedef struct reply_t{
 	char* value;
 	unsigned char rc;
 	char* message;
-
 } reply_t;
-
-//TODO : multiple request
 
 typedef struct request_t{
 	unsigned int id;
@@ -75,6 +72,8 @@ typedef struct request_t{
 	char* argv[MAX_ARGC];
 	reply_t reply;
 } request_t;
+
+//TODO : multiple request
 
 typedef struct {
 	char* name;
