@@ -127,8 +127,9 @@ char* strtok_r(char* ori, char* tok, char** it)
 	char* c = strchr(*it, token);
 	if(c != NULL)
 	{
-		*c = '\0';
-		*it = (c + 1);
+		while(*c == token)
+			*c = '\0';
+			*it = (++c);
 	}
 	else
 		*it = NULL;
