@@ -198,7 +198,10 @@ TH_HDL client_handler(void* client)
 		_log(LVL_TRACE, "Request received : %s\n", buff);
 
 		if(decode_request(cli, &req, buff, r) < 0)
+		{
+			send(cli->sock, "KO\r\n", 4, 0);
 			continue;
+		}
 		// Process request
 		process_request(&req);
 

@@ -41,20 +41,20 @@ cmd_t *cmd_id[256];
 bool _proto_init = false;
 
 cmd_t commands[] = {
-	{"get", OP_GET, FLAG_READ, 1, "Get command", &do_get},
-	{"put", OP_PUT, FLAG_WRITE, 2, "Put command", &do_put},
-	{"set", OP_SET, FLAG_WRITE, 2, "Set command", &do_set},
-	{"list", OP_LIST, FLAG_READ, 0, "List command", &do_list},
-	{"rmv", OP_RMV, FLAG_WRITE, 1, "Remove command", &do_rmv},
-	{"count", OP_COUNT, FLAG_READ, 0, "Count command", &do_count},
-	{"digest", OP_DIGEST, FLAG_WRITE, 3, "Hash digest calculation", &do_digest},
-	{"help", OP_HELP, FLAG_NONE, 0, "Help command", &do_help},
-	{"quit", OP_QUIT, FLAG_NONE, 0, "Quit command", &do_quit},
-	{"trace", OP_TRACE, FLAG_NONE, 1, "Trace command", &do_trace},
-	{"time", OP_TIME, FLAG_NONE, 0, "Get server time", &do_time},
-	{"ping", OP_PING, FLAG_NONE, 0, "Ping server", &do_ping},
-	{"who", OP_WHO, FLAG_NONE, 0, "List clients", &do_who},
-	{"flush", OP_FLUSH, FLAG_WRITE, 0, "Flush database", &do_flush}
+	{"get", 	OP_GET, 	CF_READ,	1, 	&do_get, 	"Get command"},
+	{"put", 	OP_PUT, 	CF_WRITE, 	2, 	&do_put, 	"Put command"},
+	{"set", 	OP_SET, 	CF_WRITE, 	2, 	&do_set, 	"Set command"},
+	{"list", 	OP_LIST, 	CF_READ, 	0, 	&do_list, 	"List command"},
+	{"rmv", 	OP_RMV, 	CF_WRITE, 	1, 	&do_rmv, 	"Remove command"},
+	{"count", 	OP_COUNT, 	CF_READ, 	0, 	&do_count, 	"Count command"},
+	{"digest", 	OP_DIGEST, 	CF_WRITE, 	3, 	&do_digest,	"Hash digest calculation"},
+	{"help", 	OP_HELP, 	CF_NONE, 	0, 	&do_help, 	"Help command"},
+	{"quit", 	OP_QUIT, 	CF_NONE, 	0, 	&do_quit, 	"Quit command"},
+	{"trace", 	OP_TRACE,	CF_ADMIN, 	1, 	&do_trace, 	"Trace command"},
+	{"time", 	OP_TIME, 	CF_NONE, 	0, 	&do_time, 	"Get server time"},
+	{"ping", 	OP_PING, 	CF_NONE, 	0, 	&do_ping, 	"Ping server"},
+	{"client", 	OP_CLIENT, 	CF_ADMIN, 	0, 	&do_who, 	"List clients"},
+	{"flush", 	OP_FLUSH, 	CF_WRITE, 	0, 	&do_flush, 	"Flush database"}
 };
 
 void protocol_init()
@@ -140,13 +140,15 @@ int decode_request(client_t* client, request_t* request, char* req, int len)
 	if(cmd != NULL)
 	{
 		request->op = cmd->op;
-		request->argc = cmd->argc;
-		for(i = 0; i < MIN(cmd->argc, MAX_ARGC); i++)
+		for(i = 0; i < MAX_ARGC; i++)
 		{
 			request->argv[i] = strtok_r(NULL, " ", str);
 			if(request->argv[i] == NULL)
-				return -1;
+				break;
 		}
+		request->argc = i;
+		if(request->argc < cmd->argc)
+			return -1;
 	}
 	else
 		return -1;
@@ -169,7 +171,7 @@ void encode_reply(request_t* req, char* buff, int buff_len)
 			case OP_HELP:
 			case OP_COUNT:
 			case OP_TIME:
-			case OP_WHO:
+			case OP_CLIENT:
 			case OP_LIST:
 				strcat(buff, req->reply.message);
 				strcat(buff, "\r\n");

@@ -107,6 +107,11 @@ void get_current_time_string(char* str, size_t len)
 #endif
 }
 
+unsigned int get_time()
+{
+	return time(NULL);
+}
+
 //MinGW doesn't know strtok_r
 #ifdef __MINGW32__
 char* strtok_r(char* ori, char* tok, char** it)

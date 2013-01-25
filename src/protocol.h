@@ -32,25 +32,26 @@
 #include "utils.h"
 #include "network.h"
 
-#define OP_GET 		0x00
-#define OP_PUT 		0x01
-#define OP_RMV 		0x02
-#define OP_LIST 	0x03
-#define OP_SET 		0x04
-#define OP_COUNT 	0x05
-#define OP_DIGEST 	0x06
-#define OP_HELP 	0x07
-#define OP_QUIT 	0x08
-#define OP_TRACE 	0x09
-#define OP_TIME 	0x0a
-#define OP_PING 	0x0b
-#define OP_WHO 		0x0c
-#define OP_FLUSH 	0x0d
+#define OP_GET 		0
+#define OP_PUT 		1
+#define OP_RMV 		2
+#define OP_LIST 	3
+#define OP_SET 		4
+#define OP_COUNT 	5
+#define OP_DIGEST 	6
+#define OP_HELP 	7
+#define OP_QUIT 	8
+#define OP_TRACE 	9
+#define OP_TIME 	10
+#define OP_PING 	11
+#define OP_CLIENT	12
+#define OP_FLUSH 	13
 
-#define FLAG_NONE 	0x00
-#define FLAG_READ 	0x01
-#define FLAG_WRITE 	0x02
-#define FLAG_READ_WRITE (FLAG_READ|FLAG_WRITE)
+#define CF_NONE 		0
+#define CF_READ 		1
+#define CF_WRITE 	2
+#define CF_RW 		(CF_READ|CF_WRITE)
+#define CF_ADMIN		4
 
 //TODO : Binary protocol
 
@@ -81,8 +82,8 @@ typedef struct {
 	unsigned char op;
 	char flag;
 	int argc;
-	char* description;
 	void (*process)(request_t*);
+	char* description;
 } cmd_t;
 
 extern hashtable_t *cmd_dict;
