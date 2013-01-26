@@ -112,6 +112,25 @@ unsigned int get_time()
 	return time(NULL);
 }
 
+char* strqtok_r(char* ori, char** it)
+{
+	if(ori != NULL)
+		*it = ori;
+	if(*it == NULL)
+		return NULL;
+
+	char* o;
+	while(**it == ' ')
+		(*it)++;
+	if(**it == '\"')
+		o = strtok_r(NULL, "\"", it);
+	else if(**it == '\'')
+		o = strtok_r(NULL, "\'", it);
+	else
+		o = strtok_r(NULL, " ", it);
+	return o;
+}
+
 //MinGW doesn't know strtok_r
 #ifdef __MINGW32__
 char* strtok_r(char* ori, char* tok, char** it)
@@ -119,17 +138,22 @@ char* strtok_r(char* ori, char* tok, char** it)
 	char token = tok[0];
 	
 	if(ori != NULL)
-		*it = ori; // TODO: string copy
-		// strcpy(*it, ori);
+		*it = ori;
 	if(*it == NULL)
 		return NULL;
 	char* old_it = *it;
+	while(**it == token)
+		(*it)++;
 	char* c = strchr(*it, token);
 	if(c != NULL)
 	{
 		while(*c == token)
+		{
 			*c = '\0';
 			*it = (++c);
+			if(*c == '\0')
+				*it = NULL;
+		}
 	}
 	else
 		*it = NULL;

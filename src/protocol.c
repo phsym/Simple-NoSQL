@@ -122,8 +122,8 @@ int decode_request(client_t* client, request_t* request, char* req, int len)
 	if(c != NULL)
 		c[0] = '\0';
 
-	char *str[len];
-	char* op = strtok_r(req, " ", str);
+	char *str;
+	char* op = strqtok_r(req, &str);
 	if(op == NULL)
 		return -1;
 
@@ -142,7 +142,7 @@ int decode_request(client_t* client, request_t* request, char* req, int len)
 		request->op = cmd->op;
 		for(i = 0; i < MAX_ARGC; i++)
 		{
-			request->argv[i] = strtok_r(NULL, " ", str);
+			request->argv[i] = strqtok_r(NULL, &str);
 			if(request->argv[i] == NULL)
 				break;
 		}

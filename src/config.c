@@ -158,10 +158,10 @@ void config_load(config_t* config, char* file)
 		if(str[0] == '#' || strlen(str) <= 0)
 			continue;
 
-		char* it[CONFIG_BUFF_SIZE];
+		char* it;
 
-		char* param = strtok_r(str, "=", it);
-		char* value = strtok_r(NULL, "=", it);
+		char* param = strtok_r(str, "=", &it);
+		char* value = strtok_r(NULL, "=", &it);
 
 		_log(LVL_DEBUG, "%s = %s\n", param, value);
 		

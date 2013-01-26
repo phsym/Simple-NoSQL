@@ -65,6 +65,8 @@ void get_current_time_string(char* str, size_t len);
 
 unsigned int get_time();
 
+char* strqtok_r(char* ori, char** it);
+
 //MinGW doesn't know strtok_r
 #ifdef __MINGW32__
 char* strtok_r(char* ori, char* tok, char** it);

@@ -278,10 +278,10 @@ TH_HDL server_handler(void* serv)
 			_perror("Error accept");
 		else
 		{
-			client_t *client = client_create(server, client_sock, inet_ntoa(addr.sin_addr), addr.sin_port);
+			client_t *client = client_create(server, client_sock, inet_ntoa(addr_client.sin_addr), ntohs(addr_client.sin_port));
 			if(client == NULL)
 				continue;
-			_log(LVL_DEBUG, "New connection from %s:%d\n", inet_ntoa(addr_client.sin_addr),client->port);
+			_log(LVL_DEBUG, "New connection from %s:%d\n", inet_ntoa(addr_client.sin_addr), client->port);
 			thread_create(&(client->thread), &client_handler, client, 1);		
 		}
 	}
