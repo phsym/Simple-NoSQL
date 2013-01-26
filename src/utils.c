@@ -141,9 +141,9 @@ char* strtok_r(char* ori, char* tok, char** it)
 		*it = ori;
 	if(*it == NULL)
 		return NULL;
-	char* old_it = *it;
 	while(**it == token)
 		(*it)++;
+	char* old_it = *it;
 	char* c = strchr(*it, token);
 	if(c != NULL)
 	{
