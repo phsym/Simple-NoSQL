@@ -20,7 +20,8 @@ Cygwin<br>
 gnu-gcc
 
 ## Progress :
-Little by little, I'm improving it. I'm doing this just for myself, but feel free to contribute, clone and use it.
+Step by step I'm improving it. I'm doing this for myself, but feel free to contribute, clone and use it.<br>
+Comments and documentation will come later.
 
 ## License :
 This program is free software; you can redistribute it and/or modify
