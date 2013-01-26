@@ -261,7 +261,7 @@ void do_digest(request_t* req)
 	if(algo == NULL)
 	{
 		char *error = "Unknown hash algorithm";
-		_log(LVL_DEBUG, "%s : %s", error, req->argv[0]);
+		_log(LVL_DEBUG, "%s : %s\n", error, req->argv[0]);
 		req->reply.rc = -1;
 		req->reply.message = error;
 		return;
