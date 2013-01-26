@@ -1,4 +1,4 @@
-DEBUG=yes
+DEBUG=no
 export CC=gcc
 export CFLAGS=-W -Wall
 

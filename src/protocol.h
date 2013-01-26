@@ -47,6 +47,7 @@
 #define OP_CLIENT	12
 #define OP_FLUSH 	13
 #define OP_DB		14
+#define OP_PASSWD	15
 
 #define CF_NONE 		0
 #define CF_READ 		1
@@ -115,6 +116,7 @@ void do_time(request_t* req);
 void do_ping(request_t* req);
 void do_who(request_t* req);
 void do_flush(request_t* req);
+void do_passwd(request_t* req);
 void do_db(request_t* req);
 
 #endif /* PROTOCOL_H_ */

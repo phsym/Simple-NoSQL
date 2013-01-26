@@ -55,7 +55,8 @@ cmd_t commands[] = {
 	{"ping", 	OP_PING, 	CF_NONE, 				0, 	&do_ping, 	"Ping server"},
 	{"client", 	OP_CLIENT, 	CF_ADMIN, 				0, 	&do_who, 	"List clients"},
 	{"flush", 	OP_FLUSH, 	CF_WRITE|CF_NEED_DB, 	0, 	&do_flush, 	"Flush database"},
-	{"db",		OP_DB,		CF_NONE,				1,	&do_db,		"DB selection"}
+	{"db",		OP_DB,		CF_NONE,				1,	&do_db,		"DB selection"},
+	{"passwd",	OP_PASSWD,	CF_NONE,				2,	&do_passwd,	"Change user password"}
 };
 
 void protocol_init()
@@ -371,6 +372,23 @@ void do_flush(request_t* req)
 	req->reply.rc = 0;
 }
 
+void do_passwd(request_t* req)
+{
+	char cat[128];
+	cat[0] = '\0';
+
+	strcat(cat, req->argv[0]);
+	strcat(cat, ":");
+	strcat(cat, req->argv[1]);
+
+	hash_algo_t* algo = crypto_get_hash_algo("sha256");
+	char digest_str[algo->digest_str_len];
+	crypto_hash_str(algo, cat, strlen(cat), digest_str);
+	datastore_set(req->client->server->intern_db, "DB_ADM.USER.AUTH_HASH", digest_str);
+	req->reply.rc = 0;
+	_log(LVL_INFO, "Password changed\n");
+}
+
 void do_db(request_t* req)
 {
 	if(!strcmp(req->argv[0], "use"))
@@ -407,6 +425,7 @@ void do_db(request_t* req)
 			store = datastore_create(req->argv[1], atoi(req->argv[2]), atoi(req->argv[3]));
 			if(store != NULL)
 			{
+				_log(LVL_INFO, "Creating db %s\n", dbname);
 				char* db_names = datastore_lookup(req->client->server->intern_db, "DATABASES");
 				if(db_names == NULL)
 				{
@@ -433,6 +452,7 @@ void do_db(request_t* req)
 			req->client->datastore = store;
 			datastore_put(req->client->server->intern_db, "DEFAULTDB", dbname);
 			req->reply.rc = 0;
+			_log(LVL_INFO, "Default databased changed to %s\n", dbname);
 		}
 		else
 		{
