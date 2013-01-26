@@ -388,6 +388,58 @@ void do_db(request_t* req)
 			req->reply.message = "DB not found";
 		}
 	}
+	else if(!strcmp(req->argv[0], "create"))
+	{
+		if(req->argc < 3)
+		{
+			req->reply.rc = -1;
+			return;
+		}
+		char* dbname = req->argv[1];
+		datastore_t * store = ht_get(req->client->server->storages, dbname);
+		if(store != NULL)
+		{
+			req->reply.rc = -1;
+			req->reply.message = "DB already exists";
+		}
+		else
+		{
+			store = datastore_create(req->argv[1], atoi(req->argv[2]), atoi(req->argv[3]));
+			if(store != NULL)
+			{
+				char* db_names = datastore_lookup(req->client->server->intern_db, "DATABASES");
+				if(db_names == NULL)
+				{
+					datastore_put(req->client->server->intern_db, "DATABASES", "");
+					db_names = datastore_lookup(req->client->server->intern_db, "DATABASES");
+				}
+				strcat(db_names, " ");
+				strcat(db_names, dbname);
+				ht_put(req->client->server->storages, dbname, store);
+				req->reply.rc = 0;
+			}
+			else
+			{
+				req->reply.rc = -1;
+			}
+		}
+	}
+	else if(!strcmp(req->argv[0], "default"))
+	{
+		char* dbname = req->argv[1];
+		datastore_t * store = ht_get(req->client->server->storages, dbname);
+		if(store != NULL)
+		{
+			req->client->datastore = store;
+			datastore_put(req->client->server->intern_db, "DEFAULTDB", dbname);
+			req->reply.rc = 0;
+		}
+		else
+		{
+			req->reply.rc = -1;
+			req->reply.message = "DB not found";
+		}
+	}
 	else
 		req->reply.rc = -1;
 }

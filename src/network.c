@@ -50,7 +50,7 @@
 #endif
 
 
-server_t* server_create(unsigned int bind_addr, short port, bool auth, hashtable_t* storages, int max_client)
+server_t* server_create(unsigned int bind_addr, short port, bool auth, datastore_t* intern_db, hashtable_t* storages, int max_client)
 {
 	server_t* server = malloc(sizeof(server_t));
 	if(server == NULL)
@@ -59,6 +59,7 @@ server_t* server_create(unsigned int bind_addr, short port, bool auth, hashtable
 	server->socket = -1;
 	server->port = port;
 	server->storages = storages;
+	server->intern_db = intern_db;
 	server->bind_addr = bind_addr;
 	server->auth = auth;
 	server->max_client = max_client;
@@ -89,7 +90,11 @@ client_t* client_create(server_t* server, int sock, char* address, u_short port)
 		return NULL;
 	}
 
-//	client->datastore = ht_get(client->server->storages, "default");
+	char* def_db = datastore_lookup(client->server->intern_db, "DEFAULTDB");
+	if(def_db != NULL)
+		client->datastore = ht_get(client->server->storages, def_db);
+	else
+		client->datastore = NULL;
 	return client;
 }
 
@@ -130,7 +135,7 @@ void server_unregister_client(server_t* server, client_t* client)
 bool client_authenticate(client_t* cli)
 {
 	_log(LVL_DEBUG, "Asking authentication\n");
-	char* auth_tok = datastore_lookup(cli->datastore, "DB_ADM.USER.AUTH_HASH");
+	char* auth_tok = datastore_lookup(cli->server->intern_db, "DB_ADM.USER.AUTH_HASH");
 	if(auth_tok == NULL)
 	{
 		_log(LVL_WARNING, "Authentication is activated, but no password has been set. Skipping authentication.\n");

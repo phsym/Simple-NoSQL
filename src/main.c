@@ -41,7 +41,7 @@ typedef struct {
 	bool running;
 	server_t* server;
 	hashtable_t* storages;
-//	datastore_t* datastore;
+	datastore_t* intern_db;
 	config_t* config;
 }Application;
 
@@ -119,12 +119,26 @@ int main(int argc, char* argv[])
 	protocol_init();
 
 	_log(LVL_INFO, "Initializing data storage ...\n");
-//	app.datastore = datastore_create(app.config->storage_size, app.config->index_len);
 	app.storages = ht_create(256);
-	ht_put(app.storages, "default", datastore_create(app.config->storage_size, app.config->index_len));
+	//Load or create admin DB
+	app.intern_db = datastore_create("internal_db", 1024*1024, 1024*1024);
+
+	char* dbs = datastore_lookup(app.intern_db, "DATABASES");
+	char* str;
+	char* db = strtok_r(dbs, " ", &str);
+	while(db != NULL)
+	{
+		_log(LVL_INFO, "Loading DB %s\n", db);
+		datastore_t* store = datastore_create(db, 0, 1024*1024);
+		if(store != NULL)
+			ht_put(app.storages, store->name, store);
+		db = strtok_r(NULL, " ", &str);
+	}
+
+//	ht_put(app.storages, "admin", datastore_create("admin", app.config->storage_size, app.config->index_len));
 
 	_log(LVL_INFO, "Initializing server ...\n");
-	app.server = server_create(app.config->bind_address, app.config->bind_port, app.config->auth, app.storages, app.config->max_clients);
+	app.server = server_create(app.config->bind_address, app.config->bind_port, app.config->auth, app.intern_db, app.storages, app.config->max_clients);
 
 	_log(LVL_INFO, "Starting network ...\n");
 	server_start(app.server);
@@ -138,8 +152,8 @@ int main(int argc, char* argv[])
 	_log(LVL_DEBUG, "Crypto cleanup\n");
 	crypto_cleanup();
 
-	_log(LVL_DEBUG, "Destroy datastore\n");
-//	datastore_destroy(app.datastore);
+	_log(LVL_DEBUG, "Destroy datastores\n");
+	datastore_destroy(app.intern_db);
 	hash_elem_it it = HT_ITERATOR(app.storages);
 	char* e;
 	while((e = ht_iterate_keys(&it)) != NULL)

@@ -32,10 +32,15 @@
 #include "utils.h"
 #include "containers.h"
 
-datastore_t* datastore_create(int storage_size, int index_length)
+datastore_t* datastore_create(char* name, int storage_size, int index_length)
 {
-	char* storagefile = "./datastorage.dat";
+	char storagefile[strlen(name) + 8];
+	storagefile[0] = '\0';
+	strcat(storagefile, "db_");
+	strcat(storagefile, name);
+	strcat(storagefile, ".dat");
 	datastore_t* store = malloc(sizeof(datastore_t));
+	store->name = name;
 	store->index_table = ht_create(index_length);
 	store->data_table = table_map_load(storagefile);
 	if(store->data_table == NULL)

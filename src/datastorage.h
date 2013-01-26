@@ -43,12 +43,13 @@ typedef struct {
 }data_t;
 
 typedef struct {
+	char* name;
 	hashtable_t *index_table;
 	table_t *data_table;
 	rw_lock_t lock;
 }datastore_t;
 
-datastore_t* datastore_create(int storage_size, int index_length);
+datastore_t* datastore_create(char* name, int storage_size, int index_length);
 
 char* datastore_lookup(datastore_t* datastore, char* key);
 

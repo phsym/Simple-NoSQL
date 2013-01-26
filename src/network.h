@@ -47,6 +47,7 @@ typedef struct server_t{
 	struct client_t **clients;
 	bool auth;
 	hashtable_t* storages;
+	datastore_t* intern_db;
 }server_t;
 
 typedef struct client_t{
@@ -60,7 +61,7 @@ typedef struct client_t{
 	bool trans_open;
 }client_t;
 
-server_t* server_create(unsigned int bind_addr, short port, bool auth, hashtable_t* storages, int max_client);
+server_t* server_create(unsigned int bind_addr, short port, bool auth, datastore_t* intern_db, hashtable_t* storages, int max_client);
 
 client_t* client_create(server_t* server, int sock, char* address, u_short port);
 
