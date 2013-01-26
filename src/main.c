@@ -35,11 +35,13 @@
 #include "utils.h"
 #include "config.h"
 #include "crypto.h"
+#include "containers.h"
 
 typedef struct {
 	bool running;
 	server_t* server;
-	datastore_t* datastore;
+	hashtable_t* storages;
+//	datastore_t* datastore;
 	config_t* config;
 }Application;
 
@@ -117,10 +119,12 @@ int main(int argc, char* argv[])
 	protocol_init();
 
 	_log(LVL_INFO, "Initializing data storage ...\n");
-	app.datastore = datastore_create(app.config->storage_size, app.config->index_len);
+//	app.datastore = datastore_create(app.config->storage_size, app.config->index_len);
+	app.storages = ht_create(256);
+	ht_put(app.storages, "default", datastore_create(app.config->storage_size, app.config->index_len));
 
 	_log(LVL_INFO, "Initializing server ...\n");
-	app.server = server_create(app.config->bind_address, app.config->bind_port, app.config->auth, app.datastore, app.config->max_clients);
+	app.server = server_create(app.config->bind_address, app.config->bind_port, app.config->auth, app.storages, app.config->max_clients);
 
 	_log(LVL_INFO, "Starting network ...\n");
 	server_start(app.server);
@@ -135,7 +139,12 @@ int main(int argc, char* argv[])
 	crypto_cleanup();
 
 	_log(LVL_DEBUG, "Destroy datastore\n");
-	datastore_destroy(app.datastore);
+//	datastore_destroy(app.datastore);
+	hash_elem_it it = HT_ITERATOR(app.storages);
+	char* e;
+	while((e = ht_iterate_keys(&it)) != NULL)
+		datastore_destroy(ht_remove(app.storages, e));
+	ht_destroy(app.storages);
 
 	free(app.config);
 

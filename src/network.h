@@ -30,6 +30,7 @@
 #include "concurrency.h"
 #include "datastorage.h"
 #include "utils.h"
+#include "containers.h"
 
 #define BUFF_SIZE 2048
 
@@ -45,8 +46,7 @@ typedef struct server_t{
 	int num_clients;
 	struct client_t **clients;
 	bool auth;
-
-	datastore_t* datastore;
+	hashtable_t* storages;
 }server_t;
 
 typedef struct client_t{
@@ -55,11 +55,12 @@ typedef struct client_t{
 	bool running;
 	thread_t thread;
 	struct server_t* server;
+	datastore_t* datastore;
 	int sock;
 	bool trans_open;
 }client_t;
 
-server_t* server_create(unsigned int bind_addr, short port, bool auth, datastore_t* datastore, int max_client);
+server_t* server_create(unsigned int bind_addr, short port, bool auth, hashtable_t* storages, int max_client);
 
 client_t* client_create(server_t* server, int sock, char* address, u_short port);
 
