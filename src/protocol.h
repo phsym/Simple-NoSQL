@@ -46,12 +46,14 @@
 #define OP_PING 	11
 #define OP_CLIENT	12
 #define OP_FLUSH 	13
+#define OP_DB		14
 
 #define CF_NONE 		0
 #define CF_READ 		1
-#define CF_WRITE 	2
+#define CF_WRITE 		2
 #define CF_RW 		(CF_READ|CF_WRITE)
 #define CF_ADMIN		4
+#define CF_NEED_DB		8
 
 //TODO : Binary protocol
 
@@ -113,5 +115,6 @@ void do_time(request_t* req);
 void do_ping(request_t* req);
 void do_who(request_t* req);
 void do_flush(request_t* req);
+void do_db(request_t* req);
 
 #endif /* PROTOCOL_H_ */

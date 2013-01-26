@@ -89,7 +89,7 @@ client_t* client_create(server_t* server, int sock, char* address, u_short port)
 		return NULL;
 	}
 
-	client->datastore = ht_get(client->server->storages, "default");
+//	client->datastore = ht_get(client->server->storages, "default");
 	return client;
 }
 

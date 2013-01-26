@@ -41,20 +41,21 @@ cmd_t *cmd_id[256];
 bool _proto_init = false;
 
 cmd_t commands[] = {
-	{"get", 	OP_GET, 	CF_READ,	1, 	&do_get, 	"Get command"},
-	{"put", 	OP_PUT, 	CF_WRITE, 	2, 	&do_put, 	"Put command"},
-	{"set", 	OP_SET, 	CF_WRITE, 	2, 	&do_set, 	"Set command"},
-	{"list", 	OP_LIST, 	CF_READ, 	0, 	&do_list, 	"List command"},
-	{"rmv", 	OP_RMV, 	CF_WRITE, 	1, 	&do_rmv, 	"Remove command"},
-	{"count", 	OP_COUNT, 	CF_READ, 	0, 	&do_count, 	"Count command"},
-	{"digest", 	OP_DIGEST, 	CF_WRITE, 	3, 	&do_digest,	"Hash digest calculation"},
-	{"help", 	OP_HELP, 	CF_NONE, 	0, 	&do_help, 	"Help command"},
-	{"quit", 	OP_QUIT, 	CF_NONE, 	0, 	&do_quit, 	"Quit command"},
-	{"trace", 	OP_TRACE,	CF_ADMIN, 	1, 	&do_trace, 	"Trace command"},
-	{"time", 	OP_TIME, 	CF_NONE, 	0, 	&do_time, 	"Get server time"},
-	{"ping", 	OP_PING, 	CF_NONE, 	0, 	&do_ping, 	"Ping server"},
-	{"client", 	OP_CLIENT, 	CF_ADMIN, 	0, 	&do_who, 	"List clients"},
-	{"flush", 	OP_FLUSH, 	CF_WRITE, 	0, 	&do_flush, 	"Flush database"}
+	{"get", 	OP_GET, 	CF_READ|CF_NEED_DB,		1, 	&do_get, 	"Get command"},
+	{"put", 	OP_PUT, 	CF_WRITE|CF_NEED_DB, 	2, 	&do_put, 	"Put command"},
+	{"set", 	OP_SET, 	CF_WRITE|CF_NEED_DB, 	2, 	&do_set, 	"Set command"},
+	{"list", 	OP_LIST, 	CF_READ|CF_NEED_DB, 	0, 	&do_list, 	"List command"},
+	{"rmv", 	OP_RMV, 	CF_WRITE|CF_NEED_DB, 	1, 	&do_rmv, 	"Remove command"},
+	{"count", 	OP_COUNT, 	CF_READ|CF_NEED_DB, 	0, 	&do_count, 	"Count command"},
+	{"digest", 	OP_DIGEST, 	CF_WRITE|CF_NEED_DB, 	3, 	&do_digest,	"Hash digest calculation"},
+	{"help", 	OP_HELP, 	CF_NONE, 				0, 	&do_help, 	"Help command"},
+	{"quit", 	OP_QUIT, 	CF_NONE, 				0, 	&do_quit, 	"Quit command"},
+	{"trace", 	OP_TRACE,	CF_ADMIN, 				1, 	&do_trace, 	"Trace command"},
+	{"time", 	OP_TIME, 	CF_NONE, 				0, 	&do_time, 	"Get server time"},
+	{"ping", 	OP_PING, 	CF_NONE, 				0, 	&do_ping, 	"Ping server"},
+	{"client", 	OP_CLIENT, 	CF_ADMIN, 				0, 	&do_who, 	"List clients"},
+	{"flush", 	OP_FLUSH, 	CF_WRITE|CF_NEED_DB, 	0, 	&do_flush, 	"Flush database"},
+	{"db",		OP_DB,		CF_NONE,				1,	&do_db,		"DB selection"}
 };
 
 void protocol_init()
@@ -94,7 +95,16 @@ void process_request(request_t* req)
 	req->reply.message = "";
 
 	if(cmd_id[req->op] != NULL)
-		cmd_id[req->op]->process(req);
+	{
+		cmd_t* cmd = cmd_id[req->op];
+		if((cmd->flag & CF_NEED_DB) && !req->client->datastore)
+		{
+			req->reply.message = "No DB selected";
+			req->reply.rc = -1;
+		}
+		else
+			cmd->process(req);
+	}
 	else
 	{
 		req->reply.message = "Unknown operation";
@@ -359,4 +369,25 @@ void do_flush(request_t* req)
 {
 	datastore_clear(req->client->datastore);
 	req->reply.rc = 0;
+}
+
+void do_db(request_t* req)
+{
+	if(!strcmp(req->argv[0], "use"))
+	{
+		char* dbname = req->argv[1];
+		datastore_t * store = ht_get(req->client->server->storages, dbname);
+		if(store != NULL)
+		{
+			req->client->datastore = store;
+			req->reply.rc = 0;
+		}
+		else
+		{
+			req->reply.rc = -1;
+			req->reply.message = "DB not found";
+		}
+	}
+	else
+		req->reply.rc = -1;
 }
