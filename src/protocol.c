@@ -53,7 +53,7 @@ cmd_t commands[] = {
 	{"trace", 	OP_TRACE,	CF_ADMIN, 				1, 	&do_trace, 	"Trace command"},
 	{"time", 	OP_TIME, 	CF_NONE, 				0, 	&do_time, 	"Get server time"},
 	{"ping", 	OP_PING, 	CF_NONE, 				0, 	&do_ping, 	"Ping server"},
-	{"client", 	OP_CLIENT, 	CF_ADMIN, 				0, 	&do_who, 	"List clients"},
+	{"client", 	OP_CLIENT, 	CF_ADMIN, 				0, 	&do_client, 	"List clients"},
 	{"flush", 	OP_FLUSH, 	CF_WRITE|CF_NEED_DB, 	0, 	&do_flush, 	"Flush database"},
 	{"db",		OP_DB,		CF_NONE,				1,	&do_db,		"DB selection"},
 	{"passwd",	OP_PASSWD,	CF_NONE,				2,	&do_passwd,	"Change user password"}
@@ -344,22 +344,23 @@ void do_ping(request_t* req)
 	req->reply.rc = 0;
 }
 
-void do_who(request_t* req)
+void do_client(request_t* req)
 {
 	server_t* server = req->client->server;
 	int i;
-	char buff[1024];
+	char buff[2048];
 	req->reply.message = malloc(1024*server->num_clients);
 	req->reply.message[0] = '\0';
 	for(i = 0; i < server->max_client; i++)
 	{
 		client_t* cli = server->clients[i];
-		char* its_me = "";
+		char* its_me = " ";
 		if(cli != NULL)
 		{
 			if(cli == req->client)
-				its_me = " *";
-			sprintf(buff, "%d : %s:%d%s\r\n", i, cli->address, cli->port, its_me);
+				its_me = "*";
+			datastore_t* db = cli->datastore;
+			sprintf(buff, " %s %d : %s:%d db:%s\r\n", its_me, i, cli->address, cli->port, (db ? db->name : "none"));
 			strcat(req->reply.message, buff);
 		}
 	}

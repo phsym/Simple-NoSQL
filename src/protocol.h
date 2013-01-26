@@ -114,7 +114,7 @@ void do_quit(request_t* req);
 void do_trace(request_t* req);
 void do_time(request_t* req);
 void do_ping(request_t* req);
-void do_who(request_t* req);
+void do_client(request_t* req);
 void do_flush(request_t* req);
 void do_passwd(request_t* req);
 void do_db(request_t* req);

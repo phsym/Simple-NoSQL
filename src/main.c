@@ -129,13 +129,12 @@ int main(int argc, char* argv[])
 	while(db != NULL)
 	{
 		_log(LVL_INFO, "Loading DB %s\n", db);
-		datastore_t* store = datastore_create(db, 0, 1024*1024);
+		//TODO : Save storage and index size in internal db, and use them here
+		datastore_t* store = datastore_create(db, 1024*1024, 1024*1024);
 		if(store != NULL)
 			ht_put(app.storages, store->name, store);
 		db = strtok_r(NULL, " ", &str);
 	}
-
-//	ht_put(app.storages, "admin", datastore_create("admin", app.config->storage_size, app.config->index_len));
 
 	_log(LVL_INFO, "Initializing server ...\n");
 	app.server = server_create(app.config->bind_address, app.config->bind_port, app.config->auth, app.intern_db, app.storages, app.config->max_clients);
