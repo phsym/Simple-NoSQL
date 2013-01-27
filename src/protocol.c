@@ -435,6 +435,21 @@ void do_db(request_t* req)
 				}
 				strcat(db_names, " ");
 				strcat(db_names, dbname);
+
+				char tmp_k[2048];
+
+				tmp_k[0] = '\0';
+				strcat(tmp_k, "DB.");
+				strcat(tmp_k, dbname);
+				strcat(tmp_k, ".STORAGE_SIZE");
+				datastore_put(req->client->server->intern_db, tmp_k, req->argv[2]);
+
+				tmp_k[0] = '\0';
+				strcat(tmp_k, "DB.");
+				strcat(tmp_k, dbname);
+				strcat(tmp_k, ".INDEX_SIZE");
+				datastore_put(req->client->server->intern_db, tmp_k, req->argv[3]);
+
 				ht_put(req->client->server->storages, dbname, store);
 				req->reply.rc = 0;
 			}

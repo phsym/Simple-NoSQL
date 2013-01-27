@@ -131,8 +131,22 @@ int main(int argc, char* argv[])
 		while(db != NULL)
 		{
 			_log(LVL_INFO, "Loading DB %s\n", db);
-			//TODO : Save storage and index size in internal db, and use them here
-			datastore_t* store = datastore_create(db, 1024*1024, 1024*1024);
+			//Load storage and index size in internal db, and use them here
+			char tmp_k[2048];
+
+			tmp_k[0] = '\0';
+			strcat(tmp_k, "DB.");
+			strcat(tmp_k, db);
+			strcat(tmp_k, ".STORAGE_SIZE");
+			uint64_t stor_len = strtoul(datastore_lookup(app.intern_db, tmp_k), NULL, 10);
+
+			tmp_k[0] = '\0';
+			strcat(tmp_k, "DB.");
+			strcat(tmp_k, db);
+			strcat(tmp_k, ".INDEX_SIZE");
+			uint64_t index_len = strtoul(datastore_lookup(app.intern_db, tmp_k), NULL, 10);
+
+			datastore_t* store = datastore_create(db, stor_len, index_len);
 			if(store != NULL)
 				ht_put(app.storages, store->name, store);
 			db = strtok_r(NULL, " ", &str);
