@@ -409,7 +409,7 @@ void do_db(request_t* req)
 	}
 	else if(!strcmp(req->argv[0], "create"))
 	{
-		if(req->argc < 3)
+		if(req->argc < 4)
 		{
 			req->reply.rc = -1;
 			return;

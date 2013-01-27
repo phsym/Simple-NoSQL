@@ -77,7 +77,11 @@ table_t* table_map_create(char* filename, uint64_t data_size, uint64_t capacity)
 
 	char val = 0;
 
-	if((lseek(fd, size-1, SEEK_SET) < 0) || (write(fd, &val, 1) < 0))
+#ifdef __MINGW32__
+	if((lseek64(fd, size-1, SEEK_SET) < 0) || (write(fd, &val, 1) < 0))
+#else
+	if((lseek64(fd, size-1, SEEK_SET) < 0) || (write(fd, &val, 1) < 0))
+#endif
 	{
 		_log(LVL_ERROR, "Could not create file. Maybe not enough space on disk or file too big\n");
 		close(fd);
@@ -94,15 +98,20 @@ table_t* table_map_create(char* filename, uint64_t data_size, uint64_t capacity)
 	//init table
 	_log(LVL_INFO, "Mapping data table file ...\n");
 #ifdef __MINGW32__
-	table_t *table = MapViewOfFile(CreateFileMapping((HANDLE) _get_osfhandle (fd), NULL, PAGE_READWRITE, 0, 0, NULL), FILE_MAP_ALL_ACCESS, 0, 0, 0);
+	HANDLE mapping = CreateFileMapping((HANDLE) _get_osfhandle (fd), NULL, PAGE_READWRITE, 0, 0, NULL);
+	table_t *table = MapViewOfFile(mapping, FILE_MAP_ALL_ACCESS, 0, 0, 0);
 #else
 	table_t *table = mmap(NULL, size, PROT_READ|PROT_WRITE, MAP_SHARED, fd, 0);
 #endif
 	if(table == (void*)-1 || table == NULL)
 	{
 		_log(LVL_ERROR, "Could not map table. Not enough memory maybe.\n");
+#ifdef __MINGW32__
+		CloseHandle(mapping);
+#endif
 		close(fd);
-		remove(filename);
+		if(remove(filename) < 0)
+			_perror("");
 		return NULL;
 	}
 
@@ -148,19 +157,20 @@ table_t* table_map_load(char* filename)
 
 	_log(LVL_INFO, "Mapping data table file ...\n"); 
 #ifdef __MINGW32__
-	table_t *table = MapViewOfFile(CreateFileMapping((HANDLE) _get_osfhandle (fd), NULL, PAGE_READWRITE, 0, 0, NULL), FILE_MAP_ALL_ACCESS, 0, 0, 0);
+	HANDLE mapping = CreateFileMapping((HANDLE) _get_osfhandle (fd), NULL, PAGE_READWRITE, 0, 0, NULL);
+	table_t *table = MapViewOfFile(mapping, FILE_MAP_ALL_ACCESS, 0, 0, 0);
 #else
 	table_t *table = mmap(NULL, size, PROT_READ|PROT_WRITE, MAP_SHARED, fd, 0);
+#endif
 	if(table == (void*)-1 || table == NULL)
 	{
 		_log(LVL_ERROR, "Could not map table. Not enough memory maybe.\n");
+#ifdef __MINGW32__
+		CloseHandle(mapping);
+#endif
 		close(fd);
-		remove(filename);
 		return NULL;
 	}
-#endif
-	if(table == NULL)
-		return NULL;
 	return table;
 }
 
