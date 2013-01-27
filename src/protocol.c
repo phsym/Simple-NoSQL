@@ -255,7 +255,7 @@ void do_rmv(request_t* req)
 void do_count(request_t* req)
 {
 	req->reply.message = malloc(9);
-	snprintf(req->reply.message, 8, "%d", datastore_keys_number(req->client->datastore));
+	snprintf(req->reply.message, 8, "%llu", datastore_keys_number(req->client->datastore));
 	req->reply.rc = 0;
 }
 
@@ -423,7 +423,7 @@ void do_db(request_t* req)
 		}
 		else
 		{
-			store = datastore_create(req->argv[1], atoi(req->argv[2]), atoi(req->argv[3]));
+			store = datastore_create(req->argv[1], strtoul(req->argv[2], NULL, 10), strtoul(req->argv[3], NULL, 10));
 			if(store != NULL)
 			{
 				_log(LVL_INFO, "Creating db %s\n", dbname);

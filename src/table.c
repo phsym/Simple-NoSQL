@@ -39,7 +39,7 @@
 	#include <sys/mman.h>
 #endif
 	
-void table_init(table_t* table, int data_size, int capacity)
+void table_init(table_t* table, uint64_t data_size, uint64_t capacity)
 {
 	table->magic = TABLE_MAGIC;
 	table->blk_size = data_size + sizeof(table_elem_t);
@@ -47,8 +47,8 @@ void table_init(table_t* table, int data_size, int capacity)
 	table->capacity = capacity;
 	table->first_free = 0;
 
-	int i;
-	int p;
+	uint64_t i;
+	uint64_t p;
 	for(i = 0; i < capacity; i++)
 	{
 		p = (i*100)/capacity;
@@ -68,18 +68,23 @@ void table_init(table_t* table, int data_size, int capacity)
 	_log(LVL_INFO, "Initializing table : %d%%\r\n", (i*100)/capacity);
 }
 
-table_t* table_map_create(char* filename, int data_size, int capacity)
+table_t* table_map_create(char* filename, uint64_t data_size, uint64_t capacity)
 {
 	int fd = open(filename, O_RDWR|O_CREAT, (mode_t)0600);
 	if (fd < 0)
 		return NULL;
-	int size = sizeof(table_t) + (capacity * (data_size + sizeof(table_elem_t)));
-
-	lseek(fd, size-1, SEEK_SET);
+	uint64_t size = sizeof(table_t) + (capacity * (data_size + sizeof(table_elem_t)));
 
 	char val = 0;
-	write(fd, &val, 1);
 
+	if((lseek(fd, size-1, SEEK_SET) < 0) || (write(fd, &val, 1) < 0))
+	{
+		_log(LVL_ERROR, "Could not create file. Maybe not enough space on disk or file too big\n");
+		close(fd);
+		remove(filename);
+		return NULL;
+	}
+	write(fd, &val, 1);
 #ifdef __MINGW32__
 	FlushFileBuffers ((HANDLE) _get_osfhandle (fd));
 #else
@@ -93,8 +98,13 @@ table_t* table_map_create(char* filename, int data_size, int capacity)
 #else
 	table_t *table = mmap(NULL, size, PROT_READ|PROT_WRITE, MAP_SHARED, fd, 0);
 #endif
-	if(table == NULL)
+	if(table == (void*)-1 || table == NULL)
+	{
+		_log(LVL_ERROR, "Could not map table. Not enough memory maybe.\n");
+		close(fd);
+		remove(filename);
 		return NULL;
+	}
 
 	table_init(table, data_size, capacity);
 
@@ -109,9 +119,9 @@ table_t* table_map_create(char* filename, int data_size, int capacity)
 	return table;
 }
 
-table_t* table_create(int data_size, int capacity)
+table_t* table_create(uint64_t data_size, uint64_t capacity)
 {
-	int size = sizeof(table_t) + (capacity * (data_size + sizeof(table_elem_t)));
+	uint64_t size = sizeof(table_t) + (capacity * (data_size + sizeof(table_elem_t)));
 
 	//init table
 	table_t* table = malloc(size);
@@ -134,22 +144,29 @@ table_t* table_map_load(char* filename)
 	int r = read(fd, &t, sizeof(t));
 	if(r != sizeof(t) || t.magic != TABLE_MAGIC)
 		return NULL;
-	int size = sizeof(table_t) + (t.capacity * (t.data_size + sizeof(table_elem_t)));
+	uint64_t size = sizeof(table_t) + (t.capacity * (t.data_size + sizeof(table_elem_t)));
 
 	_log(LVL_INFO, "Mapping data table file ...\n"); 
 #ifdef __MINGW32__
 	table_t *table = MapViewOfFile(CreateFileMapping((HANDLE) _get_osfhandle (fd), NULL, PAGE_READWRITE, 0, 0, NULL), FILE_MAP_ALL_ACCESS, 0, 0, 0);
 #else
 	table_t *table = mmap(NULL, size, PROT_READ|PROT_WRITE, MAP_SHARED, fd, 0);
+	if(table == (void*)-1 || table == NULL)
+	{
+		_log(LVL_ERROR, "Could not map table. Not enough memory maybe.\n");
+		close(fd);
+		remove(filename);
+		return NULL;
+	}
 #endif
 	if(table == NULL)
 		return NULL;
 	return table;
 }
 
-int* table_put(table_t* table, void* data)
+uint64_t* table_put(table_t* table, void* data)
 {
-	int index = table->first_free;
+	uint64_t index = table->first_free;
 	table_elem_t *e = ((void*)table->table + index * table->blk_size);
 	table->first_free = e->ind;
 	e->ind = index;
@@ -158,7 +175,7 @@ int* table_put(table_t* table, void* data)
 	return &e->ind;
 }
 
-table_elem_t* table_get_block(table_t* table, int index)
+table_elem_t* table_get_block(table_t* table, uint64_t index)
 {
 	if(index >= table->capacity)
 			return NULL;
@@ -168,7 +185,7 @@ table_elem_t* table_get_block(table_t* table, int index)
 	return e;
 }
 
-void* table_get_ref(table_t* table, int index)
+void* table_get_ref(table_t* table, uint64_t index)
 {
 	if(index >= table->capacity)
 		return NULL;
@@ -178,7 +195,7 @@ void* table_get_ref(table_t* table, int index)
 	return e->data;
 }
 
-void table_get_copy(table_t* table, int index, void* ptr)
+void table_get_copy(table_t* table, uint64_t index, void* ptr)
 {
 	if(index >= table->capacity)
 		ptr = NULL;
@@ -188,7 +205,7 @@ void table_get_copy(table_t* table, int index, void* ptr)
 	memcpy(ptr, e->data, table->data_size);
 }
 
-void table_remove(table_t* table, int index)
+void table_remove(table_t* table, uint64_t index)
 {
 	if(index < table->capacity)
 	{
@@ -201,7 +218,7 @@ void table_remove(table_t* table, int index)
 	}
 }
 
-void table_clean(table_t* table, int index)
+void table_clean(table_t* table, uint64_t index)
 {
 	if(index < table->capacity)
 		memset(((void*)table->table + index * table->blk_size), 0, table->blk_size);
@@ -209,7 +226,7 @@ void table_clean(table_t* table, int index)
 
 void destroy_map_table(table_t* table)
 {
-	int size = sizeof(table_t) + (table->capacity * (table->data_size + sizeof(table_elem_t)));
+	uint64_t size = sizeof(table_t) + (table->capacity * (table->data_size + sizeof(table_elem_t)));
 
 	_log(LVL_INFO, "Syncing data table file ...\n");
 #ifdef __MINGW32__
@@ -233,7 +250,7 @@ void destroy_table(table_t* table)
 	free(table);
 }
 
-void table_resize(table_t* table, int new_capacity)
+void table_resize(table_t* table, uint64_t new_capacity)
 {
 	table = realloc(table, sizeof(table_t) + (new_capacity * table->blk_size));
 	//TODO : Modify free block ptr

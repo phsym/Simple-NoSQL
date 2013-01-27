@@ -124,16 +124,19 @@ int main(int argc, char* argv[])
 	app.intern_db = datastore_create("internal_db", 1024*1024, 1024*1024);
 
 	char* dbs = datastore_lookup(app.intern_db, "DATABASES");
-	char* str;
-	char* db = strtok_r(dbs, " ", &str);
-	while(db != NULL)
+	if(dbs != NULL)
 	{
-		_log(LVL_INFO, "Loading DB %s\n", db);
-		//TODO : Save storage and index size in internal db, and use them here
-		datastore_t* store = datastore_create(db, 1024*1024, 1024*1024);
-		if(store != NULL)
-			ht_put(app.storages, store->name, store);
-		db = strtok_r(NULL, " ", &str);
+		char* str;
+		char* db = strtok_r(dbs, " ", &str);
+		while(db != NULL)
+		{
+			_log(LVL_INFO, "Loading DB %s\n", db);
+			//TODO : Save storage and index size in internal db, and use them here
+			datastore_t* store = datastore_create(db, 1024*1024, 1024*1024);
+			if(store != NULL)
+				ht_put(app.storages, store->name, store);
+			db = strtok_r(NULL, " ", &str);
+		}
 	}
 
 	_log(LVL_INFO, "Initializing server ...\n");

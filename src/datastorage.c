@@ -32,7 +32,7 @@
 #include "utils.h"
 #include "containers.h"
 
-datastore_t* datastore_create(char* name, int storage_size, int index_length)
+datastore_t* datastore_create(char* name, uint64_t storage_size, uint64_t index_length)
 {
 	char storagefile[strlen(name) + 8];
 	storagefile[0] = '\0';
@@ -46,12 +46,21 @@ datastore_t* datastore_create(char* name, int storage_size, int index_length)
 	if(store->data_table == NULL)
 	{
 		_log(LVL_INFO, "Creating new data table ...\n");
+		_log(LVL_DEBUG,"storage size = %llu\n", storage_size);
+		_log(LVL_DEBUG,"Data size = %llu\n", sizeof(data_t));
+		_log(LVL_DEBUG,"capacity = %llu\n", (storage_size - sizeof(table_t))/(sizeof(data_t)+sizeof(table_elem_t)));
 		store->data_table = table_map_create(storagefile, sizeof(data_t), (storage_size - sizeof(table_t))/(sizeof(data_t)+sizeof(table_elem_t)));
+		if(store->data_table == NULL)
+		{
+			_log(LVL_ERROR, "Could not create table %s\n", name);
+			free(store);
+			return NULL;
+		}
 	}
 	else
 	{
-		int i;
-		int p;
+		uint64_t i;
+		uint64_t p;
 		table_elem_t* tmp;
 		data_t* data;
 		for(i = 0; i < store->data_table->capacity; i++)
@@ -82,7 +91,7 @@ char* datastore_lookup(datastore_t* datastore, char* key)
 	CHECK_KEY_SIZE(key);
 	rw_lock_read_lock(&datastore->lock);
 	char* value = NULL;
-	int* index;
+	uint64_t* index;
 	index = ht_get(datastore->index_table, key);
 	if(index != NULL)
 	{
@@ -101,7 +110,7 @@ int datastore_put(datastore_t* datastore, char* key, char* value)
 	CHECK_KEY_SIZE(key);
 	CHECK_VALUE_SIZE(value);
 	rw_lock_write_lock(&datastore->lock);
-	int* index;
+	uint64_t* index;
 	index = ht_get(datastore->index_table, key);
 	if(index == NULL)
 	{
@@ -127,7 +136,7 @@ int datastore_set(datastore_t* datastore, char* key, char* value)
 	CHECK_KEY_SIZE(key);
 	CHECK_VALUE_SIZE(value);
 	rw_lock_write_lock(&datastore->lock);
-	int* index;
+	uint64_t* index;
 	index = ht_get(datastore->index_table, key);
 	if (index == NULL) {
 		data_t data;
@@ -154,7 +163,7 @@ int datastore_remove(datastore_t* datastore, char* key)
 {
 	CHECK_KEY_SIZE(key);
 	rw_lock_write_lock(&datastore->lock);
-	int* index;
+	uint64_t* index;
 	index = ht_get(datastore->index_table, key);
 	if(index != NULL)
 	{
@@ -167,24 +176,24 @@ int datastore_remove(datastore_t* datastore, char* key)
 	return -1;
 }
 
-int datastore_keys_number(datastore_t* datastore)
+uint64_t datastore_keys_number(datastore_t* datastore)
 {
 	rw_lock_read_lock(&datastore->lock);
-	int n = datastore->index_table->e_num;
+	uint64_t n = datastore->index_table->e_num;
 	rw_lock_read_unlock(&datastore->lock);
 	return n;
 }
 
-int datastore_count_keys(datastore_t* datastore)
+uint64_t datastore_count_keys(datastore_t* datastore)
 {
 	rw_lock_read_lock(&datastore->lock);
-//	int i = hashtable_count_keys(datastore->index_table);
-	int i = datastore->index_table->e_num;
+//	uint64_t i = hashtable_count_keys(datastore->index_table);
+	uint64_t i = datastore->index_table->e_num;
 	rw_lock_read_unlock(&datastore->lock);
 	return i;
 }
 
-void datastore_list_keys(datastore_t* datastore, char **keys, int len)
+void datastore_list_keys(datastore_t* datastore, char **keys, uint64_t len)
 {
 	rw_lock_read_lock(&datastore->lock);
 	ht_list_keys(datastore->index_table, keys, len);
@@ -196,7 +205,7 @@ void datastore_clear(datastore_t* datastore)
 	rw_lock_read_lock(&datastore->lock);
 	hash_elem_it it = HT_ITERATOR(datastore->index_table);
 	hash_elem_t* e;
-	int* ind;
+	uint64_t* ind;
 	while((e = ht_iterate(&it)) != NULL)
 	{
 		ind = e->data;

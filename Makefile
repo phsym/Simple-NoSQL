@@ -1,6 +1,6 @@
 DEBUG=no
 export CC=gcc
-export CFLAGS=-W -Wall
+export CFLAGS=-W -Wall -D_FILE_OFFSET_BITS=64
 
 ifeq ($(DEBUG), yes)
 	CFLAGS:=$(CFLAGS) -g -O0

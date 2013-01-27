@@ -27,6 +27,10 @@
 #ifndef TABLE_H_
 #define TABLE_H_
 
+#include<stdint.h>
+
+//#define _FILE_OFFSET_BITS 64
+
 #define TABLE_MAGIC 0x6F
 
 #define FLAG_NONE 0x00
@@ -36,43 +40,43 @@ typedef struct {
 	unsigned char flag;
 	// ind is multi-pupose : When block unused, it points to the next free block, when used it contains the index of the block.
 	// A pointer to this value is stored in the index table
-	int ind;
+	uint64_t ind;
 	char data[];
 }table_elem_t;
 
 typedef struct {
 	char magic;
-	int data_size;
-	int blk_size; // data block size = data_size + sizeof table_elem_t
-	int capacity;
-	int first_free;
+	uint64_t data_size;
+	uint64_t blk_size; // data block size = data_size + sizeof table_elem_t
+	uint64_t capacity;
+	uint64_t first_free;
 	table_elem_t table[];
 }table_t;
 
-void table_init(table_t* table, int data_size, int capacity);
+void table_init(table_t* table, uint64_t data_size, uint64_t capacity);
 
-table_t* table_map_create(char* filename, int data_size, int capacity);
+table_t* table_map_create(char* filename, uint64_t data_size, uint64_t capacity);
 
-table_t* table_create(int data_size, int capacity);
+table_t* table_create(uint64_t data_size, uint64_t capacity);
 
 table_t* table_map_load(char* filename);
 
-int* table_put(table_t* table, void* data);
+uint64_t* table_put(table_t* table, void* data);
 
-table_elem_t* table_get_block(table_t* table, int index);
+table_elem_t* table_get_block(table_t* table, uint64_t index);
 
-void* table_get_ref(table_t* table, int index);
+void* table_get_ref(table_t* table, uint64_t index);
 
-void table_get_copy(table_t* table, int index, void* ptr);
+void table_get_copy(table_t* table, uint64_t index, void* ptr);
 
-void table_remove(table_t* table, int index);
+void table_remove(table_t* table, uint64_t index);
 
-void table_clean(table_t* table, int index);
+void table_clean(table_t* table, uint64_t index);
 
 void destroy_map_table(table_t* table);
 
 void destroy_table(table_t* table);
 
-void table_resize(table_t* table, int new_capacity);
+void table_resize(table_t* table, uint64_t new_capacity);
 
 #endif /* TABLE_H_ */
