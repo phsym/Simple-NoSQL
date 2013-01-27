@@ -45,8 +45,6 @@ const config_param_t conf_p[] = {
 	{"port", &config_port},
 	{"address", &config_address},
 	{"debug_level", &config_debug_lvl},
-	{"storage_size", &config_storage_sz},
-	{"index_length", &config_index_len},
 	{"auth", &config_auth},
 	{"max_clients", &config_max_client}
 };
@@ -82,16 +80,6 @@ void config_debug_lvl(config_t* config, char* value)
 	DEBUG_LEVEL = lvl;
 }
 
-void config_storage_sz(config_t* config, char* value)
-{
-	config->storage_size = atoi(value);
-}
-
-void config_index_len(config_t* config, char* value)
-{
-	config->index_len = atoi(value);
-}
-
 void config_auth(config_t* config, char* value)
 {
 	if(!strcmp(value, "yes"))
@@ -106,8 +94,6 @@ void config_init(config_t* config)
 	config->bind_address = 0;
 	config->bind_port = 1234;
 	config->debug_lvl = DEBUG_LEVEL;
-	config->index_len = 1024*1024;
-	config->storage_size = 1024*1024;
 	config->auth = false;
 	config->max_clients = 1000;
 }
