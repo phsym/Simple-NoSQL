@@ -66,7 +66,7 @@ datastore_t* datastore_create(char* name, uint64_t storage_size, uint64_t index_
 		for(i = 0; i < store->data_table->capacity; i++)
 		{
 			p = (100 * i)/store->data_table->capacity;
-			if(i%(store->data_table->capacity/100) == 0)
+			if(store->data_table->capacity >= 100 && i%(store->data_table->capacity/100) == 0)
 			{
 				_log(LVL_INFO, "Rebuilding index table : %d%%\r", p);
 				fflush(stdout);

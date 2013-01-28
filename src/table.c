@@ -52,7 +52,7 @@ void table_init(table_t* table, uint64_t data_size, uint64_t capacity)
 	for(i = 0; i < capacity; i++)
 	{
 		p = (i*100)/capacity;
-		if(i%(capacity/100) == 0)
+		if(capacity >= 100 && i%(capacity/100) == 0)
 		{
 			_log(LVL_INFO, "Initializing table : %d%%\r", p);
 			fflush(stdout);

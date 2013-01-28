@@ -14,7 +14,7 @@ Simply run
 	make
 ####Tested supported platforms : 
 #####Windows 7
-MinGW32<br>
+MinGW32 (with 2 GB storage limit)<br>
 Cygwin<br>
 #####Linux (32 bits)
 gnu-gcc
