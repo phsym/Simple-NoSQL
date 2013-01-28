@@ -77,18 +77,14 @@ table_t* table_map_create(char* filename, uint64_t data_size, uint64_t capacity)
 
 	char val = 0;
 
-// #ifdef __MINGW32__
-	// if((lseek64(fd, size-1, SEEK_SET) < 0) || (write(fd, &val, 1) < 0))
-// #else
 	if((lseek(fd, size-1, SEEK_SET) < 0) || (write(fd, &val, 1) < 0))
-// #endif
 	{
 		_log(LVL_ERROR, "Could not create file. Maybe not enough space on disk or file too big\n");
 		close(fd);
 		remove(filename);
 		return NULL;
 	}
-	write(fd, &val, 1);
+
 #ifdef __MINGW32__
 	FlushFileBuffers ((HANDLE) _get_osfhandle (fd));
 #else

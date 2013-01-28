@@ -32,6 +32,10 @@
 char err_ptr;
 void* HT_ERROR = &err_ptr;
 
+/*****************************************
+ *            HASHTABLE                  *
+ *****************************************/
+
 /* 	Internal funcion to calculate hash for keys.
 	It's based on the DJB algorithm from Daniel J. Bernstein.
 	The key must be ended by '\0' character.*/
@@ -232,54 +236,171 @@ void ht_destroy(hashtable_t* hasht)
 	free(hasht);
 }
 
+/*****************************************
+ *            FIFO                       *
+ *****************************************/
 
-#ifdef TEST_HASHTABLE
-#include <stdio.h>
-/* Main function for testing purpose only */
-int main()
+fifo_t* fifo_create()
 {
-	hashtable_t *ht = ht_create(1024);
-	ht_put(ht, "foo", "bar");
-	printf("%s\n", (char*)ht_get(ht, "foo"));
-	ht_put(ht, "foo", "rab");
-	printf("%s\n", (char*)ht_get(ht, "foo"));
-	ht_remove(ht, "foo");
-	if(!ht_get(ht, "foo"))
-		printf("foo removed\n");
+	fifo_t* fifo = malloc(sizeof(fifo_t));
+	if(fifo == NULL)
+		return NULL;
+	fifo_init(fifo);
+	return fifo;
+}
 
-	ht_put(ht, "foo", "bar");
-	ht_put(ht, "toto", "titi");
+void fifo_init(fifo_t* fifo)
+{
+	fifo->fifo_first = NULL;
+	fifo->fifo_last = NULL;
+	fifo->size = 0;
+}
 
-	printf("Listing keys\n");
-	char* str[ht->e_num];
-	unsigned int i;
-	ht_list_keys(ht, str, ht->e_num);
-	for(i = 0; i < ht->e_num; i++)
-		printf("%s\n", str[i]);
-	
-	printf("Listing values\n");
-	ht_list_values(ht, (void**)str, ht->e_num);
-	for(i = 0; i < ht->e_num; i++)
-		printf("%s\n", str[i]);
+int fifo_push(fifo_t *fifo, void* elem)
+{
+	fifo_elem_t* new = malloc(sizeof(fifo_elem_t));
+	if(new == NULL)
+		return -1;
+	new->ptr = elem;
+	new->next = NULL;
 
-	hash_elem_it it = HT_ITERATOR(ht);
-	hash_elem_t* e = ht_iterate(&it);
-	while(e != NULL)
+	fifo_elem_t* last = fifo->fifo_last;
+	if(fifo->size == 0)
 	{
-		printf("%s = %s \n", e->key, (char*)e->data);
-		e = ht_iterate(&it);
+		fifo->fifo_first = new;
+		fifo->fifo_last = new;
 	}
-	
-	printf("Iterating keys\n");
-	hash_elem_it it2 = HT_ITERATOR(ht);
-	char* k = ht_iterate_keys(&it2);
-	while(k != NULL)
+	else
 	{
-		printf("%s\n", k);
-		k = ht_iterate_keys(&it2);
+		fifo->fifo_last = new;
+		last->next = new;
 	}
-
-	ht_destroy(ht);
+	fifo->size ++;
 	return 0;
 }
-#endif
+
+void* fifo_pop(fifo_t *fifo)
+{
+	fifo_elem_t* first = fifo->fifo_first;
+	if(fifo->size > 0)
+	{
+		void* ptr = first->ptr;
+		fifo->fifo_first = first->next;
+		if(fifo->fifo_last == first)
+			fifo->fifo_last = NULL;
+		free(first);
+		fifo->size --;
+		return ptr;
+	}
+	return NULL;
+}
+
+void fifo_destroy(fifo_t *fifo, int free_element)
+{
+	void* ptr;
+	while(fifo->size > 0)
+	{
+		ptr = fifo_pop(fifo);
+		if(free_element)
+			free(ptr);
+	}
+	free(fifo);
+}
+
+/*****************************************
+ *            LINKED LIST                *
+ *****************************************/
+
+linked_list_t* linked_list_create()
+{
+	linked_list_t* list = malloc(sizeof(linked_list_t));
+	if(list == NULL)
+		return NULL;
+	linked_list_init(list);
+	return list;
+}
+
+void linked_list_init(linked_list_t* list)
+{
+	list->first = NULL;
+	list->size = 0;
+}
+
+void linked_list_add(linked_list_t* list, void* ptr)
+{
+	linked_elem_t* elem = malloc(sizeof(linked_elem_t));
+	elem->ptr = ptr;
+	elem->next = list->first;
+	list->first = elem;
+	list->size ++;
+}
+
+void* linked_list_get(linked_list_t* list, int index)
+{
+	int i= 0;
+	if(index >= list->size)
+		return NULL;
+	linked_elem_t* elem = list->first;
+	while(i < list->size)
+	{
+		if(i == index)
+			return elem->ptr;
+		elem = elem->next;
+		i++;
+	}
+	return NULL;
+}
+
+void* linked_list_iterate(linked_list_t* list, void** iterator)
+{
+	linked_elem_t *elem;
+	if(list != NULL)
+		elem = list->first;
+	else
+		elem = (linked_elem_t*)*iterator;
+
+	if(elem != NULL)
+		*iterator = elem->next;
+
+	return (elem == NULL ? NULL : elem->ptr);
+}
+
+void* linked_list_remove(linked_list_t* list, int index)
+{
+	int i= 0;
+	if(index >= list->size)
+		return NULL;
+	linked_elem_t* elem = list->first;
+	linked_elem_t* prev = NULL;
+	while(i < list->size && elem != NULL)
+	{
+		if(i == index)
+		{
+			if(prev != NULL)
+				prev->next = elem->next;
+			if(list->first == elem)
+				list->first = elem->next;
+			void* ret = elem->ptr;
+			free(elem);
+			list->size --;
+			return ret;
+		}
+		prev = elem;
+		elem = elem->next;
+		i++;
+	}
+	return NULL;
+}
+
+void linked_list_clean(linked_list_t* list, int free_data)
+{
+	while(list->size > 0)
+		free_data ? free(linked_list_remove(list, 0)) : linked_list_remove(list, 0);
+}
+
+void linked_list_destroy(linked_list_t* list, int free_data)
+{
+	linked_list_clean(list, free_data);
+	free(list);
+}
+

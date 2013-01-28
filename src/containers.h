@@ -27,6 +27,12 @@
 #ifndef CONTAINERS_H_
 #define CONTAINERS_H_
 
+extern void* HT_ERROR; // Data pointing to HT_ERROR are returned in case of error
+
+/*****************************************
+ *            HASHTABLE                  *
+ *****************************************/
+
 //Hashtable element structure
 typedef struct hash_elem_t {
 	struct hash_elem_t* next; // Next element in case of a collision
@@ -50,8 +56,6 @@ typedef struct {
 
 // Inititalize hashtable iterator on hashtable 'ht'
 #define HT_ITERATOR(ht) {ht, 0, ht->table[0]}
-
-extern void* HT_ERROR; // Data pointing to HT_ERROR are returned in case of error
 
 /* 	Create a hashtable with capacity 'capacity'
 	and return a pointer to it*/
@@ -92,5 +96,63 @@ void ht_clear(hashtable_t* hasht, int free_data);
 /* 	Destroy the hash table, and free memory.
 	Data still stored are freed*/
 void ht_destroy(hashtable_t* hasht);
+
+
+/*****************************************
+ *            FIFO                       *
+ *****************************************/
+
+
+typedef struct fifo_elem_t{
+	struct fifo_elem_t* next;
+	void* ptr;
+}fifo_elem_t;
+
+typedef struct {
+	fifo_elem_t* fifo_first;
+	fifo_elem_t* fifo_last;
+	int size;
+
+}fifo_t;
+
+int fifo_push(fifo_t *fifo, void* elem);
+
+void* fifo_pop(fifo_t *fifo);
+
+fifo_t* fifo_create();
+
+void fifo_init(fifo_t* fifo);
+
+void fifo_destroy(fifo_t *fifo, int free_element);
+
+/*****************************************
+ *            LINKED LIST                *
+ *****************************************/
+
+typedef struct linked_elem_t {
+	struct linked_elem_t* next;
+	void* ptr;
+}linked_elem_t;
+
+typedef struct {
+	linked_elem_t* first;
+	int size;
+}linked_list_t;
+
+linked_list_t* linked_list_create();
+
+void linked_list_init(linked_list_t* list);
+
+void linked_list_add(linked_list_t* list, void* ptr);
+
+void* linked_list_get(linked_list_t* list, int index);
+
+void* linked_list_iterate(linked_list_t* list, void** iterator);
+
+void* linked_list_remove(linked_list_t* list, int index);
+
+void linked_list_clean(linked_list_t* list, int free_data);
+
+void linked_list_destroy(linked_list_t* list, int free_data);
 
 #endif /* CONTAINERS_H_ */

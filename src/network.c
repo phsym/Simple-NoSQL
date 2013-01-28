@@ -44,6 +44,7 @@
 #include "utils.h"
 #include "protocol.h"
 #include "crypto.h"
+#include "internal.h"
 
 #ifdef __MINGW32__
 	bool WSAinit = false; //Is Winsock Initialized
@@ -90,11 +91,7 @@ client_t* client_create(server_t* server, int sock, char* address, u_short port)
 		return NULL;
 	}
 
-	char* def_db = datastore_lookup(client->server->intern_db, "DEFAULTDB");
-	if(def_db != NULL)
-		client->datastore = ht_get(client->server->storages, def_db);
-	else
-		client->datastore = NULL;
+	client->datastore = intern_get_default_db(client->server->intern_db, client->server->storages);
 	return client;
 }
 
@@ -135,7 +132,7 @@ void server_unregister_client(server_t* server, client_t* client)
 bool client_authenticate(client_t* cli)
 {
 	_log(LVL_DEBUG, "Asking authentication\n");
-	char* auth_tok = datastore_lookup(cli->server->intern_db, "DB_ADM.USER.AUTH_HASH");
+	char* auth_tok = datastore_lookup(cli->server->intern_db, INT_USER_HASH);
 	if(auth_tok == NULL)
 	{
 		_log(LVL_WARNING, "Authentication is activated, but no password has been set. Skipping authentication.\n");

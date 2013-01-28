@@ -33,6 +33,7 @@
 #include "protocol.h"
 #include "utils.h"
 #include "crypto.h"
+#include "internal.h"
 
 unsigned int last_id = 0;
 
@@ -53,7 +54,7 @@ cmd_t commands[] = {
 	{"trace", 	OP_TRACE,	CF_ADMIN, 				1, 	&do_trace, 	"Trace command"},
 	{"time", 	OP_TIME, 	CF_NONE, 				0, 	&do_time, 	"Get server time"},
 	{"ping", 	OP_PING, 	CF_NONE, 				0, 	&do_ping, 	"Ping server"},
-	{"client", 	OP_CLIENT, 	CF_ADMIN, 				0, 	&do_client, 	"List clients"},
+	{"client", 	OP_CLIENT, 	CF_ADMIN, 				0, 	&do_client, "List clients"},
 	{"flush", 	OP_FLUSH, 	CF_WRITE|CF_NEED_DB, 	0, 	&do_flush, 	"Flush database"},
 	{"db",		OP_DB,		CF_NONE,				1,	&do_db,		"DB selection"},
 	{"passwd",	OP_PASSWD,	CF_NONE,				2,	&do_passwd,	"Change user password"}
@@ -385,7 +386,7 @@ void do_passwd(request_t* req)
 	hash_algo_t* algo = crypto_get_hash_algo("sha256");
 	char digest_str[algo->digest_str_len];
 	crypto_hash_str(algo, cat, strlen(cat), digest_str);
-	datastore_set(req->client->server->intern_db, "DB_ADM.USER.AUTH_HASH", digest_str);
+	datastore_set(req->client->server->intern_db, INT_USER_HASH, digest_str);
 	req->reply.rc = 0;
 	_log(LVL_INFO, "Password changed\n");
 }
@@ -414,68 +415,10 @@ void do_db(request_t* req)
 			req->reply.rc = -1;
 			return;
 		}
-		char* dbname = req->argv[1];
-		datastore_t * store = ht_get(req->client->server->storages, dbname);
-		if(store != NULL)
-		{
-			req->reply.rc = -1;
-			req->reply.message = "DB already exists";
-		}
-		else
-		{
-			store = datastore_create(dbname, strtoul(req->argv[2], NULL, 10), strtoul(req->argv[3], NULL, 10));
-			if(store != NULL)
-			{
-				_log(LVL_INFO, "Creating db %s\n", dbname);
-				char* db_names = datastore_lookup(req->client->server->intern_db, "DATABASES");
-				if(db_names == NULL)
-				{
-					datastore_put(req->client->server->intern_db, "DATABASES", "");
-					db_names = datastore_lookup(req->client->server->intern_db, "DATABASES");
-				}
-				strcat(db_names, " ");
-				strcat(db_names, dbname);
-
-				char tmp_k[2048];
-
-				tmp_k[0] = '\0';
-				strcat(tmp_k, "DB.");
-				strcat(tmp_k, dbname);
-				strcat(tmp_k, ".STORAGE_SIZE");
-				datastore_put(req->client->server->intern_db, tmp_k, req->argv[2]);
-
-				tmp_k[0] = '\0';
-				strcat(tmp_k, "DB.");
-				strcat(tmp_k, dbname);
-				strcat(tmp_k, ".INDEX_SIZE");
-				datastore_put(req->client->server->intern_db, tmp_k, req->argv[3]);
-
-				ht_put(req->client->server->storages, dbname, store);
-				req->reply.rc = 0;
-			}
-			else
-			{
-				req->reply.rc = -1;
-			}
-		}
+		req->reply.rc = intern_create_new_db(req->client->server->intern_db, req->client->server->storages, req->argv[1], req->argv[2], req->argv[3]);
 	}
 	else if(!strcmp(req->argv[0], "default"))
-	{
-		char* dbname = req->argv[1];
-		datastore_t * store = ht_get(req->client->server->storages, dbname);
-		if(store != NULL)
-		{
-			req->client->datastore = store;
-			datastore_put(req->client->server->intern_db, "DEFAULTDB", dbname);
-			req->reply.rc = 0;
-			_log(LVL_INFO, "Default databased changed to %s\n", dbname);
-		}
-		else
-		{
-			req->reply.rc = -1;
-			req->reply.message = "DB not found";
-		}
-	}
+		req->reply.rc = intern_set_default_db(req->client->server->intern_db, req->client->server->storages, req->argv[1]);
 	else
 		req->reply.rc = -1;
 }

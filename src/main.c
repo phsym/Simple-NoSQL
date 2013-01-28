@@ -36,6 +36,7 @@
 #include "config.h"
 #include "crypto.h"
 #include "containers.h"
+#include "internal.h"
 
 typedef struct {
 	bool running;
@@ -122,38 +123,8 @@ int main(int argc, char* argv[])
 	app.storages = ht_create(256);
 	//Load or create admin DB
 	app.intern_db = datastore_create("internal_db", 1024*1024, 1024*1024);
-
-	char* tmp = datastore_lookup(app.intern_db, "DATABASES");
-	if(tmp != NULL)
-	{
-		char dbs[strlen(tmp) + 1];
-		strcpy(dbs, tmp);
-		char* str;
-		char* db = strtok_r(dbs, " ", &str);
-		while(db != NULL)
-		{
-			_log(LVL_INFO, "Loading DB %s\n", db);
-			//Load storage and index size in internal db, and use them here
-			char tmp_k[2048];
-
-			tmp_k[0] = '\0';
-			strcat(tmp_k, "DB.");
-			strcat(tmp_k, db);
-			strcat(tmp_k, ".STORAGE_SIZE");
-			uint64_t stor_len = strtoul(datastore_lookup(app.intern_db, tmp_k), NULL, 10);
-
-			tmp_k[0] = '\0';
-			strcat(tmp_k, "DB.");
-			strcat(tmp_k, db);
-			strcat(tmp_k, ".INDEX_SIZE");
-			uint64_t index_len = strtoul(datastore_lookup(app.intern_db, tmp_k), NULL, 10);
-
-			datastore_t* store = datastore_create(db, stor_len, index_len);
-			if(store != NULL)
-				ht_put(app.storages, store->name, store);
-			db = strtok_r(NULL, " ", &str);
-		}
-	}
+	//Load existing tables
+	intern_load_storages(app.intern_db, app.storages);
 
 	_log(LVL_INFO, "Initializing server ...\n");
 	app.server = server_create(app.config->bind_address, app.config->bind_port, app.config->auth, app.intern_db, app.storages, app.config->max_clients);
