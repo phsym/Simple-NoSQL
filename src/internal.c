@@ -29,6 +29,7 @@
 
 #include "internal.h"
 #include "utils.h"
+#include "crypto.h"
 
 uint64_t intern_get_storage_size(datastore_t* int_db, char* dbname)
 {
@@ -84,6 +85,27 @@ datastore_t* intern_get_default_db(datastore_t* int_db, hashtable_t* table)
 		return ht_get(table, def_db);
 	else
 		return NULL;
+}
+
+int intern_set_password(datastore_t* int_db, char* username, char* password)
+{
+	char cat[128];
+	CAT4(cat, username, PASSWD_SALT, password);
+
+	hash_algo_t* algo = crypto_get_hash_algo("sha256");
+	char digest_str[algo->digest_str_len];
+	crypto_hash_str(algo, cat, strlen(cat), digest_str);
+	if(datastore_set(int_db, INT_USER_HASH, digest_str) < 0)
+	{
+		_log(LVL_ERROR, "Could not change password\n");
+		return -1;
+	}
+	else
+	{
+		_log(LVL_INFO, "Password changed\n");
+		return 0;
+	}
+
 }
 
 void intern_load_storages(datastore_t* int_db, hashtable_t* table)

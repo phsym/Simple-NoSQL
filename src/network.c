@@ -140,7 +140,7 @@ bool client_authenticate(client_t* cli)
 	}
 	else
 	{
-		_log(LVL_DEBUG, "Stored hash : %s\n", auth_tok);
+		_log(LVL_TRACE, "Stored hash : %s\n", auth_tok);
 		char* r = "Authentication needed\r\n";
 		_log(LVL_DEBUG, "%s", r);
 		send(cli->sock, r, strlen(r), 0);
@@ -148,7 +148,6 @@ bool client_authenticate(client_t* cli)
 		char username[32];
 		char pass[32];
 		char cat[128];
-		cat[0] = '\0';
 		
 		if(read_line(cli->sock, username, 32, false) <= 0)
 			return false;
@@ -158,12 +157,13 @@ bool client_authenticate(client_t* cli)
 		strcat(cat, username);
 		strcat(cat, ":");
 		strcat(cat, pass);
+		CAT4(cat, username, PASSWD_SALT, pass);
 		
 		hash_algo_t* algo = crypto_get_hash_algo("sha256");
 		char digest_str[algo->digest_str_len];
 		crypto_hash_str(algo, cat, strlen(cat), digest_str);
 		
-		_log(LVL_DEBUG, "Auth token : %s\n", digest_str);
+		_log(LVL_TRACE, "Auth token : %s\n", digest_str);
 		
 		if(!strcmp(digest_str, auth_tok))
 		{

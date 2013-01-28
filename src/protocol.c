@@ -376,19 +376,7 @@ void do_flush(request_t* req)
 
 void do_passwd(request_t* req)
 {
-	char cat[128];
-	cat[0] = '\0';
-
-	strcat(cat, req->argv[0]);
-	strcat(cat, ":");
-	strcat(cat, req->argv[1]);
-
-	hash_algo_t* algo = crypto_get_hash_algo("sha256");
-	char digest_str[algo->digest_str_len];
-	crypto_hash_str(algo, cat, strlen(cat), digest_str);
-	datastore_set(req->client->server->intern_db, INT_USER_HASH, digest_str);
-	req->reply.rc = 0;
-	_log(LVL_INFO, "Password changed\n");
+	req->reply.rc = intern_set_password(req->client->server->intern_db, req->argv[0], req->argv[1]);
 }
 
 void do_db(request_t* req)

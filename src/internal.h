@@ -32,6 +32,8 @@
 #include "datastorage.h"
 #include "containers.h"
 
+#define PASSWD_SALT ":SIMPLE_NOSQL:"
+
 #define INT_DB_LIST "DATABASES"
 #define INT_DEAFUALT_DB "DEFAULTDB"
 #define INT_USER_HASH "DB_ADM.USER.AUTH_HASH"
@@ -53,6 +55,8 @@ int intern_set_storage_index_len(datastore_t* int_db, char* dbname, char* len);
 
 int intern_set_default_db(datastore_t* int_db, hashtable_t* table, char* dbname);
 datastore_t* intern_get_default_db(datastore_t* int_db, hashtable_t* table);
+
+int intern_set_password(datastore_t* int_db, char* username, char* password);
 
 void intern_load_storages(datastore_t* int_db, hashtable_t* table);
 int intern_create_new_db(datastore_t* int_db, hashtable_t* table, char* dbname, char* store_size, char* index_len);

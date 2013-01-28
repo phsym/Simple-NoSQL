@@ -5,7 +5,7 @@ bin/crypto.o: crypto.c crypto.h containers.h md5.h sha1.h sha256.h utils.h
 bin/datastorage.o: datastorage.c datastorage.h concurrency.h table.h \
  containers.h utils.h
 bin/internal.o: internal.c internal.h datastorage.h concurrency.h table.h \
- containers.h utils.h
+ containers.h utils.h crypto.h
 bin/main.o: main.c network.h concurrency.h datastorage.h table.h containers.h \
  utils.h protocol.h config.h crypto.h internal.h
 bin/md5.o: md5.c md5.h
