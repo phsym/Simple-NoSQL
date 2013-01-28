@@ -29,8 +29,6 @@
 
 #include<stdint.h>
 
-//#define _FILE_OFFSET_BITS 64
-
 #define TABLE_MAGIC 0x6F
 
 #define FLAG_NONE 0x00
