@@ -123,9 +123,11 @@ int main(int argc, char* argv[])
 	//Load or create admin DB
 	app.intern_db = datastore_create("internal_db", 1024*1024, 1024*1024);
 
-	char* dbs = datastore_lookup(app.intern_db, "DATABASES");
-	if(dbs != NULL)
+	char* tmp = datastore_lookup(app.intern_db, "DATABASES");
+	if(tmp != NULL)
 	{
+		char dbs[strlen(tmp) + 1];
+		strcpy(dbs, tmp);
 		char* str;
 		char* db = strtok_r(dbs, " ", &str);
 		while(db != NULL)

@@ -40,7 +40,8 @@ datastore_t* datastore_create(char* name, uint64_t storage_size, uint64_t index_
 	strcat(storagefile, name);
 	strcat(storagefile, ".dat");
 	datastore_t* store = malloc(sizeof(datastore_t));
-	store->name = name;
+	store->name = malloc(strlen(name) + 1);
+	strcpy(store->name, name);
 	store->index_table = ht_create(index_length);
 	store->data_table = table_map_load(storagefile);
 	if(store->data_table == NULL)
@@ -222,5 +223,6 @@ void datastore_destroy(datastore_t* datastore)
 	ht_destroy(datastore->index_table);
 	destroy_map_table(datastore->data_table);
 	rw_lock_destroy(&datastore->lock);
+	free(datastore->name);
 	free(datastore);
 }

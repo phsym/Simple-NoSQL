@@ -142,7 +142,7 @@ int decode_request(client_t* client, request_t* request, char* req, int len)
 	i = 0;
 	while(op[i] != '\0')
 	{
-		op[i] = tolower(op[i]);
+		op[i] = (char)tolower((int)op[i]);
 		i++;
 	}
 	
@@ -265,7 +265,7 @@ void do_digest(request_t* req)
 	int i = 0;
 	while(req->argv[0][i] != '\0')
 	{
-		req->argv[0][i] = tolower(req->argv[0][i]);
+		req->argv[0][i] = tolower((int)req->argv[0][i]);
 		i++;
 	}
 	hash_algo_t* algo = crypto_get_hash_algo(req->argv[0]);
@@ -313,7 +313,7 @@ void do_trace(request_t* req)
 	int i = 0;
 	while(req->argv[0][i] != '\0')
 	{
-		req->argv[0][i] = toupper(req->argv[0][i]);
+		req->argv[0][i] = toupper((int)req->argv[0][i]);
 		i++;
 	}
 	for(i = 0; i < MAX_DEBUG_LEVEL; i++)
@@ -360,7 +360,7 @@ void do_client(request_t* req)
 			if(cli == req->client)
 				its_me = "*";
 			datastore_t* db = cli->datastore;
-			sprintf(buff, " %s %d : %s:%d db:%s\r\n", its_me, i, cli->address, cli->port, (db ? db->name : "none"));
+			sprintf(buff, " %s %d : %s:%d db:%s\r\n", its_me, i, cli->address, cli->port, (db != NULL ? db->name : "none"));
 			strcat(req->reply.message, buff);
 		}
 	}
@@ -423,7 +423,7 @@ void do_db(request_t* req)
 		}
 		else
 		{
-			store = datastore_create(req->argv[1], strtoul(req->argv[2], NULL, 10), strtoul(req->argv[3], NULL, 10));
+			store = datastore_create(dbname, strtoul(req->argv[2], NULL, 10), strtoul(req->argv[3], NULL, 10));
 			if(store != NULL)
 			{
 				_log(LVL_INFO, "Creating db %s\n", dbname);

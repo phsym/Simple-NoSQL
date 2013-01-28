@@ -1,6 +1,6 @@
 DEBUG=no
 export CC=gcc
-export CFLAGS=-W -Wall -D_FILE_OFFSET_BITS=64
+export CFLAGS=-W -Wall
 
 ifeq ($(DEBUG), yes)
 	CFLAGS:=$(CFLAGS) -g -O0
@@ -14,6 +14,7 @@ export UNAME=$(shell uname)
 ifneq (, $(findstring Linux, $(UNAME)))
 export EXEC=NoSQLDB
 export LDFLAGS=-lpthread
+CFLAGS:=$(CFLAGS) -D_FILE_OFFSET_BITS=64
 else ifneq (, $(findstring CYGWIN, $(UNAME)))
 export EXEC=NoSQLDB.exe
 export LDFLAGS=-lpthread
