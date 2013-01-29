@@ -43,14 +43,13 @@
 #include "network.h"
 #include "utils.h"
 #include "protocol.h"
-#include "internal.h"
 
 #ifdef __MINGW32__
 	bool WSAinit = false; //Is Winsock Initialized
 #endif
 
 
-server_t* server_create(unsigned int bind_addr, short port, bool auth, datastore_t* intern_db, hashtable_t* storages, int max_client)
+server_t* server_create(unsigned int bind_addr, short port, bool auth, dbs_t* dbs, int max_client)
 {
 	server_t* server = malloc(sizeof(server_t));
 	if(server == NULL)
@@ -58,8 +57,7 @@ server_t* server_create(unsigned int bind_addr, short port, bool auth, datastore
 	server->running = false;
 	server->socket = -1;
 	server->port = port;
-	server->storages = storages;
-	server->intern_db = intern_db;
+	server->dbs = dbs;
 	server->bind_addr = bind_addr;
 	server->auth = auth;
 	server->max_client = max_client;
@@ -90,7 +88,7 @@ client_t* client_create(server_t* server, int sock, char* address, u_short port)
 		return NULL;
 	}
 
-	client->datastore = intern_get_default_db(client->server->intern_db, client->server->storages);
+	client->datastore = intern_get_default_db(client->server->dbs);
 	client->username = NULL;
 	return client;
 }
@@ -143,7 +141,7 @@ bool client_authenticate(client_t* cli)
 	if(read_line(cli->sock, pass, 32, false) <= 0)
 		return false;
 
-	if(intern_verify_credentials(cli->server->intern_db, username, pass))
+	if(intern_verify_credentials(cli->server->dbs, username, pass))
 	{
 		r = "Authentication success\r\n";
 		_log(LVL_DEBUG, r);

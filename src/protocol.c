@@ -379,7 +379,7 @@ void do_flush(request_t* req)
 void do_passwd(request_t* req)
 {
 	if(req->client->username != NULL)
-		req->reply.rc = intern_set_password(req->client->server->intern_db, req->client->username, req->argv[0]);
+		req->reply.rc = intern_set_password(req->client->server->dbs, req->client->username, req->argv[0]);
 	else
 		req->reply.rc = -1;
 }
@@ -389,7 +389,7 @@ void do_db(request_t* req)
 	if(!strcmp(req->argv[0], "use"))
 	{
 		char* dbname = req->argv[1];
-		datastore_t * store = ht_get(req->client->server->storages, dbname);
+		datastore_t * store = ht_get(req->client->server->dbs->storages, dbname);
 		if(store != NULL)
 		{
 			req->client->datastore = store;
@@ -402,9 +402,9 @@ void do_db(request_t* req)
 		}
 	}
 	else if(!strcmp(req->argv[0], "create") && (req->argc >= 4))
-		req->reply.rc = intern_create_new_db(req->client->server->intern_db, req->client->server->storages, req->argv[1], req->argv[2], req->argv[3]);
+		req->reply.rc = intern_create_new_db(req->client->server->dbs, req->argv[1], req->argv[2], req->argv[3]);
 	else if(!strcmp(req->argv[0], "default"))
-		req->reply.rc = intern_set_default_db(req->client->server->intern_db, req->client->server->storages, req->argv[1]);
+		req->reply.rc = intern_set_default_db(req->client->server->dbs, req->argv[1]);
 	else
 		req->reply.rc = -1;
 }
@@ -412,7 +412,7 @@ void do_db(request_t* req)
 void do_user(request_t* req)
 {
 	if(!strcmp(req->argv[0], "create") && (req->argc >= 3))
-		req->reply.rc = intern_create_user(req->client->server->intern_db, req->argv[1], req->argv[2]);
+		req->reply.rc = intern_create_user(req->client->server->dbs, req->argv[1], req->argv[2]);
 	else
 		req->reply.rc = -1;
 }

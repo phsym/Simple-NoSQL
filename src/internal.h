@@ -50,22 +50,26 @@
 							strcat(out, b); \
 							strcat(out, c);}
 
-uint64_t intern_get_storage_size(datastore_t* int_db, char* dbname);
-uint64_t intern_get_storage_index_len(datastore_t* int_db, char* dbname);
+typedef struct {
+	datastore_t* intern_db;
+	hashtable_t* storages;
+} dbs_t;
 
-int intern_set_storage_size(datastore_t* int_db, char* dbname, char* size);
-int intern_set_storage_index_len(datastore_t* int_db, char* dbname, char* len);
+uint64_t intern_get_storage_size(dbs_t* dbs, char* dbname);
+uint64_t intern_get_storage_index_len(dbs_t* dbs, char* dbname);
 
-int intern_set_default_db(datastore_t* int_db, hashtable_t* table, char* dbname);
-datastore_t* intern_get_default_db(datastore_t* int_db, hashtable_t* table);
+int intern_set_storage_size(dbs_t* dbs, char* dbname, char* size);
+int intern_set_storage_index_len(dbs_t* dbs, char* dbname, char* len);
 
-void intern_load_storages(datastore_t* int_db, hashtable_t* table);
-int intern_create_new_db(datastore_t* int_db, hashtable_t* table, char* dbname, char* store_size, char* index_len);
+int intern_set_default_db(dbs_t* dbs, char* dbname);
+datastore_t* intern_get_default_db(dbs_t* dbs);
 
-int intern_create_user(datastore_t* int_db, char* username, char* password);
-int intern_set_password(datastore_t* int_db, char* username, char* password);
-char* intern_get_password(datastore_t* int_db, char* username);
-bool intern_verify_credentials(datastore_t* int_db, char* username, char* password);
+void intern_load_storages(dbs_t* dbs);
+int intern_create_new_db(dbs_t* dbs, char* dbname, char* store_size, char* index_len);
 
+int intern_create_user(dbs_t* dbs, char* username, char* password);
+int intern_set_password(dbs_t* dbs, char* username, char* password);
+char* intern_get_password(dbs_t* dbs, char* username);
+bool intern_verify_credentials(dbs_t* dbs, char* username, char* password);
 
 #endif /* INTERNAL_H_ */

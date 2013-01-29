@@ -41,8 +41,7 @@
 typedef struct {
 	bool running;
 	server_t* server;
-	hashtable_t* storages;
-	datastore_t* intern_db;
+	dbs_t dbs;
 	config_t* config;
 }Application;
 
@@ -120,14 +119,14 @@ int main(int argc, char* argv[])
 	protocol_init();
 
 	_log(LVL_INFO, "Initializing data storage ...\n");
-	app.storages = ht_create(256);
+	app.dbs.storages = ht_create(256);
 	//Load or create admin DB
-	app.intern_db = datastore_create("internal_db", 1024*1024, 1024*1024);
+	app.dbs.intern_db = datastore_create("internal_db", 1024*1024, 1024*1024);
 	//Load existing tables
-	intern_load_storages(app.intern_db, app.storages);
+	intern_load_storages(&app.dbs);
 
 	_log(LVL_INFO, "Initializing server ...\n");
-	app.server = server_create(app.config->bind_address, app.config->bind_port, app.config->auth, app.intern_db, app.storages, app.config->max_clients);
+	app.server = server_create(app.config->bind_address, app.config->bind_port, app.config->auth, &app.dbs, app.config->max_clients);
 
 	_log(LVL_INFO, "Starting network ...\n");
 	server_start(app.server);
@@ -142,12 +141,12 @@ int main(int argc, char* argv[])
 	crypto_cleanup();
 
 	_log(LVL_DEBUG, "Destroy datastores\n");
-	datastore_destroy(app.intern_db);
-	hash_elem_it it = HT_ITERATOR(app.storages);
+	datastore_destroy(app.dbs.intern_db);
+	hash_elem_it it = HT_ITERATOR(app.dbs.storages);
 	char* e;
 	while((e = ht_iterate_keys(&it)) != NULL)
-		datastore_destroy(ht_remove(app.storages, e));
-	ht_destroy(app.storages);
+		datastore_destroy(ht_remove(app.dbs.storages, e));
+	ht_destroy(app.dbs.storages);
 
 	free(app.config);
 

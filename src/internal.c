@@ -30,43 +30,43 @@
 #include "internal.h"
 #include "crypto.h"
 
-uint64_t intern_get_storage_size(datastore_t* int_db, char* dbname)
+uint64_t intern_get_storage_size(dbs_t* dbs, char* dbname)
 {
 	char tmp_k[2048];
 	CAT4(tmp_k, PREFIX_DB, dbname, SUFFIX_DB_STORAGE_SIZE);
-	char* size = datastore_lookup(int_db, tmp_k);
+	char* size = datastore_lookup(dbs->intern_db, tmp_k);
 	return (size != NULL ? strtoul(size, NULL, 10) : 0);
 
 }
 
-uint64_t intern_get_storage_index_len(datastore_t* int_db, char* dbname)
+uint64_t intern_get_storage_index_len(dbs_t* dbs, char* dbname)
 {
 	char tmp_k[2048];
 	CAT4(tmp_k, PREFIX_DB, dbname, SUFFIX_DB_INDEX_SIZE);
-	char* len = datastore_lookup(int_db, tmp_k);
+	char* len = datastore_lookup(dbs->intern_db, tmp_k);
 	return (len != NULL ? strtoul(len, NULL, 10) : 0);
 }
 
-int intern_set_storage_size(datastore_t* int_db, char* dbname, char* size)
+int intern_set_storage_size(dbs_t* dbs, char* dbname, char* size)
 {
 	char tmp_k[2048];
 	CAT4(tmp_k, PREFIX_DB, dbname, SUFFIX_DB_STORAGE_SIZE);
-	return datastore_put(int_db, tmp_k, size);
+	return datastore_put(dbs->intern_db, tmp_k, size);
 }
 
-int intern_set_storage_index_len(datastore_t* int_db, char* dbname, char* len)
+int intern_set_storage_index_len(dbs_t* dbs, char* dbname, char* len)
 {
 	char tmp_k[2048];
 	CAT4(tmp_k, PREFIX_DB, dbname, SUFFIX_DB_INDEX_SIZE);
-	return datastore_put(int_db, tmp_k, len);
+	return datastore_put(dbs->intern_db, tmp_k, len);
 }
 
-int intern_set_default_db(datastore_t* int_db, hashtable_t* table, char* dbname)
+int intern_set_default_db(dbs_t* dbs, char* dbname)
 {
-	datastore_t * store = ht_get(table, dbname);
+	datastore_t * store = ht_get(dbs->storages, dbname);
 	if(store != NULL)
 	{
-		datastore_put(int_db, INT_DEFAULT_DB, dbname);
+		datastore_put(dbs->intern_db, INT_DEFAULT_DB, dbname);
 		_log(LVL_INFO, "Default databased changed to %s\n", dbname);
 		return 0;
 	}
@@ -77,42 +77,42 @@ int intern_set_default_db(datastore_t* int_db, hashtable_t* table, char* dbname)
 	}
 }
 
-datastore_t* intern_get_default_db(datastore_t* int_db, hashtable_t* table)
+datastore_t* intern_get_default_db(dbs_t* dbs)
 {
-	char* def_db = datastore_lookup(int_db, INT_DEFAULT_DB);
+	char* def_db = datastore_lookup(dbs->intern_db, INT_DEFAULT_DB);
 	if(def_db != NULL)
-		return ht_get(table, def_db);
+		return ht_get(dbs->storages, def_db);
 	else
 		return NULL;
 }
 
-void intern_load_storages(datastore_t* int_db, hashtable_t* table)
+void intern_load_storages(dbs_t* dbs)
 {
-	char* tmp = datastore_lookup(int_db, INT_DB_LIST);
+	char* tmp = datastore_lookup(dbs->intern_db, INT_DB_LIST);
 	if(tmp != NULL)
 	{
-		char dbs[strlen(tmp) + 1];
-		strcpy(dbs, tmp);
+		char db_l[strlen(tmp) + 1];
+		strcpy(db_l, tmp);
 		char* str;
-		char* db = strtok_r(dbs, " ", &str);
+		char* db = strtok_r(db_l, " ", &str);
 		while(db != NULL)
 		{
 			//Load storage and index size from internal db
 			_log(LVL_INFO, "Loading DB %s\n", db);
-			uint64_t stor_len = intern_get_storage_size(int_db, db);
-			uint64_t index_len = intern_get_storage_index_len(int_db, db);
+			uint64_t stor_len = intern_get_storage_size(dbs, db);
+			uint64_t index_len = intern_get_storage_index_len(dbs, db);
 
 			datastore_t* store = datastore_create(db, stor_len, index_len);
 			if(store != NULL)
-				ht_put(table, store->name, store);
+				ht_put(dbs->storages, store->name, store);
 			db = strtok_r(NULL, " ", &str);
 		}
 	}
 }
 
-int intern_create_new_db(datastore_t* int_db, hashtable_t* table, char* dbname, char* store_size, char* index_len)
+int intern_create_new_db(dbs_t* dbs, char* dbname, char* store_size, char* index_len)
 {
-	datastore_t * store = ht_get(table, dbname);
+	datastore_t * store = ht_get(dbs->storages, dbname);
 	if(store != NULL)
 	{
 		_log(LVL_ERROR, "Could not create DB %s because it already exists\n", dbname);
@@ -124,18 +124,18 @@ int intern_create_new_db(datastore_t* int_db, hashtable_t* table, char* dbname, 
 		if(store != NULL)
 		{
 			_log(LVL_INFO, "Creating db %s\n", dbname);
-			char* db_names = datastore_lookup(int_db, INT_DB_LIST);
+			char* db_names = datastore_lookup(dbs->intern_db, INT_DB_LIST);
 			if(db_names == NULL)
 			{
-				datastore_put(int_db, INT_DB_LIST, "");
-				db_names = datastore_lookup(int_db, INT_DB_LIST);
+				datastore_put(dbs->intern_db, INT_DB_LIST, "");
+				db_names = datastore_lookup(dbs->intern_db, INT_DB_LIST);
 			}
 			strcat(db_names, " ");
 			strcat(db_names, dbname);
 
-			intern_set_storage_size(int_db, dbname, store_size);
-			intern_set_storage_index_len(int_db, dbname, index_len);
-			ht_put(table, dbname, store);
+			intern_set_storage_size(dbs, dbname, store_size);
+			intern_set_storage_index_len(dbs, dbname, index_len);
+			ht_put(dbs->storages, dbname, store);
 			return 0;
 		}
 		else
@@ -146,14 +146,14 @@ int intern_create_new_db(datastore_t* int_db, hashtable_t* table, char* dbname, 
 	}
 }
 
-int intern_create_user(datastore_t* int_db, char* username, char* password)
+int intern_create_user(dbs_t* dbs, char* username, char* password)
 {
-	if(intern_get_password(int_db, username) != NULL)
+	if(intern_get_password(dbs, username) != NULL)
 		return -1;
-	return intern_set_password(int_db, username, password);
+	return intern_set_password(dbs, username, password);
 }
 
-int intern_set_password(datastore_t* int_db, char* username, char* password)
+int intern_set_password(dbs_t* dbs, char* username, char* password)
 {
 	char cat[2048];
 	CAT4(cat, username, PASSWD_SALT, password);
@@ -162,29 +162,29 @@ int intern_set_password(datastore_t* int_db, char* username, char* password)
 	char digest_str[algo->digest_str_len];
 	crypto_hash_str(algo, cat, strlen(cat), digest_str);
 	CAT4(cat, PREFIX_USER, username, SUFFIX_USER_PASSWD);
-	if(datastore_set(int_db, cat, digest_str) < 0)
+	if(datastore_set(dbs->intern_db, cat, digest_str) < 0)
 	{
 		_log(LVL_ERROR, "Could not change password\n");
 		return -1;
 	}
 	else
 	{
-		_log(LVL_INFO, "Password changed\n");
+		_log(LVL_INFO, "Password changed for use %s\n", username);
 		return 0;
 	}
 }
 
-char* intern_get_password(datastore_t* int_db, char* username)
+char* intern_get_password(dbs_t* dbs, char* username)
 {
 	char cat[2048];
 	CAT4(cat, PREFIX_USER, username, SUFFIX_USER_PASSWD);
-	return datastore_lookup(int_db, cat);
+	return datastore_lookup(dbs->intern_db, cat);
 }
 
-bool intern_verify_credentials(datastore_t* int_db, char* username, char* password)
+bool intern_verify_credentials(dbs_t* dbs, char* username, char* password)
 {
 	char cat[128];
-	char* auth_tok = intern_get_password(int_db, username);
+	char* auth_tok = intern_get_password(dbs, username);
 	if(auth_tok == NULL)
 		return false;
 	CAT4(cat, username, PASSWD_SALT, password);
