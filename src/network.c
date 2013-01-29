@@ -154,9 +154,6 @@ bool client_authenticate(client_t* cli)
 		if(read_line(cli->sock, pass, 32, false) <= 0)
 			return false;
 		
-		strcat(cat, username);
-		strcat(cat, ":");
-		strcat(cat, pass);
 		CAT4(cat, username, PASSWD_SALT, pass);
 		
 		hash_algo_t* algo = crypto_get_hash_algo("sha256");
