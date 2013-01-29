@@ -59,6 +59,7 @@ typedef struct client_t{
 	datastore_t* datastore;
 	int sock;
 	bool trans_open;
+	char* username;
 }client_t;
 
 server_t* server_create(unsigned int bind_addr, short port, bool auth, datastore_t* intern_db, hashtable_t* storages, int max_client);
@@ -66,6 +67,8 @@ server_t* server_create(unsigned int bind_addr, short port, bool auth, datastore
 client_t* client_create(server_t* server, int sock, char* address, u_short port);
 
 void server_stop(server_t* server);
+
+void client_destroy(client_t* client);
 
 void server_destroy(server_t* server);
 

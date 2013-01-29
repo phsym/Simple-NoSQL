@@ -31,16 +31,19 @@
 
 #include "datastorage.h"
 #include "containers.h"
+#include "utils.h"
 
 #define PASSWD_SALT ":SIMPLE_NOSQL:"
 
 #define INT_DB_LIST "DATABASES"
-#define INT_DEAFUALT_DB "DEFAULTDB"
-#define INT_USER_HASH "DB_ADM.USER.AUTH_HASH"
+#define INT_DEFAULT_DB "DEFAULTDB"
 
 #define PREFIX_DB "DB."
 #define SUFFIX_DB_STORAGE_SIZE ".STORAGE_SIZE"
 #define SUFFIX_DB_INDEX_SIZE ".INDEX_SIZE"
+
+#define PREFIX_USER "USER."
+#define SUFFIX_USER_PASSWD ".PASSWD"
 
 #define CAT4(out, a, b, c)	{out[0] = '\0'; \
 							strcat(out, a); \
@@ -56,10 +59,13 @@ int intern_set_storage_index_len(datastore_t* int_db, char* dbname, char* len);
 int intern_set_default_db(datastore_t* int_db, hashtable_t* table, char* dbname);
 datastore_t* intern_get_default_db(datastore_t* int_db, hashtable_t* table);
 
-int intern_set_password(datastore_t* int_db, char* username, char* password);
-
 void intern_load_storages(datastore_t* int_db, hashtable_t* table);
 int intern_create_new_db(datastore_t* int_db, hashtable_t* table, char* dbname, char* store_size, char* index_len);
+
+int intern_create_user(datastore_t* int_db, char* username, char* password);
+int intern_set_password(datastore_t* int_db, char* username, char* password);
+char* intern_get_password(datastore_t* int_db, char* username);
+bool intern_verify_credentials(datastore_t* int_db, char* username, char* password);
 
 
 #endif /* INTERNAL_H_ */

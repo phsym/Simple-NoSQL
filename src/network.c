@@ -43,7 +43,6 @@
 #include "network.h"
 #include "utils.h"
 #include "protocol.h"
-#include "crypto.h"
 #include "internal.h"
 
 #ifdef __MINGW32__
@@ -92,6 +91,7 @@ client_t* client_create(server_t* server, int sock, char* address, u_short port)
 	}
 
 	client->datastore = intern_get_default_db(client->server->intern_db, client->server->storages);
+	client->username = NULL;
 	return client;
 }
 
@@ -131,51 +131,33 @@ void server_unregister_client(server_t* server, client_t* client)
 
 bool client_authenticate(client_t* cli)
 {
-	_log(LVL_DEBUG, "Asking authentication\n");
-	char* auth_tok = datastore_lookup(cli->server->intern_db, INT_USER_HASH);
-	if(auth_tok == NULL)
+	char* r = "Authentication needed\r\n";
+	_log(LVL_DEBUG, "%s", r);
+	send(cli->sock, r, strlen(r), 0);
+	//Authenticate user
+	char username[32];
+	char pass[32];
+
+	if(read_line(cli->sock, username, 32, false) <= 0)
+		return false;
+	if(read_line(cli->sock, pass, 32, false) <= 0)
+		return false;
+
+	if(intern_verify_credentials(cli->server->intern_db, username, pass))
 	{
-		_log(LVL_WARNING, "Authentication is activated, but no password has been set. Skipping authentication.\n");
+		r = "Authentication success\r\n";
+		_log(LVL_DEBUG, r);
+		cli->username = malloc(strlen(username) + 1);
+		strcpy(cli->username, username);
+		send(cli->sock, r, strlen(r), 0);
 		return true;
 	}
 	else
 	{
-		_log(LVL_TRACE, "Stored hash : %s\n", auth_tok);
-		char* r = "Authentication needed\r\n";
-		_log(LVL_DEBUG, "%s", r);
+		r = "Authentication failed\r\n";
+		_log(LVL_ERROR, r);
 		send(cli->sock, r, strlen(r), 0);
-		//Authenticate user
-		char username[32];
-		char pass[32];
-		char cat[128];
-		
-		if(read_line(cli->sock, username, 32, false) <= 0)
-			return false;
-		if(read_line(cli->sock, pass, 32, false) <= 0)
-			return false;
-		
-		CAT4(cat, username, PASSWD_SALT, pass);
-		
-		hash_algo_t* algo = crypto_get_hash_algo("sha256");
-		char digest_str[algo->digest_str_len];
-		crypto_hash_str(algo, cat, strlen(cat), digest_str);
-		
-		_log(LVL_TRACE, "Auth token : %s\n", digest_str);
-		
-		if(!strcmp(digest_str, auth_tok))
-		{
-			r = "Authentication success\r\n";
-			_log(LVL_DEBUG, r);
-			send(cli->sock, r, strlen(r), 0);
-			return true;
-		}
-		else
-		{
-			r = "Authentication failed\r\n";
-			_log(LVL_ERROR, r);
-			send(cli->sock, r, strlen(r), 0);
-			return false;
-		}
+		return false;
 	}
 }
 
@@ -219,7 +201,7 @@ TH_HDL client_handler(void* client)
 	shutdown(cli->sock, SHUT_WR);
 	close(cli->sock);
 	server_unregister_client(cli->server, cli);
-	free(client);
+	client_destroy(cli);
 
 	_log(LVL_TRACE, "Client thread exited\n", buff);
 	TH_RETURN;
@@ -346,6 +328,13 @@ void server_destroy(server_t* server)
 		server_stop(server);
 	free(server->clients);
 	free(server);
+}
+
+void client_destroy(client_t* client)
+{
+	if(client->username != NULL)
+		free(client->username);
+	free(client);
 }
 
 int read_line(int sock, char* out, int out_len, bool keep_lf)

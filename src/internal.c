@@ -28,7 +28,6 @@
 #include <string.h>
 
 #include "internal.h"
-#include "utils.h"
 #include "crypto.h"
 
 uint64_t intern_get_storage_size(datastore_t* int_db, char* dbname)
@@ -67,7 +66,7 @@ int intern_set_default_db(datastore_t* int_db, hashtable_t* table, char* dbname)
 	datastore_t * store = ht_get(table, dbname);
 	if(store != NULL)
 	{
-		datastore_put(int_db, INT_DEAFUALT_DB, dbname);
+		datastore_put(int_db, INT_DEFAULT_DB, dbname);
 		_log(LVL_INFO, "Default databased changed to %s\n", dbname);
 		return 0;
 	}
@@ -80,32 +79,11 @@ int intern_set_default_db(datastore_t* int_db, hashtable_t* table, char* dbname)
 
 datastore_t* intern_get_default_db(datastore_t* int_db, hashtable_t* table)
 {
-	char* def_db = datastore_lookup(int_db, INT_DEAFUALT_DB);
+	char* def_db = datastore_lookup(int_db, INT_DEFAULT_DB);
 	if(def_db != NULL)
 		return ht_get(table, def_db);
 	else
 		return NULL;
-}
-
-int intern_set_password(datastore_t* int_db, char* username, char* password)
-{
-	char cat[128];
-	CAT4(cat, username, PASSWD_SALT, password);
-
-	hash_algo_t* algo = crypto_get_hash_algo("sha256");
-	char digest_str[algo->digest_str_len];
-	crypto_hash_str(algo, cat, strlen(cat), digest_str);
-	if(datastore_set(int_db, INT_USER_HASH, digest_str) < 0)
-	{
-		_log(LVL_ERROR, "Could not change password\n");
-		return -1;
-	}
-	else
-	{
-		_log(LVL_INFO, "Password changed\n");
-		return 0;
-	}
-
 }
 
 void intern_load_storages(datastore_t* int_db, hashtable_t* table)
@@ -166,4 +144,57 @@ int intern_create_new_db(datastore_t* int_db, hashtable_t* table, char* dbname, 
 			return -1;
 		}
 	}
+}
+
+int intern_create_user(datastore_t* int_db, char* username, char* password)
+{
+	if(intern_get_password(int_db, username) != NULL)
+		return -1;
+	return intern_set_password(int_db, username, password);
+}
+
+int intern_set_password(datastore_t* int_db, char* username, char* password)
+{
+	char cat[2048];
+	CAT4(cat, username, PASSWD_SALT, password);
+
+	hash_algo_t* algo = crypto_get_hash_algo("sha256");
+	char digest_str[algo->digest_str_len];
+	crypto_hash_str(algo, cat, strlen(cat), digest_str);
+	CAT4(cat, PREFIX_USER, username, SUFFIX_USER_PASSWD);
+	if(datastore_set(int_db, cat, digest_str) < 0)
+	{
+		_log(LVL_ERROR, "Could not change password\n");
+		return -1;
+	}
+	else
+	{
+		_log(LVL_INFO, "Password changed\n");
+		return 0;
+	}
+}
+
+char* intern_get_password(datastore_t* int_db, char* username)
+{
+	char cat[2048];
+	CAT4(cat, PREFIX_USER, username, SUFFIX_USER_PASSWD);
+	return datastore_lookup(int_db, cat);
+}
+
+bool intern_verify_credentials(datastore_t* int_db, char* username, char* password)
+{
+	char cat[128];
+	char* auth_tok = intern_get_password(int_db, username);
+	if(auth_tok == NULL)
+		return false;
+	CAT4(cat, username, PASSWD_SALT, password);
+	hash_algo_t* algo = crypto_get_hash_algo("sha256");
+	char digest_str[algo->digest_str_len];
+	crypto_hash_str(algo, cat, strlen(cat), digest_str);
+
+	_log(LVL_TRACE, "Auth token : %s\n", digest_str);
+
+	if(!strcmp(digest_str, auth_tok))
+		return true;
+	return false;
 }

@@ -48,6 +48,7 @@
 #define OP_FLUSH 	13
 #define OP_DB		14
 #define OP_PASSWD	15
+#define OP_USER		16
 
 #define CF_NONE 		0
 #define CF_READ 		1
@@ -84,7 +85,7 @@ typedef struct {
 	char* name;
 	unsigned char op;
 	char flag;
-	int argc;
+	int min_argc;
 	void (*process)(request_t*);
 	char* description;
 } cmd_t;
@@ -118,5 +119,6 @@ void do_client(request_t* req);
 void do_flush(request_t* req);
 void do_passwd(request_t* req);
 void do_db(request_t* req);
+void do_user(request_t* req);
 
 #endif /* PROTOCOL_H_ */

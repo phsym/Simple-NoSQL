@@ -57,7 +57,8 @@ cmd_t commands[] = {
 	{"client", 	OP_CLIENT, 	CF_ADMIN, 				0, 	&do_client, "List clients"},
 	{"flush", 	OP_FLUSH, 	CF_WRITE|CF_NEED_DB, 	0, 	&do_flush, 	"Flush database"},
 	{"db",		OP_DB,		CF_NONE,				1,	&do_db,		"DB selection"},
-	{"passwd",	OP_PASSWD,	CF_NONE,				2,	&do_passwd,	"Change user password"}
+	{"passwd",	OP_PASSWD,	CF_NONE,				1,	&do_passwd,	"Change user password"},
+	{"user",	OP_USER,	CF_ADMIN,				1,	&do_user,	"User account administration"}
 };
 
 void protocol_init()
@@ -159,7 +160,7 @@ int decode_request(client_t* client, request_t* request, char* req, int len)
 				break;
 		}
 		request->argc = i;
-		if(request->argc < cmd->argc)
+		if(request->argc < cmd->min_argc)
 			return -1;
 	}
 	else
@@ -361,7 +362,8 @@ void do_client(request_t* req)
 			if(cli == req->client)
 				its_me = "*";
 			datastore_t* db = cli->datastore;
-			sprintf(buff, " %s %d : %s:%d db:%s\r\n", its_me, i, cli->address, cli->port, (db != NULL ? db->name : "none"));
+			char* us = cli->username;
+			sprintf(buff, " %s %d : %s:%d u:%s db:%s\r\n", its_me, i, cli->address, cli->port, (us != NULL ? us : "none"), (db != NULL ? db->name : "none"));
 			strcat(req->reply.message, buff);
 		}
 	}
@@ -376,7 +378,10 @@ void do_flush(request_t* req)
 
 void do_passwd(request_t* req)
 {
-	req->reply.rc = intern_set_password(req->client->server->intern_db, req->argv[0], req->argv[1]);
+	if(req->client->username != NULL)
+		req->reply.rc = intern_set_password(req->client->server->intern_db, req->client->username, req->argv[0]);
+	else
+		req->reply.rc = -1;
 }
 
 void do_db(request_t* req)
@@ -396,17 +401,18 @@ void do_db(request_t* req)
 			req->reply.message = "DB not found";
 		}
 	}
-	else if(!strcmp(req->argv[0], "create"))
-	{
-		if(req->argc < 4)
-		{
-			req->reply.rc = -1;
-			return;
-		}
+	else if(!strcmp(req->argv[0], "create") && (req->argc >= 4))
 		req->reply.rc = intern_create_new_db(req->client->server->intern_db, req->client->server->storages, req->argv[1], req->argv[2], req->argv[3]);
-	}
 	else if(!strcmp(req->argv[0], "default"))
 		req->reply.rc = intern_set_default_db(req->client->server->intern_db, req->client->server->storages, req->argv[1]);
+	else
+		req->reply.rc = -1;
+}
+
+void do_user(request_t* req)
+{
+	if(!strcmp(req->argv[0], "create") && (req->argc >= 3))
+		req->reply.rc = intern_create_user(req->client->server->intern_db, req->argv[1], req->argv[2]);
 	else
 		req->reply.rc = -1;
 }
