@@ -58,7 +58,8 @@ cmd_t commands[] = {
 	{"flush", 	OP_FLUSH, 	CF_WRITE|CF_NEED_DB, 	0, 	&do_flush, 	"Flush database"},
 	{"db",		OP_DB,		CF_NONE,				1,	&do_db,		"DB selection"},
 	{"passwd",	OP_PASSWD,	CF_NONE,				1,	&do_passwd,	"Change user password"},
-	{"user",	OP_USER,	CF_ADMIN,				1,	&do_user,	"User account administration"}
+	{"user",	OP_USER,	CF_ADMIN,				1,	&do_user,	"User account administration"},
+	{"dump",	OP_DUMP,	CF_ADMIN|CF_READ,		0,	&do_dump,	"Dump  the current or all databases"}
 };
 
 void protocol_init()
@@ -185,6 +186,7 @@ void encode_reply(request_t* req, char* buff, int buff_len)
 			case OP_COUNT:
 			case OP_TIME:
 			case OP_CLIENT:
+			case OP_DUMP:
 			case OP_LIST:
 				strcat(buff, req->reply.message);
 				strcat(buff, "\r\n");
@@ -236,7 +238,7 @@ void do_list(request_t* req)
 	char* keys[n];
 	// TODO : filtering
 	datastore_list_keys(req->client->datastore, keys, n);
-	size_t size = n*(MAX_KEY_SIZE+1)*sizeof(char);
+	size_t size = n*(MAX_KEY_SIZE+3)*sizeof(char);
 	size = size>0 ? size : 1;
 	req->reply.message = malloc(size);
 	memset(req->reply.message, '\0', size);
@@ -415,4 +417,26 @@ void do_user(request_t* req)
 		req->reply.rc = intern_create_user(req->client->server->dbs, req->argv[1], req->argv[2]);
 	else
 		req->reply.rc = -1;
+}
+
+void do_dump(request_t* req)
+{
+	int n = datastore_keys_number(req->client->datastore);
+	char* keys[n];
+	datastore_list_keys(req->client->datastore, keys, n);
+	size_t size = n*(MAX_KEY_SIZE + MAX_VALUE_SIZE + 10)*sizeof(char);
+	size = size>0 ? size : 1;
+	req->reply.message = malloc(size);
+	memset(req->reply.message, '\0', size);
+	int i;
+	for(i = 0; i < n; i++)
+	{
+		char* value = datastore_lookup(req->client->datastore, keys[i]);
+		strcat(req->reply.message, "SET ");
+		strcat(req->reply.message, keys[i]);
+		strcat(req->reply.message, " ");
+		strcat(req->reply.message, value);
+		strcat(req->reply.message, "\r\n");
+	}
+	req->reply.rc = 0;
 }
