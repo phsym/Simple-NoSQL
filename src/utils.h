@@ -57,6 +57,11 @@ extern DBG_LVL DEBUG_LEVEL;
 extern const int MAX_DEBUG_LEVEL;
 extern const char* DBG_LVL_STR[];
 
+void _log_init(char* logfile);
+
+// Automatically called at exit
+void _log_cleanup();
+
 void _log(DBG_LVL level, char* message, ...);
 
 void _perror(char* message, ...);

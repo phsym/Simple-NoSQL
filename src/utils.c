@@ -38,6 +38,33 @@ DBG_LVL DEBUG_LEVEL = LVL_INFO;
 const char* DBG_LVL_STR[] = {"NONE", "FATAL", "ERROR", "WARNING", "INFO", "DEBUG", "TRACE"};
 const int MAX_DEBUG_LEVEL = 7;
 
+FILE* _log_fd = NULL;
+bool _log_is_init = false;
+
+void _log_init(char* logfile)
+{
+	if(!_log_is_init)
+	{
+		if(logfile == NULL)
+			_log_fd = stdout;
+		else
+			_log_fd = fopen(logfile, "a+");
+		atexit(&_log_cleanup);
+		_log_is_init = true;
+	}
+}
+
+// Automatically called at exit
+void _log_cleanup()
+{
+	if(_log_is_init && _log_fd != NULL && _log_fd != stdout)
+	{
+		fflush(_log_fd);
+		fclose(_log_fd);
+		_log_fd = NULL;
+	}
+}
+
 void _log(DBG_LVL level, char* message,  ...)
 {
 	if(level > DEBUG_LEVEL || level == LVL_NONE)
@@ -59,13 +86,14 @@ void _log(DBG_LVL level, char* message,  ...)
 	strcat(mess, message);
 	if(level <= LVL_ERROR)
 		vfprintf(stderr, mess, argptr);
-	else
-		vprintf(mess, argptr);
+	vfprintf(_log_fd, mess, argptr);
 	va_end(argptr);
 }
 
 void _perror(char* message, ...)
 {
+	if(LVL_ERROR > DEBUG_LEVEL)
+		return;
 	va_list argptr;
 	va_start(argptr,message);
 
@@ -82,7 +110,10 @@ void _perror(char* message, ...)
 	strcat(mess, message);
 
 	vfprintf(stderr, mess, argptr);
-	fprintf(stderr, " : %s\n", sys_errlist[errno]);
+	vfprintf(stderr, " : %s\n", sys_errlist[errno]);
+	vfprintf(_log_fd, mess, argptr);
+	vfprintf(_log_fd, " : %s\n", sys_errlist[errno]);
+
 	va_end(argptr);
 }
 

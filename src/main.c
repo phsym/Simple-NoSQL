@@ -67,6 +67,7 @@ void usage(char* bin_name)
 	printf("\nUSAGE : %s [options]\n\n", bin_name);
 	printf("Options :\n");
 	printf("\t -c <config_file> : Specify the config file to use (default is ./config.cfg)\n");
+	printf("\t -l <log_file> : Specify the file to log messages in (default is stdout)\n");
 	printf("\t -h : Print this help\n");
 	printf("\n");
 	exit(-1);
@@ -80,18 +81,23 @@ int main(int argc, char* argv[])
 //	exit(0);
 
 	char* config_file = "config.cfg";
+	char* log_file = NULL;
 
 	if(argc > 1)
 	{
 		int i;
 		for (i = 1; i < argc; i++)
 		{
-			if((strcmp(argv[i], "-c") == 0) && (i < argc -1))
+			if((strcmp(argv[i], "-c") == 0) && (i < argc -1 ))
 				config_file = argv[++i];
+			else if((strcmp(argv[i], "-l") == 0) && (i < argc - 1))
+				log_file = argv[++i];
 			else if(strcmp(argv[i], "-h") == 0)
 				usage(argv[0]);
 		}
 	}
+
+	_log_init(log_file);
 
 	_log(LVL_INFO, "Starting server ... \n");
 
