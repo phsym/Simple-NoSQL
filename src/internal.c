@@ -28,7 +28,7 @@
 #include <string.h>
 
 #include "internal.h"
-#include "crypto.h"
+#include "crypto/crypto.h"
 
 uint64_t intern_get_storage_size(dbs_t* dbs, char* dbname)
 {

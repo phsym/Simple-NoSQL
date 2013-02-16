@@ -1,6 +1,14 @@
+###############################################
+#         Main MAKEFILE of project            #
+###############################################
+
+
 DEBUG=no
+
+export INCD=$(shell pwd)/src
+
 export CC=gcc
-export CFLAGS=-W -Wall
+export CFLAGS=-I $(INCD) -W -Wall
 
 ifeq ($(DEBUG), yes)
 	CFLAGS:=$(CFLAGS) -g -O0

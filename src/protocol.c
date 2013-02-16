@@ -32,7 +32,7 @@
 
 #include "protocol.h"
 #include "utils.h"
-#include "crypto.h"
+#include "crypto/crypto.h"
 #include "internal.h"
 
 unsigned int last_id = 0;

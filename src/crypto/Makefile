@@ -1,6 +1,7 @@
-############################################################
-#       MAKEFILE for module compiling source code          #
-############################################################
+###############################################
+#       MAKEFILE for module "crypto"          #
+###############################################
+
 
 
 MKDEP=gcc -MM -I $(INCD) *.c | sed -e "s/\(.*\.o\)/bin\/\1/" > Makefile.depend
@@ -12,9 +13,8 @@ OUT_DIR=bin/
 
 OBJS=$(addprefix $(OUT_DIR), $(OBJ))
 EXECS=$(addprefix $(OUT_DIR), $(EXEC))
-MODULES=crypto
 
-.PHONY: clean mrproper $(MODULES)
+.PHONY: clean mrproper
 
 all: $(EXEC)
 
@@ -28,13 +28,9 @@ Makefile.depend: $(SRC) $(HDR)
 	
 -include Makefile.depend
 	
-$(EXECS): $(OUT_DIR) $(MODULES) $(OBJS)
-	$(CC) -o $@ $(OBJS) bin/crypto.a $(LDFLAGS)
+$(EXECS): $(OUT_DIR) $(OBJS)
+	ar rcs bin/crypto.a $(OBJS)
 	
-crypto:
-	@(cd crypto && $(MAKE))
-	cp crypto/bin/crypto.a bin/crypto.a
-
 $(OUT_DIR)%.o: %.c
 	$(CC) -o $@ -c $< $(CFLAGS)
 	
@@ -42,7 +38,6 @@ $(OUT_DIR):
 	mkdir -p $(OUT_DIR)
 	
 clean:
-	@(cd crypto && $(MAKE) clean)
 	rm -rf bin
 	
 mrproper: clean

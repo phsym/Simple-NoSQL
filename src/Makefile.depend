@@ -1,20 +1,19 @@
 bin/concurrency.o: concurrency.c concurrency.h utils.h
 bin/config.o: config.c config.h utils.h
 bin/containers.o: containers.c containers.h
-bin/crypto.o: crypto.c crypto.h containers.h md5.h sha1.h sha256.h utils.h
 bin/datastorage.o: datastorage.c datastorage.h concurrency.h table.h \
  containers.h utils.h
 bin/internal.o: internal.c internal.h datastorage.h concurrency.h table.h \
- containers.h utils.h crypto.h
+ containers.h utils.h crypto/crypto.h \
+ /home/phsymo10/git/Simple-NoSQL/src/containers.h
 bin/main.o: main.c network.h concurrency.h datastorage.h table.h containers.h \
- utils.h internal.h protocol.h config.h crypto.h
-bin/md5.o: md5.c md5.h
+ utils.h internal.h protocol.h config.h crypto/crypto.h \
+ /home/phsymo10/git/Simple-NoSQL/src/containers.h
 bin/network.o: network.c network.h concurrency.h datastorage.h table.h \
  containers.h utils.h internal.h protocol.h
 bin/protocol.o: protocol.c protocol.h datastorage.h concurrency.h table.h \
- containers.h utils.h network.h internal.h crypto.h
-bin/sha1.o: sha1.c sha1.h
-bin/sha256.o: sha256.c sha256.h
+ containers.h utils.h network.h internal.h crypto/crypto.h \
+ /home/phsymo10/git/Simple-NoSQL/src/containers.h
 bin/table.o: table.c table.h utils.h
 bin/utils.o: utils.c utils.h
 bin/worker.o: worker.c worker.h concurrency.h protocol.h datastorage.h \

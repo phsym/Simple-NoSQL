@@ -34,7 +34,7 @@
 #include "datastorage.h"
 #include "utils.h"
 #include "config.h"
-#include "crypto.h"
+#include "crypto/crypto.h"
 #include "containers.h"
 #include "internal.h"
 
