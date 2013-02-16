@@ -109,10 +109,11 @@ void _perror(char* message, ...)
 	strcat(mess, "\t: ");
 	strcat(mess, message);
 
+	char* error_str = (char*)sys_errlist[errno];
 	vfprintf(stderr, mess, argptr);
-	vfprintf(stderr, " : %s\n", sys_errlist[errno]);
+	vfprintf(stderr, " : %s\n", error_str);
 	vfprintf(_log_fd, mess, argptr);
-	vfprintf(_log_fd, " : %s\n", sys_errlist[errno]);
+	vfprintf(_log_fd, " : %s\n", error_str);
 
 	va_end(argptr);
 }
