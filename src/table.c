@@ -41,11 +41,11 @@
 
 #define TABLE_ELEMENT(table, index) ((void*)table->table + index * table->blk_size)
 	
-void table_init(table_t* table, uint64_t data_size, uint64_t capacity)
+void table_init(table_t* table, uint64_t data_frag_size, uint64_t capacity)
 {
 	table->magic = TABLE_MAGIC;
-	table->blk_size = data_size + sizeof(table_elem_t);
-	table->data_size = data_size;
+	table->blk_size = data_frag_size + sizeof(table_elem_t);
+	table->data_frag_size = data_frag_size;
 	table->capacity = capacity;
 	table->first_free = 0;
 
@@ -60,7 +60,7 @@ void table_init(table_t* table, uint64_t data_size, uint64_t capacity)
 			fflush(stdout);
 		}
 		table_elem_t *elem = (void*)table->table + i * table->blk_size;
-		memset(elem->data, 0, data_size);
+		memset(elem->data, 0, data_frag_size);
 		elem->flag = FLAG_NONE;
 		if(i < capacity-1)
 			elem->ind = i+1;
@@ -70,12 +70,12 @@ void table_init(table_t* table, uint64_t data_size, uint64_t capacity)
 	_log(LVL_INFO, "Initializing table : %d%%\r\n", (i*100)/capacity);
 }
 
-table_t* table_map_create(char* filename, uint64_t data_size, uint64_t capacity)
+table_t* table_map_create(char* filename, uint64_t data_frag_size, uint64_t capacity)
 {
 	int fd = open(filename, O_RDWR|O_CREAT, (mode_t)0600);
 	if (fd < 0)
 		return NULL;
-	uint64_t size = sizeof(table_t) + (capacity * (data_size + sizeof(table_elem_t)));
+	uint64_t size = sizeof(table_t) + (capacity * (data_frag_size + sizeof(table_elem_t)));
 
 	char val = 0;
 
@@ -113,7 +113,7 @@ table_t* table_map_create(char* filename, uint64_t data_size, uint64_t capacity)
 		return NULL;
 	}
 
-	table_init(table, data_size, capacity);
+	table_init(table, data_frag_size, capacity);
 
 	// _log(LVL_INFO, "Syncing data table file (this may take a while) ...\n");
 #ifdef __MINGW32__
@@ -126,9 +126,9 @@ table_t* table_map_create(char* filename, uint64_t data_size, uint64_t capacity)
 	return table;
 }
 
-table_t* table_create(uint64_t data_size, uint64_t capacity)
+table_t* table_create(uint64_t data_frag_size, uint64_t capacity)
 {
-	uint64_t size = sizeof(table_t) + (capacity * (data_size + sizeof(table_elem_t)));
+	uint64_t size = sizeof(table_t) + (capacity * (data_frag_size + sizeof(table_elem_t)));
 
 	//init table
 	table_t* table = malloc(size);
@@ -136,7 +136,7 @@ table_t* table_create(uint64_t data_size, uint64_t capacity)
 	if(table == NULL)
 		return NULL;
 
-	table_init(table, data_size, capacity);
+	table_init(table, data_frag_size, capacity);
 
 	return table;
 }
@@ -151,7 +151,7 @@ table_t* table_map_load(char* filename)
 	int r = read(fd, &t, sizeof(t));
 	if(r != sizeof(t) || t.magic != TABLE_MAGIC)
 		return NULL;
-	uint64_t size = sizeof(table_t) + (t.capacity * (t.data_size + sizeof(table_elem_t)));
+	uint64_t size = sizeof(table_t) + (t.capacity * (t.data_frag_size + sizeof(table_elem_t)));
 
 	_log(LVL_INFO, "Mapping data table file ...\n"); 
 #ifdef __MINGW32__
@@ -172,45 +172,77 @@ table_t* table_map_load(char* filename)
 	return table;
 }
 
-uint64_t* table_put(table_t* table, void* data)
+uint64_t* table_put(table_t* table, void* data, uint64_t size)
 {
 	uint64_t index = table->first_free;
-	table_elem_t *e = TABLE_ELEMENT(table, index);
+	table_elem_t *e = NULL;
+
+	uint64_t ind = index;
+
+	uint64_t i = 0;
+	while(i < size)
+	{
+		e = TABLE_ELEMENT(table, ind);
+		if(i == 0)
+		{
+			if(((e->flag & FLAG_HEAD) == 0) && (e->flag != FLAG_NONE))
+				return NULL;
+			e->flag |= FLAG_HEAD;
+		}
+		e->flag |= FLAG_FRAG;
+		memcpy(e->data, data, MIN(size - i, table->data_frag_size));
+
+		ind = e->ind;
+		i+= MIN(size - i, table->data_frag_size);
+	}
+
 	table->first_free = e->ind;
 	e->ind = index;
-	memcpy(e->data, data, table->data_size);
-	e->flag |= FLAG_HEAD;
+	e->flag |= FLAG_END;
 	return &e->ind;
 }
 
 table_elem_t* table_get_block(table_t* table, uint64_t index)
 {
 	if(index >= table->capacity)
-			return NULL;
+		return NULL;
 	table_elem_t *e = TABLE_ELEMENT(table, index);
 	if((e->flag & FLAG_HEAD) == 0)
 		return NULL;
 	return e;
 }
 
-void* table_get_ref(table_t* table, uint64_t index)
-{
-	if(index >= table->capacity)
-		return NULL;
-	table_elem_t *e = TABLE_ELEMENT(table, index);
-	if((e->flag & FLAG_HEAD) == 0)
-		return NULL;
-	return e->data;
-}
+//void* table_get_ref(table_t* table, uint64_t index)
+//{
+//	if(index >= table->capacity)
+//		return NULL;
+//	table_elem_t *e = TABLE_ELEMENT(table, index);
+//	if((e->flag & FLAG_HEAD) == 0)
+//		return NULL;
+//	return e->data;
+//}
 
-void table_get_copy(table_t* table, uint64_t index, void* ptr)
+int table_get_copy(table_t* table, uint64_t index, void* ptr, uint64_t size)
 {
 	if(index >= table->capacity)
-		ptr = NULL;
+		return 0;
+
 	table_elem_t *e = TABLE_ELEMENT(table, index);
+
 	if((e->flag & FLAG_HEAD) == 0)
-		ptr = NULL;
-	memcpy(ptr, e->data, table->data_size);
+		return 0;
+
+	uint64_t i = 0;
+	while(i < size)
+	{
+		memcpy(ptr+i, e->data, MIN(table->data_frag_size, size - i));
+		i+= MIN(table->data_frag_size, size - i);
+		if(e->flag & FLAG_END)
+			break;
+
+		e = TABLE_ELEMENT(table, e->ind);
+	}
+	return i;
 }
 
 void table_remove(table_t* table, uint64_t index)
@@ -220,21 +252,26 @@ void table_remove(table_t* table, uint64_t index)
 		table_elem_t *e = TABLE_ELEMENT(table, index);
 		if((e->flag & FLAG_HEAD) == 0)
 			return;
-		e->flag = FLAG_NONE;
-		e->ind = table->first_free;
+
+		while(1)
+		{
+			if((e->flag & FLAG_END) != 0)
+			{
+				e->flag = FLAG_NONE;
+				break;
+			}
+			e->flag = FLAG_NONE;
+			e = TABLE_ELEMENT(table, e->ind);
+		}
+
+		e->ind= table->first_free;
 		table->first_free = index;
 	}
 }
 
-void table_clean(table_t* table, uint64_t index)
-{
-	if(index < table->capacity)
-		memset(TABLE_ELEMENT(table, index), 0, table->blk_size);
-}
-
 void destroy_map_table(table_t* table)
 {
-	uint64_t size = sizeof(table_t) + (table->capacity * (table->data_size + sizeof(table_elem_t)));
+	uint64_t size = sizeof(table_t) + (table->capacity * (table->data_frag_size + sizeof(table_elem_t)));
 
 	_log(LVL_INFO, "Syncing data table file ...\n");
 #ifdef __MINGW32__

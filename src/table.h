@@ -34,6 +34,7 @@
 #define FLAG_NONE 	0x00
 #define FLAG_HEAD	0x01
 #define FLAG_FRAG	0x02
+#define FLAG_END	0x04
 
 typedef struct {
 	unsigned char flag;
@@ -45,32 +46,30 @@ typedef struct {
 
 typedef struct {
 	char magic;
-	uint64_t data_size;
+	uint64_t data_frag_size;
 	uint64_t blk_size; // data block size = data_size + sizeof table_elem_t
 	uint64_t capacity;
 	uint64_t first_free;
 	table_elem_t table[];
 }table_t;
 
-void table_init(table_t* table, uint64_t data_size, uint64_t capacity);
+void table_init(table_t* table, uint64_t data_frag_size, uint64_t capacity);
 
-table_t* table_map_create(char* filename, uint64_t data_size, uint64_t capacity);
+table_t* table_map_create(char* filename, uint64_t data_frag_size, uint64_t capacity);
 
-table_t* table_create(uint64_t data_size, uint64_t capacity);
+table_t* table_create(uint64_t data_frag_size, uint64_t capacity);
 
 table_t* table_map_load(char* filename);
 
-uint64_t* table_put(table_t* table, void* data);
+uint64_t* table_put(table_t* table, void* data, uint64_t size);
 
 table_elem_t* table_get_block(table_t* table, uint64_t index);
 
-void* table_get_ref(table_t* table, uint64_t index);
+//void* table_get_ref(table_t* table, uint64_t index);
 
-void table_get_copy(table_t* table, uint64_t index, void* ptr);
+int table_get_copy(table_t* table, uint64_t index, void* ptr, uint64_t size);
 
 void table_remove(table_t* table, uint64_t index);
-
-void table_clean(table_t* table, uint64_t index);
 
 void destroy_map_table(table_t* table);
 

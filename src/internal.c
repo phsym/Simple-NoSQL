@@ -130,8 +130,10 @@ int intern_create_new_db(dbs_t* dbs, char* dbname, char* store_size, char* index
 				datastore_put(dbs->intern_db, INT_DB_LIST, "");
 				db_names = datastore_lookup(dbs->intern_db, INT_DB_LIST);
 			}
+			db_names = realloc(db_names, strlen(db_names) + strlen(dbname) + 2);
 			strcat(db_names, " ");
 			strcat(db_names, dbname);
+			datastore_set(dbs->intern_db, INT_DB_LIST, db_names);
 
 			intern_set_storage_size(dbs, dbname, store_size);
 			intern_set_storage_index_len(dbs, dbname, index_len);

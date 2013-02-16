@@ -38,7 +38,7 @@
 #define MIN(a,b) (a < b ? a : b)
 
 #define false 0x00
-#define true 0x01
+#define true 0xFF
 
 typedef unsigned char bool;
 

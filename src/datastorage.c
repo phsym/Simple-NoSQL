@@ -96,10 +96,11 @@ char* datastore_lookup(datastore_t* datastore, char* key)
 	index = ht_get(datastore->index_table, key);
 	if(index != NULL)
 	{
-		data_t* data = table_get_ref(datastore->data_table, *index);
-		if(data != NULL)
+		data_t data;
+		if(table_get_copy(datastore->data_table, *index, &data, sizeof(data_t)) > 0)
 		{
-			value = data->value;
+			value = malloc(strlen(data.value)+1);
+			strcpy(value, data.value);
 		}
 	}
 	rw_lock_read_unlock(&datastore->lock);
@@ -118,7 +119,7 @@ int datastore_put(datastore_t* datastore, char* key, char* value)
 		data_t data;
 		strncpy(data.name, key, MAX_KEY_SIZE+1);
 		strncpy(data.value, value, MAX_VALUE_SIZE+1);
-		index = table_put(datastore->data_table, &data);
+		index = table_put(datastore->data_table, &data, sizeof(data_t));
 		if(ht_put(datastore->index_table, key, index) == HT_ERROR)
 		{
 			table_remove(datastore->data_table, *index);
@@ -143,7 +144,7 @@ int datastore_set(datastore_t* datastore, char* key, char* value)
 		data_t data;
 		strncpy(data.name, key, MAX_KEY_SIZE+1);
 		strncpy(data.value, value, MAX_VALUE_SIZE+1);
-		index = table_put(datastore->data_table, &data);
+		index = table_put(datastore->data_table, &data, sizeof(data_t));
 		if(ht_put(datastore->index_table, key, index) == HT_ERROR)
 		{
 			table_remove(datastore->data_table, *index);
@@ -153,8 +154,18 @@ int datastore_set(datastore_t* datastore, char* key, char* value)
 	}
 	else
 	{
-		data_t *data = table_get_ref(datastore->data_table, *index);
-		strncpy(data->value, value, MAX_VALUE_SIZE+1);
+		data_t data;
+		table_get_copy(datastore->data_table, *index, &data, sizeof(data_t));
+		strncpy(data.value, value, MAX_VALUE_SIZE+1);
+		table_remove(datastore->data_table, *index);
+		index = table_put(datastore->data_table, &data, sizeof(data_t));
+		if(ht_put(datastore->index_table, key, index) == HT_ERROR)
+		{
+			table_remove(datastore->data_table, *index);
+			rw_lock_write_unlock(&datastore->lock);
+			return -1;
+		}
+
 	}
 	rw_lock_write_unlock(&datastore->lock);
 	return 0;
