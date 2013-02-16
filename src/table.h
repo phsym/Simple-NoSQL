@@ -31,8 +31,9 @@
 
 #define TABLE_MAGIC 0x6F
 
-#define FLAG_NONE 0x00
-#define FLAG_USED	0x01
+#define FLAG_NONE 	0x00
+#define FLAG_HEAD	0x01
+#define FLAG_FRAG	0x02
 
 typedef struct {
 	unsigned char flag;

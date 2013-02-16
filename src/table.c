@@ -38,6 +38,8 @@
 #else
 	#include <sys/mman.h>
 #endif
+
+#define TABLE_ELEMENT(table, index) ((void*)table->table + index * table->blk_size)
 	
 void table_init(table_t* table, uint64_t data_size, uint64_t capacity)
 {
@@ -173,11 +175,11 @@ table_t* table_map_load(char* filename)
 uint64_t* table_put(table_t* table, void* data)
 {
 	uint64_t index = table->first_free;
-	table_elem_t *e = ((void*)table->table + index * table->blk_size);
+	table_elem_t *e = TABLE_ELEMENT(table, index);
 	table->first_free = e->ind;
 	e->ind = index;
 	memcpy(e->data, data, table->data_size);
-	e->flag |= FLAG_USED;
+	e->flag |= FLAG_HEAD;
 	return &e->ind;
 }
 
@@ -185,8 +187,8 @@ table_elem_t* table_get_block(table_t* table, uint64_t index)
 {
 	if(index >= table->capacity)
 			return NULL;
-	table_elem_t *e = ((void*)table->table + index * table->blk_size);
-	if((e->flag & FLAG_USED) == 0)
+	table_elem_t *e = TABLE_ELEMENT(table, index);
+	if((e->flag & FLAG_HEAD) == 0)
 		return NULL;
 	return e;
 }
@@ -195,8 +197,8 @@ void* table_get_ref(table_t* table, uint64_t index)
 {
 	if(index >= table->capacity)
 		return NULL;
-	table_elem_t *e = ((void*)table->table + index * table->blk_size);
-	if((e->flag & FLAG_USED) == 0)
+	table_elem_t *e = TABLE_ELEMENT(table, index);
+	if((e->flag & FLAG_HEAD) == 0)
 		return NULL;
 	return e->data;
 }
@@ -205,8 +207,8 @@ void table_get_copy(table_t* table, uint64_t index, void* ptr)
 {
 	if(index >= table->capacity)
 		ptr = NULL;
-	table_elem_t *e = ((void*)table->table + index * table->blk_size);
-	if((e->flag & FLAG_USED) == 0)
+	table_elem_t *e = TABLE_ELEMENT(table, index);
+	if((e->flag & FLAG_HEAD) == 0)
 		ptr = NULL;
 	memcpy(ptr, e->data, table->data_size);
 }
@@ -215,8 +217,8 @@ void table_remove(table_t* table, uint64_t index)
 {
 	if(index < table->capacity)
 	{
-		table_elem_t *e = ((void*)table->table + index * table->blk_size);
-		if((e->flag & FLAG_USED) == 0)
+		table_elem_t *e = TABLE_ELEMENT(table, index);
+		if((e->flag & FLAG_HEAD) == 0)
 			return;
 		e->flag = FLAG_NONE;
 		e->ind = table->first_free;
@@ -227,7 +229,7 @@ void table_remove(table_t* table, uint64_t index)
 void table_clean(table_t* table, uint64_t index)
 {
 	if(index < table->capacity)
-		memset(((void*)table->table + index * table->blk_size), 0, table->blk_size);
+		memset(TABLE_ELEMENT(table, index), 0, table->blk_size);
 }
 
 void destroy_map_table(table_t* table)
