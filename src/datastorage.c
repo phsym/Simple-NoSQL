@@ -63,7 +63,7 @@ datastore_t* datastore_create(char* name, uint64_t storage_size, uint64_t index_
 		uint64_t i;
 		uint64_t p;
 		table_elem_t* tmp;
-		data_t* data;
+		data_t data;
 		for(i = 0; i < store->data_table->capacity; i++)
 		{
 			p = (100 * i)/store->data_table->capacity;
@@ -75,9 +75,11 @@ datastore_t* datastore_create(char* name, uint64_t storage_size, uint64_t index_
 			tmp = table_get_block(store->data_table, i);
 			if(tmp != NULL)
 			{
-				data = (data_t*)tmp->data;
-				_log(LVL_TRACE, "found %s at index %d\n", data->name, i);
-				ht_put(store->index_table, data->name, &tmp->ind);
+				while((tmp->flag & FLAG_END) == 0)
+					tmp = table_get_block(store->data_table, tmp->ind);
+				table_get_copy(store->data_table, i, &data, sizeof(data_t));
+				_log(LVL_TRACE, "found %s at index %d\n", data.name, i);
+				ht_put(store->index_table, data.name, &tmp->ind);
 			}
 		}
 		p = (100 * i)/store->data_table->capacity;
@@ -100,6 +102,8 @@ char* datastore_lookup(datastore_t* datastore, char* key)
 		if(table_get_copy(datastore->data_table, *index, &data, sizeof(data_t)) > 0)
 		{
 			value = malloc(strlen(data.value)+1);
+			if(value == NULL)
+				return NULL;
 			strcpy(value, data.value);
 		}
 	}

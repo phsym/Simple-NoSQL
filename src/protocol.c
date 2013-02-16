@@ -181,6 +181,7 @@ void encode_reply(request_t* req, char* buff, int buff_len)
 			case OP_GET:
 				strcat(buff, req->reply.value);
 				strcat(buff, "\r\n");
+				free(req->reply.value);
 				break;
 			case OP_HELP:
 			case OP_COUNT:
@@ -437,6 +438,7 @@ void do_dump(request_t* req)
 		strcat(req->reply.message, " ");
 		strcat(req->reply.message, value);
 		strcat(req->reply.message, "\r\n");
+		free(value);
 	}
 	req->reply.rc = 0;
 }

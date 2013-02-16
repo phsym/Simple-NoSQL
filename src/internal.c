@@ -35,7 +35,10 @@ uint64_t intern_get_storage_size(dbs_t* dbs, char* dbname)
 	char tmp_k[2048];
 	CAT4(tmp_k, PREFIX_DB, dbname, SUFFIX_DB_STORAGE_SIZE);
 	char* size = datastore_lookup(dbs->intern_db, tmp_k);
-	return (size != NULL ? strtoul(size, NULL, 10) : 0);
+	uint64_t ret = (size != NULL ? strtoul(size, NULL, 10) : 0);
+	if(size != NULL)
+		free(size);
+	return ret;
 
 }
 
@@ -44,7 +47,10 @@ uint64_t intern_get_storage_index_len(dbs_t* dbs, char* dbname)
 	char tmp_k[2048];
 	CAT4(tmp_k, PREFIX_DB, dbname, SUFFIX_DB_INDEX_SIZE);
 	char* len = datastore_lookup(dbs->intern_db, tmp_k);
-	return (len != NULL ? strtoul(len, NULL, 10) : 0);
+	uint64_t ret = (len != NULL ? strtoul(len, NULL, 10) : 0);
+	if(len != NULL)
+		free(len);
+	return ret;
 }
 
 int intern_set_storage_size(dbs_t* dbs, char* dbname, char* size)
@@ -80,10 +86,13 @@ int intern_set_default_db(dbs_t* dbs, char* dbname)
 datastore_t* intern_get_default_db(dbs_t* dbs)
 {
 	char* def_db = datastore_lookup(dbs->intern_db, INT_DEFAULT_DB);
+	datastore_t* ret = NULL;
 	if(def_db != NULL)
-		return ht_get(dbs->storages, def_db);
-	else
-		return NULL;
+	{
+		ret = ht_get(dbs->storages, def_db);
+		free(def_db);
+	}
+	return ret;
 }
 
 void intern_load_storages(dbs_t* dbs)
@@ -93,6 +102,7 @@ void intern_load_storages(dbs_t* dbs)
 	{
 		char db_l[strlen(tmp) + 1];
 		strcpy(db_l, tmp);
+		free(tmp);
 		char* str;
 		char* db = strtok_r(db_l, " ", &str);
 		while(db != NULL)
@@ -134,6 +144,7 @@ int intern_create_new_db(dbs_t* dbs, char* dbname, char* store_size, char* index
 			strcat(db_names, " ");
 			strcat(db_names, dbname);
 			datastore_set(dbs->intern_db, INT_DB_LIST, db_names);
+			free(db_names);
 
 			intern_set_storage_size(dbs, dbname, store_size);
 			intern_set_storage_index_len(dbs, dbname, index_len);
@@ -150,8 +161,13 @@ int intern_create_new_db(dbs_t* dbs, char* dbname, char* store_size, char* index
 
 int intern_create_user(dbs_t* dbs, char* username, char* password)
 {
-	if(intern_get_password(dbs, username) != NULL)
+	//TODO : Create "exists" function
+	char* passwd = intern_get_password(dbs, username);
+	if( passwd != NULL)
+	{
+		free(passwd);
 		return -1;
+	}
 	return intern_set_password(dbs, username, password);
 }
 
@@ -198,5 +214,6 @@ bool intern_verify_credentials(dbs_t* dbs, char* username, char* password)
 
 	if(!strcmp(digest_str, auth_tok))
 		return true;
+	free(auth_tok);
 	return false;
 }

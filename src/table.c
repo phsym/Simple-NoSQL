@@ -190,7 +190,7 @@ uint64_t* table_put(table_t* table, void* data, uint64_t size)
 			e->flag |= FLAG_HEAD;
 		}
 		e->flag |= FLAG_FRAG;
-		memcpy(e->data, data, MIN(size - i, table->data_frag_size));
+		memcpy(e->data, data + i, MIN(size - i, table->data_frag_size));
 
 		ind = e->ind;
 		i+= MIN(size - i, table->data_frag_size);
@@ -207,20 +207,10 @@ table_elem_t* table_get_block(table_t* table, uint64_t index)
 	if(index >= table->capacity)
 		return NULL;
 	table_elem_t *e = TABLE_ELEMENT(table, index);
-	if((e->flag & FLAG_HEAD) == 0)
+	if((e->flag & FLAG_FRAG) == 0)
 		return NULL;
 	return e;
 }
-
-//void* table_get_ref(table_t* table, uint64_t index)
-//{
-//	if(index >= table->capacity)
-//		return NULL;
-//	table_elem_t *e = TABLE_ELEMENT(table, index);
-//	if((e->flag & FLAG_HEAD) == 0)
-//		return NULL;
-//	return e->data;
-//}
 
 int table_get_copy(table_t* table, uint64_t index, void* ptr, uint64_t size)
 {

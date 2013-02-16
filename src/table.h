@@ -65,8 +65,6 @@ uint64_t* table_put(table_t* table, void* data, uint64_t size);
 
 table_elem_t* table_get_block(table_t* table, uint64_t index);
 
-//void* table_get_ref(table_t* table, uint64_t index);
-
 int table_get_copy(table_t* table, uint64_t index, void* ptr, uint64_t size);
 
 void table_remove(table_t* table, uint64_t index);
