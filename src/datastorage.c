@@ -29,7 +29,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
-#include "utils.h"
 #include "containers.h"
 
 datastore_t* datastore_create(char* name, uint64_t storage_size, uint64_t index_length)
@@ -173,6 +172,17 @@ int datastore_set(datastore_t* datastore, char* key, char* value)
 	}
 	rw_lock_write_unlock(&datastore->lock);
 	return 0;
+}
+
+bool datastore_exists(datastore_t* datastore, char* key)
+{
+	CHECK_KEY_SIZE(key);
+	rw_lock_read_lock(&datastore->lock);
+	bool ret = false;
+	if(ht_get(datastore->index_table, key) != NULL)
+		ret = true;
+	rw_lock_read_unlock(&datastore->lock);
+	return ret;
 }
 
 int datastore_remove(datastore_t* datastore, char* key)

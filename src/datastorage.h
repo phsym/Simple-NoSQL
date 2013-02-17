@@ -30,6 +30,7 @@
 #include "concurrency.h"
 #include "table.h"
 #include "containers.h"
+#include "utils.h"
 
 #define MAX_KEY_SIZE 32
 #define MAX_VALUE_SIZE 64
@@ -56,6 +57,8 @@ char* datastore_lookup(datastore_t* datastore, char* key);
 int datastore_put(datastore_t* datastore, char* key, char* value);
 
 int datastore_set(datastore_t* datastore, char* key, char* value);
+
+bool datastore_exists(datastore_t* datastore, char* key);
 
 int datastore_remove(datastore_t* datastore, char* key);
 
