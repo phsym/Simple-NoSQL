@@ -32,16 +32,20 @@
 #include "containers.h"
 #include "utils.h"
 
-#define MAX_KEY_SIZE 32
-#define MAX_VALUE_SIZE 64
-
-#define CHECK_KEY_SIZE(k) if(strlen(k) > MAX_KEY_SIZE) k[MAX_KEY_SIZE] = '\0'
-#define CHECK_VALUE_SIZE(v) if(strlen(v) > MAX_VALUE_SIZE) v[MAX_VALUE_SIZE] = '\0'
+#define BLOCK_SIZE 32
 
 typedef struct {
-	char name[MAX_KEY_SIZE+1];// +1 is for the '\0' character
-	char value[MAX_VALUE_SIZE+1];
+	int key_size;
+	int value_size;
+	char data[];
 }data_t;
+
+#define data_dt(ks, vs) struct { \
+							int key_size; \
+							int value_size; \
+							char key[ks+1]; \
+							char value[vs+1]; \
+						}
 
 typedef struct {
 	char* name;

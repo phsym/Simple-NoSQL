@@ -49,7 +49,7 @@ datastore_t* datastore_create(char* name, uint64_t storage_size, uint64_t index_
 		_log(LVL_DEBUG,"storage size = %llu\n", storage_size);
 		_log(LVL_DEBUG,"Data size = %llu\n", sizeof(data_t));
 		_log(LVL_DEBUG,"capacity = %llu\n", (storage_size - sizeof(table_t))/(sizeof(data_t)+sizeof(table_elem_t)));
-		store->data_table = table_map_create(storagefile, sizeof(data_t), (storage_size - sizeof(table_t))/(sizeof(data_t)+sizeof(table_elem_t)));
+		store->data_table = table_map_create(storagefile, BLOCK_SIZE, (storage_size - sizeof(table_t))/(BLOCK_SIZE+sizeof(table_elem_t)));
 		if(store->data_table == NULL)
 		{
 			_log(LVL_ERROR, "Could not create table %s\n", name);
@@ -77,8 +77,11 @@ datastore_t* datastore_create(char* name, uint64_t storage_size, uint64_t index_
 				while((tmp->flag & FLAG_END) == 0)
 					tmp = table_get_block(store->data_table, tmp->ind);
 				table_get_copy(store->data_table, i, &data, sizeof(data_t));
-				_log(LVL_TRACE, "found %s at index %d\n", data.name, i);
-				ht_put(store->index_table, data.name, &tmp->ind);
+				data_dt(data.key_size, data.value_size) dat;
+				dat.key[0] = '\0';
+				table_get_copy(store->data_table, i, &dat, sizeof(dat));
+				_log(LVL_TRACE, "found %s at index %d\n", dat.key, i);
+				ht_put(store->index_table, dat.key, &tmp->ind);
 			}
 		}
 		p = (100 * i)/store->data_table->capacity;
@@ -90,7 +93,6 @@ datastore_t* datastore_create(char* name, uint64_t storage_size, uint64_t index_
 
 char* datastore_lookup(datastore_t* datastore, char* key)
 {
-	CHECK_KEY_SIZE(key);
 	rw_lock_read_lock(&datastore->lock);
 	char* value = NULL;
 	uint64_t* index;
@@ -100,10 +102,12 @@ char* datastore_lookup(datastore_t* datastore, char* key)
 		data_t data;
 		if(table_get_copy(datastore->data_table, *index, &data, sizeof(data_t)) > 0)
 		{
-			value = malloc(strlen(data.value)+1);
+			data_dt(data.key_size, data.value_size) dat;
+			table_get_copy(datastore->data_table, *index, &dat, sizeof(dat));
+			value = malloc(dat.value_size + 1);
 			if(value == NULL)
 				return NULL;
-			strcpy(value, data.value);
+			strncpy(value, dat.value, dat.value_size+1);
 		}
 	}
 	rw_lock_read_unlock(&datastore->lock);
@@ -112,17 +116,19 @@ char* datastore_lookup(datastore_t* datastore, char* key)
 
 int datastore_put(datastore_t* datastore, char* key, char* value)
 {
-	CHECK_KEY_SIZE(key);
-	CHECK_VALUE_SIZE(value);
 	rw_lock_write_lock(&datastore->lock);
 	uint64_t* index;
 	index = ht_get(datastore->index_table, key);
 	if(index == NULL)
 	{
-		data_t data;
-		strncpy(data.name, key, MAX_KEY_SIZE+1);
-		strncpy(data.value, value, MAX_VALUE_SIZE+1);
-		index = table_put(datastore->data_table, &data, sizeof(data_t));
+		int ks = strlen(key);
+		int vs = strlen(value);
+		data_dt(ks, vs) data;
+		data.key_size = ks;
+		data.value_size = vs;
+		strncpy(data.key, key, ks+1);
+		strncpy(data.value, value, vs+1);
+		index = table_put(datastore->data_table, &data, sizeof(data));
 		if(ht_put(datastore->index_table, key, index) == HT_ERROR)
 		{
 			table_remove(datastore->data_table, *index);
@@ -138,16 +144,19 @@ int datastore_put(datastore_t* datastore, char* key, char* value)
 
 int datastore_set(datastore_t* datastore, char* key, char* value)
 {
-	CHECK_KEY_SIZE(key);
-	CHECK_VALUE_SIZE(value);
 	rw_lock_write_lock(&datastore->lock);
 	uint64_t* index;
+	int ks = strlen(key);
+	int vs = strlen(value);
+	data_dt(ks, vs) data;
+	data.key_size = ks;
+	data.value_size = vs;
+	strncpy(data.key, key, ks+1);
+	strncpy(data.value, value, vs+1);
 	index = ht_get(datastore->index_table, key);
-	if (index == NULL) {
-		data_t data;
-		strncpy(data.name, key, MAX_KEY_SIZE+1);
-		strncpy(data.value, value, MAX_VALUE_SIZE+1);
-		index = table_put(datastore->data_table, &data, sizeof(data_t));
+	if (index == NULL)
+	{
+		index = table_put(datastore->data_table, &data, sizeof(data));
 		if(ht_put(datastore->index_table, key, index) == HT_ERROR)
 		{
 			table_remove(datastore->data_table, *index);
@@ -157,11 +166,8 @@ int datastore_set(datastore_t* datastore, char* key, char* value)
 	}
 	else
 	{
-		data_t data;
-		table_get_copy(datastore->data_table, *index, &data, sizeof(data_t));
-		strncpy(data.value, value, MAX_VALUE_SIZE+1);
 		table_remove(datastore->data_table, *index);
-		index = table_put(datastore->data_table, &data, sizeof(data_t));
+		index = table_put(datastore->data_table, &data, sizeof(data));
 		if(ht_put(datastore->index_table, key, index) == HT_ERROR)
 		{
 			table_remove(datastore->data_table, *index);
@@ -176,7 +182,7 @@ int datastore_set(datastore_t* datastore, char* key, char* value)
 
 bool datastore_exists(datastore_t* datastore, char* key)
 {
-	CHECK_KEY_SIZE(key);
+//	CHECK_KEY_SIZE(key);
 	rw_lock_read_lock(&datastore->lock);
 	bool ret = false;
 	if(ht_get(datastore->index_table, key) != NULL)
@@ -187,7 +193,6 @@ bool datastore_exists(datastore_t* datastore, char* key)
 
 int datastore_remove(datastore_t* datastore, char* key)
 {
-	CHECK_KEY_SIZE(key);
 	rw_lock_write_lock(&datastore->lock);
 	uint64_t* index;
 	index = ht_get(datastore->index_table, key);

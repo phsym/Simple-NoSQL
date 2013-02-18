@@ -72,7 +72,7 @@ int intern_set_default_db(dbs_t* dbs, char* dbname)
 	datastore_t * store = ht_get(dbs->storages, dbname);
 	if(store != NULL)
 	{
-		datastore_put(dbs->intern_db, INT_DEFAULT_DB, dbname);
+		datastore_set(dbs->intern_db, INT_DEFAULT_DB, dbname);
 		_log(LVL_INFO, "Default databased changed to %s\n", dbname);
 		return 0;
 	}

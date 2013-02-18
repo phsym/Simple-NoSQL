@@ -239,14 +239,14 @@ void do_list(request_t* req)
 	char* keys[n];
 	// TODO : filtering
 	datastore_list_keys(req->client->datastore, keys, n);
-	size_t size = n*(MAX_KEY_SIZE+3)*sizeof(char);
+	size_t size = n*(1024)*sizeof(char);
 	size = size>0 ? size : 1;
 	req->reply.message = malloc(size);
 	memset(req->reply.message, '\0', size);
 	int i;
 	for(i = 0; i < n; i++)
 	{
-		strncat(req->reply.message, keys[i], MAX_KEY_SIZE);
+		strncat(req->reply.message, keys[i], 1024);
 		strcat(req->reply.message, "\r\n");
 	}
 	req->reply.rc = 0;
@@ -292,14 +292,14 @@ void do_help(request_t* req)
 	int n = cmd_dict->e_num;
 	char* keys[n];
 	ht_list_keys(cmd_dict, keys, n);
-	size_t size = n*(MAX_KEY_SIZE+1)*sizeof(char);
+	size_t size = n*(1024)*sizeof(char);
 	size = size>0 ? size : 1;
 	req->reply.message = malloc(size);
 	memset(req->reply.message, '\0', size);
 	int i;
 	for(i = 0; i < n; i++)
 	{
-		strncat(req->reply.message, keys[i], MAX_KEY_SIZE);
+		strncat(req->reply.message, keys[i], 1024);
 		strcat(req->reply.message, "\r\n");
 	}
 	req->reply.rc = 0;
@@ -425,7 +425,7 @@ void do_dump(request_t* req)
 	int n = datastore_keys_number(req->client->datastore);
 	char* keys[n];
 	datastore_list_keys(req->client->datastore, keys, n);
-	size_t size = n*(MAX_KEY_SIZE + MAX_VALUE_SIZE + 10)*sizeof(char);
+	size_t size = n*(2048)*sizeof(char);
 	size = size>0 ? size : 1;
 	req->reply.message = malloc(size);
 	memset(req->reply.message, '\0', size);
