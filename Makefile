@@ -5,7 +5,7 @@
 
 DEBUG=no
 
-export INCD=$(shell pwd)/src
+export INCD=$(CURDIR)/src
 
 export CC=gcc
 export CFLAGS=-I $(INCD) -W -Wall
