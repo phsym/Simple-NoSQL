@@ -24,7 +24,7 @@ depend: Makefile.depend
 
 Makefile.depend: $(SRC) $(HDR)
 	@echo "Rebuilding dependencies"
-	$(MKDEP)
+	@($(MKDEP))
 	
 -include Makefile.depend
 	
