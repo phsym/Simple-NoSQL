@@ -182,7 +182,6 @@ int datastore_set(datastore_t* datastore, char* key, char* value)
 
 bool datastore_exists(datastore_t* datastore, char* key)
 {
-//	CHECK_KEY_SIZE(key);
 	rw_lock_read_lock(&datastore->lock);
 	bool ret = false;
 	if(ht_get(datastore->index_table, key) != NULL)
