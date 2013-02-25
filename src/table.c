@@ -263,14 +263,7 @@ void destroy_map_table(table_t* table)
 {
 	uint64_t size = sizeof(table_t) + (table->capacity * (table->data_frag_size + sizeof(table_elem_t)));
 
-	_log(LVL_INFO, "Syncing data table file ...\n");
-#ifdef __MINGW32__
-	//TODO : msync
-#else
-	msync(table, size, MS_SYNC);
-#endif
-
-	_log(LVL_INFO, "Unmapping data table file ...\n");
+	_log(LVL_INFO, "Syncing and unmapping data table file ...\n");
 #ifdef __MINGW32__
 	UnmapViewOfFile(table);
 #else
