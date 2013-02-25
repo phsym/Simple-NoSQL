@@ -53,12 +53,15 @@ void crypto_init()
 		int i;
 		for(i = 0; i < n; i++)
 			crypto_register_hash_algo(hash_a +i);
+		atexit(&crypto_cleanup);
 		_cryp_init = true;
 	}
 }
 
+// Automatically called at exit
 void crypto_cleanup()
 {
+	_log(LVL_DEBUG, "Crypto cleanup\n");
 	if(_cryp_init)
 	{
 		ht_clear(hash_algo_dict, 0);

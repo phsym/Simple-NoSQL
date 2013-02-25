@@ -73,12 +73,15 @@ void protocol_init()
 			cmd_id[i] = NULL;
 		for(i = 0; i < num_cmd; i++)
 			register_command(commands+i);
+		atexit(&protocol_cleanup);
 		_proto_init = true;
 	}
 }
 
+//automatically called at exit
 void protocol_cleanup()
 {
+	_log(LVL_DEBUG, "Protocol cleanup\n");
 	if(_proto_init)
 	{
 		ht_clear(cmd_dict, 0);

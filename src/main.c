@@ -141,11 +141,6 @@ int main(int argc, char* argv[])
 	server_wait_end(app.server);
 	server_destroy(app.server);
 
-	_log(LVL_DEBUG, "Protocol cleanup\n");
-	protocol_cleanup();
-	_log(LVL_DEBUG, "Crypto cleanup\n");
-	crypto_cleanup();
-
 	_log(LVL_DEBUG, "Destroy datastores\n");
 	datastore_destroy(app.dbs.intern_db);
 	hash_elem_it it = HT_ITERATOR(app.dbs.storages);
