@@ -32,7 +32,7 @@
 #ifdef __MINGW32__
 	#include <process.h>
 	typedef int pid_t;
-	#define getpid() _getpid()
+	#define _getpid() getpid()
 #else
 	#include <unistd.h>
 #endif
@@ -70,16 +70,14 @@ void sig_interrupt(int signal)
 	server_stop(app.server);
 }
 
-pid_t daemonize()
+void daemonize()
 {
 #ifndef __MINGW32__
 	_log(LVL_INFO, "Daemonizing ...\n");
-	pid_t pid = fork();
-	if(pid != 0)
+	if(fork() != 0)
 		exit(0);
-	return pid;
 #else
-	_log(LVL_ERROR, "Cannot daemonize in Windows\n");
+	_log(LVL_WARNING, "Cannot daemonize in Windows\n");
 #endif
 }
 
@@ -134,11 +132,10 @@ int main(int argc, char* argv[])
 	_log_init(log_file);
 	_log(LVL_INFO, "Starting server ... \n");
 
-	pid_t pid;
 	if(daemon)
-		pid = daemonize();
-	else
-		pid = getpid();
+		daemonize();
+
+	pid_t pid = getpid();
 	_log(LVL_INFO, "Application's PID is %d\n", pid);
 
 	_log(LVL_INFO, "Loading settings ... \n");
