@@ -29,6 +29,14 @@
 #include <signal.h>
 #include <string.h>
 
+#ifdef __MINGW32__
+	#include <process.h>
+	typedef int pid_t;
+	#define getpid() _getpid()
+#else
+	#include <unistd.h>
+#endif
+
 #include "network.h"
 #include "protocol.h"
 #include "datastorage.h"
@@ -62,12 +70,28 @@ void sig_interrupt(int signal)
 	server_stop(app.server);
 }
 
+pid_t daemonize()
+{
+#ifndef __MINGW32__
+	_log(LVL_INFO, "Daemonizing ...\n");
+	pid_t pid = fork();
+	if(pid != 0)
+		exit(0);
+	return pid;
+#else
+	_log(LVL_ERROR, "Cannot daemonize in Windows\n");
+#endif
+}
+
 void usage(char* bin_name)
 {
 	printf("\nUSAGE : %s [options]\n\n", bin_name);
 	printf("Options :\n");
 	printf("\t -c <config_file> : Specify the config file to use (default is ./config.cfg)\n");
 	printf("\t -l <log_file> : Specify the file to log messages in (default is stdout)\n");
+#ifndef __MINGW32__
+	printf("\t -d : Daemonize process\n");
+#endif
 	printf("\t -h : Print this help\n");
 	printf("\n");
 	exit(-1);
@@ -82,6 +106,7 @@ int main(int argc, char* argv[])
 
 	char* config_file = "config.cfg";
 	char* log_file = NULL;
+	bool daemon = false;
 
 	if(argc > 1)
 	{
@@ -92,14 +117,29 @@ int main(int argc, char* argv[])
 				config_file = argv[++i];
 			else if((strcmp(argv[i], "-l") == 0) && (i < argc - 1))
 				log_file = argv[++i];
+#ifndef __MINGW32__
+			else if(strcmp(argv[i], "-d") == 0)
+				daemon = true;
+#endif
 			else if(strcmp(argv[i], "-h") == 0)
 				usage(argv[0]);
+			else
+			{
+				fprintf(stderr, "Wrong argument %s\n", argv[i]);
+				usage(argv[0]);
+			}
 		}
 	}
 
 	_log_init(log_file);
-
 	_log(LVL_INFO, "Starting server ... \n");
+
+	pid_t pid;
+	if(daemon)
+		pid = daemonize();
+	else
+		pid = getpid();
+	_log(LVL_INFO, "Application's PID is %d\n", pid);
 
 	_log(LVL_INFO, "Loading settings ... \n");
 	app.config = malloc(sizeof(config_t));
