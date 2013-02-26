@@ -100,13 +100,13 @@ int server_register_client(server_t* server, client_t* client)
 	int i;
 	for(i = 0; i < server->max_client; i++)
 	{
-			if (*(server->clients + i) == NULL)
-			{
-				_log(LVL_TRACE, "Registering client on server\n");
-				*(server->clients + i) = client;
-				server->num_clients++;
-				return i;
-			}
+		if (*(server->clients + i) == NULL)
+		{
+			_log(LVL_TRACE, "Registering client on server\n");
+			*(server->clients + i) = client;
+			server->num_clients++;
+			return i;
+		}
 	}
 	return -1;
 }
