@@ -119,16 +119,13 @@ void angelize()
 	{
 		int status;
 		waitpid(child_pid, &status, 0);
-		if(WIFSIGNALED(status))
+		if(WIFSIGNALED(status) && WCOREDUMP(status))
 		{
-			if(WCOREDUMP(status))
-			{
-				_log(LVL_FATAL, "\n");
-				_log(LVL_FATAL, "#######################\n");
-				_log(LVL_FATAL, "# !!! CORE DUMPED !!! #\n");
-				_log(LVL_FATAL, "#######################\n");
-				_log(LVL_FATAL, "\n");
-			}
+			_log(LVL_FATAL, "\n");
+			_log(LVL_FATAL, "#######################\n");
+			_log(LVL_FATAL, "# !!! CORE DUMPED !!! #\n");
+			_log(LVL_FATAL, "#######################\n");
+			_log(LVL_FATAL, "\n");
 		}
 	}
 	if(child_pid == 0)
