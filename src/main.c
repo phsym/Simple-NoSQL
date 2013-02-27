@@ -35,6 +35,7 @@
 	#define _getpid() getpid()
 #else
 	#include <unistd.h>
+	#include <sys/wait.h>
 #endif
 
 #include "network.h"
@@ -55,19 +56,46 @@ typedef struct {
 
 Application app;
 
+bool i_am_angel;
+pid_t child_pid;
+bool angel_running;
+
 void sig_broken_pipe(int signal)
 {
-	_log(LVL_WARNING, "Broken pipe (signal %d)\n", signal);
+	if(!i_am_angel)
+		_log(LVL_WARNING, "Broken pipe (signal %d)\n", signal);
 	return;
 }
 
 void sig_interrupt(int signal)
 {
-	_log(LVL_INFO, "Interrupted by signal %d\n", signal);
+	if(i_am_angel)
+	{
+		_log(LVL_INFO, "Angel interrupted by signal. Relaying to child %d\n", child_pid);
+		angel_running = false;
+		kill(child_pid, signal);
+	}
+	else
+	{
+		_log(LVL_INFO, "Interrupted by signal %d\n", signal);
+		app.running = false;
+		_log(LVL_INFO, "Stopping server ...\n");
+		server_stop(app.server);
+	}
+}
 
-	app.running = false;
-	_log(LVL_INFO, "Stopping server ...\n");
-	server_stop(app.server);
+void init_signals_handler()
+{
+	_log(LVL_DEBUG, "Initializing signal handlers ... \n");
+	//Initialize interrupts handlers
+	signal(SIGINT,  &sig_interrupt);
+	signal(SIGTERM, &sig_interrupt);
+
+#ifndef __MINGW32__
+	//These signals don't exists with MinGW
+	signal(SIGQUIT, &sig_interrupt);
+	signal(SIGPIPE, &sig_broken_pipe);
+#endif
 }
 
 void daemonize()
@@ -81,6 +109,37 @@ void daemonize()
 #endif
 }
 
+void angelize()
+{
+#ifndef __MINGW32__
+	i_am_angel = true;
+	angel_running = true;
+	_log(LVL_INFO, "Angel started with PID %d\n", getpid());
+	while(angel_running && ((child_pid = fork()) != 0))
+	{
+		int status;
+		waitpid(child_pid, &status, 0);
+		if(WIFSIGNALED(status))
+		{
+			if(WCOREDUMP(status))
+			{
+				_log(LVL_FATAL, "\n");
+				_log(LVL_FATAL, "#######################\n");
+				_log(LVL_FATAL, "# !!! CORE DUMPED !!! #\n");
+				_log(LVL_FATAL, "#######################\n");
+				_log(LVL_FATAL, "\n");
+			}
+		}
+	}
+	if(child_pid == 0)
+		i_am_angel = false;
+	else
+		exit(0);
+#else
+	_log(LVL_WARNING, "Cannot angelize in Windows\n");
+#endif
+}
+
 void usage(char* bin_name)
 {
 	printf("\nUSAGE : %s [options]\n\n", bin_name);
@@ -89,6 +148,7 @@ void usage(char* bin_name)
 	printf("\t -l <log_file> : Specify the file to log messages in (default is stdout)\n");
 #ifndef __MINGW32__
 	printf("\t -d : Daemonize process\n");
+	printf("\t -a : Start an angel process\n");
 #endif
 	printf("\t -h : Print this help\n");
 	printf("\n");
@@ -105,6 +165,7 @@ int main(int argc, char* argv[])
 	char* config_file = "config.cfg";
 	char* log_file = NULL;
 	bool daemon = false;
+	bool angel = false;
 
 	if(argc > 1)
 	{
@@ -118,6 +179,8 @@ int main(int argc, char* argv[])
 #ifndef __MINGW32__
 			else if(strcmp(argv[i], "-d") == 0)
 				daemon = true;
+			else if(strcmp(argv[i], "-a") == 0)
+				angel = true;
 #endif
 			else if(strcmp(argv[i], "-h") == 0)
 				usage(argv[0]);
@@ -130,28 +193,21 @@ int main(int argc, char* argv[])
 	}
 
 	_log_init(log_file);
-	_log(LVL_INFO, "Starting server ... \n");
+	init_signals_handler();
 
 	if(daemon)
 		daemonize();
+	if(angel)
+		angelize();
 
-	pid_t pid = getpid();
-	_log(LVL_INFO, "Application's PID is %d\n", pid);
+
+	_log(LVL_INFO, "\nStarting server ... \n");
+
+	_log(LVL_INFO, "Application's PID is %d\n", getpid());
 
 	_log(LVL_INFO, "Loading settings ... \n");
 	app.config = malloc(sizeof(config_t));
 	config_load(app.config, config_file);
-
-	_log(LVL_DEBUG, "Initializing signal handlers ... \n");
-	//Initialize interrupts handlers
-	signal(SIGINT,  &sig_interrupt);
-	signal(SIGTERM, &sig_interrupt);
-
-#ifndef __MINGW32__
-	//These signals don't exists with MinGW
-	signal(SIGQUIT, &sig_interrupt);
-	signal(SIGPIPE, &sig_broken_pipe);
-#endif
 
 	app.running = true;
 
