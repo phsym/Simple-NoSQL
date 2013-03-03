@@ -73,7 +73,9 @@ void sig_interrupt(int signal)
 	{
 		_log(LVL_INFO, "Angel interrupted by signal. Relaying to child %d\n", child_pid);
 		angel_running = false;
+#ifndef __MINGW32__
 		kill(child_pid, signal);
+#endif
 	}
 	else
 	{
