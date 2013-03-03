@@ -122,6 +122,7 @@ void intern_load_storages(dbs_t* dbs)
 
 int intern_create_new_db(dbs_t* dbs, char* dbname, char* store_size, char* index_len)
 {
+	_log(LVL_INFO, "Creating db %s\n", dbname);
 	datastore_t * store = ht_get(dbs->storages, dbname);
 	if(store != NULL)
 	{
@@ -133,7 +134,7 @@ int intern_create_new_db(dbs_t* dbs, char* dbname, char* store_size, char* index
 		store = datastore_create(dbname, strtoul(store_size, NULL, 10), strtoul(index_len, NULL, 10));
 		if(store != NULL)
 		{
-			_log(LVL_INFO, "Creating db %s\n", dbname);
+			_log(LVL_INFO, "Created db %s\n", dbname);
 			char* db_names = datastore_lookup(dbs->intern_db, INT_DB_LIST);
 			if(db_names == NULL)
 			{
