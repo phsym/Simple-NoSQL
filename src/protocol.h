@@ -50,6 +50,7 @@
 #define OP_PASSWD	15
 #define OP_USER		16
 #define OP_DUMP		17
+#define OP_EXISTS	18
 
 #define CF_NONE 		0
 #define CF_READ 		1
@@ -122,5 +123,6 @@ void do_passwd(request_t* req);
 void do_db(request_t* req);
 void do_user(request_t* req);
 void do_dump(request_t* req);
+void do_exists(request_t* req);
 
 #endif /* PROTOCOL_H_ */

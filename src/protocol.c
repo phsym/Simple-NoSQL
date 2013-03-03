@@ -59,7 +59,8 @@ cmd_t commands[] = {
 	{"db",		OP_DB,		CF_NONE,				1,	&do_db,		"DB selection"},
 	{"passwd",	OP_PASSWD,	CF_NONE,				1,	&do_passwd,	"Change user password"},
 	{"user",	OP_USER,	CF_ADMIN,				1,	&do_user,	"User account administration"},
-	{"dump",	OP_DUMP,	CF_ADMIN|CF_READ,		0,	&do_dump,	"Dump  the current or all databases"}
+	{"dump",	OP_DUMP,	CF_ADMIN|CF_READ,		0,	&do_dump,	"Dump  the current or all databases"},
+	{"exists",	OP_EXISTS,	CF_READ,				1,	&do_exists,	"Check entry existency"}
 };
 
 void protocol_init()
@@ -444,4 +445,12 @@ void do_dump(request_t* req)
 		free(value);
 	}
 	req->reply.rc = 0;
+}
+
+void do_exists(request_t* req)
+{
+	if(datastore_exists(req->client->datastore, req->argv[0]))
+		req->reply.rc = 0;
+	else
+		req->reply.rc = -1;
 }
