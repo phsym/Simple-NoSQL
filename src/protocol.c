@@ -187,14 +187,18 @@ void encode_reply(request_t* req, char* buff, int buff_len)
 				free(req->reply.value);
 				break;
 			case OP_HELP:
-			case OP_CLIENT:
 			case OP_DUMP:
 			case OP_LIST:
 				strcat(buff, req->reply.message);
 				free(req->reply.message);
 				break;
+			case OP_CLIENT:
 			case OP_TIME:
 			case OP_COUNT:
+				strcat(buff, req->reply.message);
+				strcat(buff, "\r\n");
+				free(req->reply.message);
+				break;
 			case OP_PING:
 			case OP_QUIT:
 				strcat(buff, req->reply.message);
@@ -343,7 +347,11 @@ void do_time(request_t* req)
 {
 	req->reply.message = malloc(TIME_STRLEN);
 	get_current_time_string(req->reply.message, TIME_STRLEN);
-	req->reply.rc = 0;
+	if(req->argc > 0)
+	{
+		//If an argument is given, store the time in the corresponding entry
+		req->reply.rc = datastore_set(req->client->datastore, req->argv[0], req->reply.message);
+	}
 }
 
 void do_ping(request_t* req)
@@ -369,7 +377,7 @@ void do_client(request_t* req)
 				its_me = "*";
 			datastore_t* db = cli->datastore;
 			char* us = cli->username;
-			sprintf(buff, " %s %d : %s:%d u:%s db:%s\r\n", its_me, i, cli->address, cli->port, (us != NULL ? us : "none"), (db != NULL ? db->name : "none"));
+			sprintf(buff, " %s %d : %s:%d u:%s db:%s", its_me, i, cli->address, cli->port, (us != NULL ? us : "none"), (db != NULL ? db->name : "none"));
 			strcat(req->reply.message, buff);
 		}
 	}
