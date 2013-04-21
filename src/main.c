@@ -59,28 +59,28 @@ typedef struct{
 	char* log_file;
 	bool daemon;
 	bool angel;
-}Options;
+}arguments_t;
 
 enum opt_type {
 	BOOLEA, TEXT, HELP
 };
 
-typedef struct Opt {
+typedef struct {
 	char* opt;
 	char* help;
 	enum opt_type type;
 	char* arg_name;
 	void* var;
-}Opt;
+}argument_info_t;
 
 Application app;
-Options opt;
+arguments_t opt;
 
 bool i_am_angel;
 pid_t child_pid;
 bool angel_running;
 
-const Opt opt_list[] = {
+const argument_info_t opt_list[] = {
 		{"-c", "Specify the config file to use (default is ./config.cfg)", TEXT, "config_file", &opt.config_file},
 		{"-l", "Specify the file to log messages in (default is stdout)", TEXT, "log_file", &opt.log_file},
 #ifndef __MINGW32__
@@ -172,12 +172,12 @@ void angelize()
 void usage(char* bin_name)
 {
 	int i;
-	int n = sizeof(opt_list) / sizeof(Opt);
+	int n = sizeof(opt_list) / sizeof(argument_info_t);
 	printf("\nUSAGE : %s [options]\n\n", bin_name);
 	printf("Options :\n");
 	for(i = 0; i < n; i++)
 	{
-		Opt opt = opt_list[i];
+		argument_info_t opt = opt_list[i];
 		printf("\t %s ", opt.opt);
 		if(opt.arg_name != NULL)
 			printf("<%s> ", opt.arg_name);
@@ -201,7 +201,7 @@ void parse_arguments (int argc, char* argv[])
 	if(argc > 1)
 	{
 		int i, j;
-		int n = sizeof(opt_list) / sizeof(Opt);
+		int n = sizeof(opt_list) / sizeof(argument_info_t);
 		for(i = 1; i < argc; i++)
 		{
 			char* arg = argv[i];
@@ -209,7 +209,7 @@ void parse_arguments (int argc, char* argv[])
 			{
 				if(strcmp(opt_list[j].opt, arg) == 0)
 				{
-					Opt opt = opt_list[j];
+					argument_info_t opt = opt_list[j];
 					switch(opt.type)
 					{
 					case BOOLEA:
