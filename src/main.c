@@ -54,11 +54,41 @@ typedef struct {
 	config_t* config;
 }Application;
 
+typedef struct{
+	char* config_file;
+	char* log_file;
+	bool daemon;
+	bool angel;
+}Options;
+
+enum opt_type {
+	BOOLEAN, TEXT, HELP
+};
+
+typedef struct Opt {
+	char* opt;
+	char* help;
+	enum opt_type type;
+	char* arg_name;
+	void* var;
+}Opt;
+
 Application app;
+Options opt;
 
 bool i_am_angel;
 pid_t child_pid;
 bool angel_running;
+
+const Opt opt_list[] = {
+		{"-c", "Specify the config file to use (default is ./config.cfg)", TEXT, "config_file", &(opt.config_file)},
+		{"-l", "Specify the file to log messages in (default is stdout)", TEXT, "log_file", &(opt.log_file)},
+#ifndef __MINGW32__
+		{"-d", "Daemonize process", BOOLEAN, NULL, &opt.daemon},
+		{"-a", "Start an angel process", BOOLEAN, NULL, &opt.angel},
+#endif
+		{"-h", "Print this help", HELP, NULL, NULL}
+};
 
 void sig_broken_pipe(int signal)
 {
@@ -141,17 +171,68 @@ void angelize()
 
 void usage(char* bin_name)
 {
+	int i;
+	int n = sizeof(opt_list) / sizeof(Opt);
 	printf("\nUSAGE : %s [options]\n\n", bin_name);
 	printf("Options :\n");
-	printf("\t -c <config_file> : Specify the config file to use (default is ./config.cfg)\n");
-	printf("\t -l <log_file> : Specify the file to log messages in (default is stdout)\n");
-#ifndef __MINGW32__
-	printf("\t -d : Daemonize process\n");
-	printf("\t -a : Start an angel process\n");
-#endif
-	printf("\t -h : Print this help\n");
+	for(i = 0; i < n; i++)
+	{
+		Opt opt = opt_list[i];
+		printf("\t %s ", opt.opt);
+		if(opt.arg_name != NULL)
+			printf("<%s> ", opt.arg_name);
+		if(opt.help != NULL)
+			printf(": %s ", opt.help);
+		printf("\n");
+	}
 	printf("\n");
 	exit(-1);
+}
+
+void parse_arguments (int argc, char* argv[])
+{
+	// Default values
+	opt.config_file = "config.cfg";
+	opt.log_file = NULL;
+	opt.daemon = false;
+	opt.angel = false;
+
+	// Parse command line arguments
+	if(argc > 1)
+	{
+		int i, j;
+		int n = sizeof(opt_list) / sizeof(Opt);
+		for(i = 1; i < argc; i++)
+		{
+			char* arg = argv[i];
+			for(j = 0; j < n; j++)
+			{
+				if(strcmp(opt_list[j].opt, arg) == 0)
+				{
+					Opt opt = opt_list[j];
+					switch(opt.type)
+					{
+					case BOOLEAN:
+						*((bool*)opt.var) = true;
+						break;
+					case TEXT:
+						if((opt.var != NULL) && (i < argc -1 ))
+							*((char**)opt.var) = argv[++i];
+						break;
+					case HELP:
+						usage(argv[0]);
+						break;
+					}
+					break;
+				}
+			}
+			if(j >= n)
+			{
+				fprintf(stderr, "Wrong argument %s\n", argv[i]);
+				usage(argv[0]);
+			}
+		}
+	}
 }
 
 int main(int argc, char* argv[])
@@ -161,42 +242,14 @@ int main(int argc, char* argv[])
 //		printf ("%d : \033[%d;01mBonjour\033[00m\n", r, r);
 //	exit(0);
 
-	char* config_file = "config.cfg";
-	char* log_file = NULL;
-	bool daemon = false;
-	bool angel = false;
+	parse_arguments(argc, argv);
 
-	if(argc > 1)
-	{
-		int i;
-		for (i = 1; i < argc; i++)
-		{
-			if((strcmp(argv[i], "-c") == 0) && (i < argc -1 ))
-				config_file = argv[++i];
-			else if((strcmp(argv[i], "-l") == 0) && (i < argc - 1))
-				log_file = argv[++i];
-#ifndef __MINGW32__
-			else if(strcmp(argv[i], "-d") == 0)
-				daemon = true;
-			else if(strcmp(argv[i], "-a") == 0)
-				angel = true;
-#endif
-			else if(strcmp(argv[i], "-h") == 0)
-				usage(argv[0]);
-			else
-			{
-				fprintf(stderr, "Wrong argument %s\n", argv[i]);
-				usage(argv[0]);
-			}
-		}
-	}
-
-	_log_init(log_file);
+	_log_init(opt.log_file);
 	init_signals_handler();
 
-	if(daemon)
+	if(opt.daemon)
 		daemonize();
-	if(angel)
+	if(opt.angel)
 		angelize();
 
 
@@ -206,7 +259,7 @@ int main(int argc, char* argv[])
 
 	_log(LVL_INFO, "Loading settings ... \n");
 	app.config = malloc(sizeof(config_t));
-	config_load(app.config, config_file);
+	config_load(app.config, opt.config_file);
 
 	app.running = true;
 
