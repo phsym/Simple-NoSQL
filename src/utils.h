@@ -37,10 +37,15 @@
 #define MAX(a,b) (a > b ? a : b)
 #define MIN(a,b) (a < b ? a : b)
 
-#define false 0x00
-#define true 0xFF
+//#define false 0x00
+//#define true 0xFF
+//
+//typedef unsigned char bool;
 
-typedef unsigned char bool;
+typedef enum bool {
+	false = 0x00,
+	true = 0xFF
+}bool;
 
 typedef enum DBG_LVL{
 	LVL_NONE = 0,
