@@ -179,7 +179,6 @@ void encode_reply(request_t* req, char* buff, int buff_len)
 	buff[0] = '\0';
 	if(req->reply.rc == 0)
 	{
-		strcat(buff, "OK\r\n");
 		switch(req->op)
 		{
 			case OP_GET:
@@ -188,15 +187,14 @@ void encode_reply(request_t* req, char* buff, int buff_len)
 				free(req->reply.value);
 				break;
 			case OP_HELP:
-			case OP_COUNT:
-			case OP_TIME:
 			case OP_CLIENT:
 			case OP_DUMP:
 			case OP_LIST:
 				strcat(buff, req->reply.message);
-				strcat(buff, "\r\n");
 				free(req->reply.message);
 				break;
+			case OP_TIME:
+			case OP_COUNT:
 			case OP_PING:
 			case OP_QUIT:
 				strcat(buff, req->reply.message);
@@ -205,12 +203,13 @@ void encode_reply(request_t* req, char* buff, int buff_len)
 			default:
 				break;
 		}
+		strcat(buff, "OK\r\n");
 	}
 	else
 	{
-		strcat(buff, "KO\r\n");
 		strcat(buff,  req->reply.message);
 		strcat(buff, "\r\n");
+		strcat(buff, "KO\r\n");
 	}
 }
 
@@ -244,7 +243,7 @@ void do_list(request_t* req)
 	// TODO : filtering
 	datastore_list_keys(req->client->datastore, keys, n);
 	size_t size = n*(1024)*sizeof(char);
-	size = size>0 ? size : 1;
+	size = size > 0 ? size : 1;
 	req->reply.message = malloc(size);
 	memset(req->reply.message, '\0', size);
 	int i;

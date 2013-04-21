@@ -72,7 +72,7 @@ datastore_t* datastore_create(char* name, uint64_t storage_size, uint64_t index_
 				fflush(stdout);
 			}
 			tmp = table_get_block(store->data_table, i);
-			if(tmp != NULL)
+			if(tmp != NULL && (tmp->flag & FLAG_HEAD))
 			{
 				while((tmp->flag & FLAG_END) == 0)
 					tmp = table_get_block(store->data_table, tmp->ind);
