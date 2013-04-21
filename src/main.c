@@ -62,7 +62,7 @@ typedef struct{
 }Options;
 
 enum opt_type {
-	BOOLEAN, TEXT, HELP
+	BOOLEA, TEXT, HELP
 };
 
 typedef struct Opt {
@@ -81,11 +81,11 @@ pid_t child_pid;
 bool angel_running;
 
 const Opt opt_list[] = {
-		{"-c", "Specify the config file to use (default is ./config.cfg)", TEXT, "config_file", &(opt.config_file)},
-		{"-l", "Specify the file to log messages in (default is stdout)", TEXT, "log_file", &(opt.log_file)},
+		{"-c", "Specify the config file to use (default is ./config.cfg)", TEXT, "config_file", &opt.config_file},
+		{"-l", "Specify the file to log messages in (default is stdout)", TEXT, "log_file", &opt.log_file},
 #ifndef __MINGW32__
-		{"-d", "Daemonize process", BOOLEAN, NULL, &opt.daemon},
-		{"-a", "Start an angel process", BOOLEAN, NULL, &opt.angel},
+		{"-d", "Daemonize process", BOOLEA, NULL, &opt.daemon},
+		{"-a", "Start an angel process", BOOLEA, NULL, &opt.angel},
 #endif
 		{"-h", "Print this help", HELP, NULL, NULL}
 };
@@ -212,7 +212,7 @@ void parse_arguments (int argc, char* argv[])
 					Opt opt = opt_list[j];
 					switch(opt.type)
 					{
-					case BOOLEAN:
+					case BOOLEA:
 						*((bool*)opt.var) = true;
 						break;
 					case TEXT:
