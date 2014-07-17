@@ -1,3 +1,4 @@
+[![Build Status](https://travis-ci.org/phsym/Simple-NoSQL.svg?branch=master)](https://travis-ci.org/phsym/Simple-NoSQL)
 Simple-NoSQL
 ============
 
