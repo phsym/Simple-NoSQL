@@ -1,0 +1,5 @@
+language: v
+compiler:
+  - gcc
+  - clang
+script: make
