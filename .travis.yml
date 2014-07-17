@@ -1,4 +1,4 @@
-language: v
+language: c
 compiler:
   - gcc
   - clang
